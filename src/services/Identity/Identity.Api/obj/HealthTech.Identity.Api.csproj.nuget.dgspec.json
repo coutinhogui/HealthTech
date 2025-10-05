@@ -1,0 +1,460 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Api\\HealthTech.Identity.Api.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\Abstractions\\HealthTech.BuildingBlocks.Abstractions.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\Abstractions\\HealthTech.BuildingBlocks.Abstractions.csproj",
+        "projectName": "HealthTech.BuildingBlocks.Abstractions",
+        "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\Abstractions\\HealthTech.BuildingBlocks.Abstractions.csproj",
+        "packagesPath": "C:\\Users\\couti\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\Abstractions\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\couti\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\SharedKernel\\HealthTech.BuildingBlocks.SharedKernel.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\SharedKernel\\HealthTech.BuildingBlocks.SharedKernel.csproj",
+        "projectName": "HealthTech.BuildingBlocks.SharedKernel",
+        "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\SharedKernel\\HealthTech.BuildingBlocks.SharedKernel.csproj",
+        "packagesPath": "C:\\Users\\couti\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\SharedKernel\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\couti\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Api\\HealthTech.Identity.Api.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Api\\HealthTech.Identity.Api.csproj",
+        "projectName": "HealthTech.Identity.Api",
+        "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Api\\HealthTech.Identity.Api.csproj",
+        "packagesPath": "C:\\Users\\couti\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Api\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\couti\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Application\\HealthTech.Identity.Application.csproj": {
+                "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Application\\HealthTech.Identity.Application.csproj"
+              },
+              "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Domain\\HealthTech.Identity.Domain.csproj": {
+                "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Domain\\HealthTech.Identity.Domain.csproj"
+              },
+              "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Infrastructure\\HealthTech.Identity.Infrastructure.csproj": {
+                "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Infrastructure\\HealthTech.Identity.Infrastructure.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "FluentValidation": {
+              "target": "Package",
+              "version": "[12.0.0, )"
+            },
+            "MediatR": {
+              "target": "Package",
+              "version": "[13.0.0, )"
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Microsoft.AspNetCore.OpenApi": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "OpenTelemetry.Exporter.Console": {
+              "target": "Package",
+              "version": "[1.13.0, )"
+            },
+            "OpenTelemetry.Extensions.Hosting": {
+              "target": "Package",
+              "version": "[1.13.0, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[9.0.6, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Application\\HealthTech.Identity.Application.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Application\\HealthTech.Identity.Application.csproj",
+        "projectName": "HealthTech.Identity.Application",
+        "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Application\\HealthTech.Identity.Application.csproj",
+        "packagesPath": "C:\\Users\\couti\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Application\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\couti\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\Abstractions\\HealthTech.BuildingBlocks.Abstractions.csproj": {
+                "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\Abstractions\\HealthTech.BuildingBlocks.Abstractions.csproj"
+              },
+              "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\SharedKernel\\HealthTech.BuildingBlocks.SharedKernel.csproj": {
+                "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\SharedKernel\\HealthTech.BuildingBlocks.SharedKernel.csproj"
+              },
+              "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Domain\\HealthTech.Identity.Domain.csproj": {
+                "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Domain\\HealthTech.Identity.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "FluentValidation": {
+              "target": "Package",
+              "version": "[12.0.0, )"
+            },
+            "MediatR": {
+              "target": "Package",
+              "version": "[13.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Domain\\HealthTech.Identity.Domain.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Domain\\HealthTech.Identity.Domain.csproj",
+        "projectName": "HealthTech.Identity.Domain",
+        "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Domain\\HealthTech.Identity.Domain.csproj",
+        "packagesPath": "C:\\Users\\couti\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Domain\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\couti\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\SharedKernel\\HealthTech.BuildingBlocks.SharedKernel.csproj": {
+                "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\SharedKernel\\HealthTech.BuildingBlocks.SharedKernel.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Infrastructure\\HealthTech.Identity.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Infrastructure\\HealthTech.Identity.Infrastructure.csproj",
+        "projectName": "HealthTech.Identity.Infrastructure",
+        "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Infrastructure\\HealthTech.Identity.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\couti\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Infrastructure\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\couti\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\Abstractions\\HealthTech.BuildingBlocks.Abstractions.csproj": {
+                "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\building-blocks\\Abstractions\\HealthTech.BuildingBlocks.Abstractions.csproj"
+              },
+              "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Domain\\HealthTech.Identity.Domain.csproj": {
+                "projectPath": "C:\\Users\\couti\\Downloads\\exemplo\\src\\services\\Identity\\Identity.Domain\\HealthTech.Identity.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.66, )"
+            },
+            "Microsoft.Extensions.Configuration.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Microsoft.Extensions.Options.ConfigurationExtensions": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Npgsql": {
+              "target": "Package",
+              "version": "[9.0.3, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

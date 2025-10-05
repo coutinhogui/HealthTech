@@ -1,0 +1,58 @@
+﻿@page "/login"
+@inject HealthTech.AppShell.Services.SupabaseAuthService Auth
+@inject IHttpClientFactory HttpClientFactory
+@using System.Net.Http.Json
+
+<h3>Login</h3>
+
+@if (!string.IsNullOrWhiteSpace(Error))
+{
+    <p style="color:red">@Error</p>
+}
+
+<input @bind="Email" placeholder="email" />
+<br />
+<input @bind="Password" type="password" placeholder="senha" />
+<br />
+<button @onclick="DoLogin">Entrar</button>
+
+@if (UserEmail is not null)
+{
+    <p>Logado como: @UserEmail</p>
+    <button @onclick="CallProtected">Chamar API protegida (WhoAmI)</button>
+
+    <p>@ApiResponse</p>
+}
+
+@code {
+    string Email { get; set; } = "";
+    string Password { get; set; } = "";
+    string? UserEmail { get; set; }
+    string? ApiResponse { get; set; }
+    string? Error { get; set; }
+
+    private async Task DoLogin()
+    {
+        Error = null;
+        try
+        {
+            var user = await Auth.SignInAsync(Email, Password);
+            UserEmail = user?.Email;
+
+            if (UserEmail is null)
+                Error = "Falha no login";
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+        }
+    }
+
+    private async Task CallProtected()
+    {
+        var client = HttpClientFactory.CreateClient("IdentityApi");
+        // BearerAuthorizationMessageHandler injeta o token automaticamente
+        var result = await client.GetFromJsonAsync<object>("api/whoami");
+        ApiResponse = System.Text.Json.JsonSerializer.Serialize(result);
+    }
+}
