@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Coutinho")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e96b987bcc45a3f0376a184181c7c3fbbc5da782")]
 [assembly: System.Reflection.AssemblyProductAttribute("HealthTech.Appointments.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HealthTech.Appointments.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

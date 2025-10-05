@@ -108,17 +108,19 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 
 ```mermaid
 flowchart LR
-  U[Usuário (Paciente/Recepção/Profissional)] -->|HTTP/HTTPS| F[Blazor App]
-  F -->|JWT (Supabase)| G[API Gateway]
-  G --> I[Identity API (.NET)]
-  G --> P[Patients API (.NET)]
-  G --> S[Scheduling API (.NET)]
-  G --> C[Plans API (.NET)]
+  U["Usuário (Paciente / Recepção / Profissional)"] -->|"HTTP / HTTPS"| F["Blazor App"]
+  F -->|"JWT via Supabase"| G["API Gateway"]
+  G --> I["Identity API (.NET)"]
+  G --> P["Patients API (.NET)"]
+  G --> S["Scheduling API (.NET)"]
+  G --> C["Plans API (.NET)"]
+
   subgraph Supabase
     DB[(Postgres)]
     ST[(Storage)]
-    AU[Auth]
+    AU[(Auth)]
   end
+
   I --- AU
   P --- DB
   S --- DB
