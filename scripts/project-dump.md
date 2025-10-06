@@ -1,104 +1,105 @@
-# Project Dump (2025-10-05 16:32:20)
+# Project Dump (2025-10-05 22:04:27)
 
 <details><summary><strong>📁 Índice</strong></summary>
 
-- [1. .\Directory.Build.props](#001---Directory-Build-props.ToLower())
-- [2. .\dumpScript.ps1](#002---dumpScript-ps1.ToLower())
-- [3. .\healthtech_bootstrap.ps1](#003---healthtech_bootstrap-ps1.ToLower())
-- [4. .\HealthTech.sln](#004---HealthTech-sln.ToLower())
-- [5. .\src\apphost\appsettings.json](#005---src-apphost-appsettings-json.ToLower())
-- [6. .\src\apphost\HealthTech.AppHost.csproj](#006---src-apphost-HealthTech-AppHost-csproj.ToLower())
-- [7. .\src\apphost\Program.cs](#007---src-apphost-Program-cs.ToLower())
-- [8. .\src\apphost\Properties\launchSettings.json](#008---src-apphost-Properties-launchSettings-json.ToLower())
-- [9. .\src\building-blocks\Abstractions\Class1.cs](#009---src-building-blocks-Abstractions-Class1-cs.ToLower())
-- [10. .\src\building-blocks\Abstractions\HealthTech.BuildingBlocks.Abstractions.csproj](#010---src-building-blocks-Abstractions-HealthTech-BuildingBlocks-Abstractions-csproj.ToLower())
-- [11. .\src\building-blocks\SharedKernel\Class1.cs](#011---src-building-blocks-SharedKernel-Class1-cs.ToLower())
-- [12. .\src\building-blocks\SharedKernel\HealthTech.BuildingBlocks.SharedKernel.csproj](#012---src-building-blocks-SharedKernel-HealthTech-BuildingBlocks-SharedKernel-csproj.ToLower())
-- [13. .\src\frontends\app-shell\_Imports.razor](#013---src-frontends-app-shell-_Imports-razor.ToLower())
-- [14. .\src\frontends\app-shell\App.razor](#014---src-frontends-app-shell-App-razor.ToLower())
-- [15. .\src\frontends\app-shell\appsettings.json](#015---src-frontends-app-shell-appsettings-json.ToLower())
-- [16. .\src\frontends\app-shell\HealthTech.AppShell.csproj](#016---src-frontends-app-shell-HealthTech-AppShell-csproj.ToLower())
-- [17. .\src\frontends\app-shell\Layout\MainLayout.razor](#017---src-frontends-app-shell-Layout-MainLayout-razor.ToLower())
-- [18. .\src\frontends\app-shell\Layout\NavMenu.razor](#018---src-frontends-app-shell-Layout-NavMenu-razor.ToLower())
-- [19. .\src\frontends\app-shell\Pages\Counter.razor](#019---src-frontends-app-shell-Pages-Counter-razor.ToLower())
-- [20. .\src\frontends\app-shell\Pages\Home.razor](#020---src-frontends-app-shell-Pages-Home-razor.ToLower())
-- [21. .\src\frontends\app-shell\Pages\Login.razor](#021---src-frontends-app-shell-Pages-Login-razor.ToLower())
-- [22. .\src\frontends\app-shell\Pages\Weather.razor](#022---src-frontends-app-shell-Pages-Weather-razor.ToLower())
-- [23. .\src\frontends\app-shell\Program.cs](#023---src-frontends-app-shell-Program-cs.ToLower())
-- [24. .\src\frontends\app-shell\Properties\launchSettings.json](#024---src-frontends-app-shell-Properties-launchSettings-json.ToLower())
-- [25. .\src\frontends\app-shell\Services\BearerAuthorizationMessageHandler.cs](#025---src-frontends-app-shell-Services-BearerAuthorizationMessageHandler-cs.ToLower())
-- [26. .\src\frontends\app-shell\Services\SupabaseAuthService.cs](#026---src-frontends-app-shell-Services-SupabaseAuthService-cs.ToLower())
-- [27. .\src\frontends\app-shell\wwwroot\css\app.css](#027---src-frontends-app-shell-wwwroot-css-app-css.ToLower())
-- [28. .\src\frontends\app-shell\wwwroot\sample-data\weather.json](#028---src-frontends-app-shell-wwwroot-sample-data-weather-json.ToLower())
-- [29. .\src\frontends\mf-appointment\_Imports.razor](#029---src-frontends-mf-appointment-_Imports-razor.ToLower())
-- [30. .\src\frontends\mf-appointment\Component1.razor](#030---src-frontends-mf-appointment-Component1-razor.ToLower())
-- [31. .\src\frontends\mf-appointment\Component1.razor.css](#031---src-frontends-mf-appointment-Component1-razor-css.ToLower())
-- [32. .\src\frontends\mf-appointment\ExampleJsInterop.cs](#032---src-frontends-mf-appointment-ExampleJsInterop-cs.ToLower())
-- [33. .\src\frontends\mf-appointment\HealthTech.mf.appointment.csproj](#033---src-frontends-mf-appointment-HealthTech-mf-appointment-csproj.ToLower())
-- [34. .\src\frontends\mf-appointment\wwwroot\exampleJsInterop.js](#034---src-frontends-mf-appointment-wwwroot-exampleJsInterop-js.ToLower())
-- [35. .\src\frontends\mf-billing\_Imports.razor](#035---src-frontends-mf-billing-_Imports-razor.ToLower())
-- [36. .\src\frontends\mf-billing\Component1.razor](#036---src-frontends-mf-billing-Component1-razor.ToLower())
-- [37. .\src\frontends\mf-billing\Component1.razor.css](#037---src-frontends-mf-billing-Component1-razor-css.ToLower())
-- [38. .\src\frontends\mf-billing\ExampleJsInterop.cs](#038---src-frontends-mf-billing-ExampleJsInterop-cs.ToLower())
-- [39. .\src\frontends\mf-billing\HealthTech.mf.billing.csproj](#039---src-frontends-mf-billing-HealthTech-mf-billing-csproj.ToLower())
-- [40. .\src\frontends\mf-billing\wwwroot\exampleJsInterop.js](#040---src-frontends-mf-billing-wwwroot-exampleJsInterop-js.ToLower())
-- [41. .\src\frontends\mf-ehr\_Imports.razor](#041---src-frontends-mf-ehr-_Imports-razor.ToLower())
-- [42. .\src\frontends\mf-ehr\Component1.razor](#042---src-frontends-mf-ehr-Component1-razor.ToLower())
-- [43. .\src\frontends\mf-ehr\Component1.razor.css](#043---src-frontends-mf-ehr-Component1-razor-css.ToLower())
-- [44. .\src\frontends\mf-ehr\ExampleJsInterop.cs](#044---src-frontends-mf-ehr-ExampleJsInterop-cs.ToLower())
-- [45. .\src\frontends\mf-ehr\HealthTech.mf.ehr.csproj](#045---src-frontends-mf-ehr-HealthTech-mf-ehr-csproj.ToLower())
-- [46. .\src\frontends\mf-ehr\wwwroot\exampleJsInterop.js](#046---src-frontends-mf-ehr-wwwroot-exampleJsInterop-js.ToLower())
-- [47. .\src\frontends\mf-patient\_Imports.razor](#047---src-frontends-mf-patient-_Imports-razor.ToLower())
-- [48. .\src\frontends\mf-patient\Component1.razor](#048---src-frontends-mf-patient-Component1-razor.ToLower())
-- [49. .\src\frontends\mf-patient\Component1.razor.css](#049---src-frontends-mf-patient-Component1-razor-css.ToLower())
-- [50. .\src\frontends\mf-patient\ExampleJsInterop.cs](#050---src-frontends-mf-patient-ExampleJsInterop-cs.ToLower())
-- [51. .\src\frontends\mf-patient\HealthTech.mf.patient.csproj](#051---src-frontends-mf-patient-HealthTech-mf-patient-csproj.ToLower())
-- [52. .\src\frontends\mf-patient\wwwroot\exampleJsInterop.js](#052---src-frontends-mf-patient-wwwroot-exampleJsInterop-js.ToLower())
-- [53. .\src\frontends\ui-kit\_Imports.razor](#053---src-frontends-ui-kit-_Imports-razor.ToLower())
-- [54. .\src\frontends\ui-kit\Component1.razor](#054---src-frontends-ui-kit-Component1-razor.ToLower())
-- [55. .\src\frontends\ui-kit\Component1.razor.css](#055---src-frontends-ui-kit-Component1-razor-css.ToLower())
-- [56. .\src\frontends\ui-kit\ExampleJsInterop.cs](#056---src-frontends-ui-kit-ExampleJsInterop-cs.ToLower())
-- [57. .\src\frontends\ui-kit\HealthTech.ui.kit.csproj](#057---src-frontends-ui-kit-HealthTech-ui-kit-csproj.ToLower())
-- [58. .\src\frontends\ui-kit\wwwroot\exampleJsInterop.js](#058---src-frontends-ui-kit-wwwroot-exampleJsInterop-js.ToLower())
-- [59. .\src\gateway\appsettings.Development.json](#059---src-gateway-appsettings-Development-json.ToLower())
-- [60. .\src\gateway\appsettings.json](#060---src-gateway-appsettings-json.ToLower())
-- [61. .\src\gateway\HealthTech.Gateway.csproj](#061---src-gateway-HealthTech-Gateway-csproj.ToLower())
-- [62. .\src\gateway\Program.cs](#062---src-gateway-Program-cs.ToLower())
-- [63. .\src\gateway\Properties\launchSettings.json](#063---src-gateway-Properties-launchSettings-json.ToLower())
-- [64. .\src\services\Appointments\Appointments.Api\appsettings.Development.json](#064---src-services-Appointments-Appointments-Api-appsettings-Development-json.ToLower())
-- [65. .\src\services\Appointments\Appointments.Api\appsettings.json](#065---src-services-Appointments-Appointments-Api-appsettings-json.ToLower())
-- [66. .\src\services\Appointments\Appointments.Api\HealthTech.Appointments.Api.csproj](#066---src-services-Appointments-Appointments-Api-HealthTech-Appointments-Api-csproj.ToLower())
-- [67. .\src\services\Appointments\Appointments.Api\Program.cs](#067---src-services-Appointments-Appointments-Api-Program-cs.ToLower())
-- [68. .\src\services\Appointments\Appointments.Api\Properties\launchSettings.json](#068---src-services-Appointments-Appointments-Api-Properties-launchSettings-json.ToLower())
-- [69. .\src\services\Appointments\Appointments.Application\Class1.cs](#069---src-services-Appointments-Appointments-Application-Class1-cs.ToLower())
-- [70. .\src\services\Appointments\Appointments.Application\HealthTech.Appointments.Application.csproj](#070---src-services-Appointments-Appointments-Application-HealthTech-Appointments-Application-csproj.ToLower())
-- [71. .\src\services\Appointments\Appointments.Domain\Class1.cs](#071---src-services-Appointments-Appointments-Domain-Class1-cs.ToLower())
-- [72. .\src\services\Appointments\Appointments.Domain\HealthTech.Appointments.Domain.csproj](#072---src-services-Appointments-Appointments-Domain-HealthTech-Appointments-Domain-csproj.ToLower())
-- [73. .\src\services\Appointments\Appointments.Infrastructure\Class1.cs](#073---src-services-Appointments-Appointments-Infrastructure-Class1-cs.ToLower())
-- [74. .\src\services\Appointments\Appointments.Infrastructure\HealthTech.Appointments.Infrastructure.csproj](#074---src-services-Appointments-Appointments-Infrastructure-HealthTech-Appointments-Infrastructure-csproj.ToLower())
-- [75. .\src\services\Identity\Identity.Api\appsettings.Development.json](#075---src-services-Identity-Identity-Api-appsettings-Development-json.ToLower())
-- [76. .\src\services\Identity\Identity.Api\appsettings.json](#076---src-services-Identity-Identity-Api-appsettings-json.ToLower())
-- [77. .\src\services\Identity\Identity.Api\Controllers\WhoAmIController.cs](#077---src-services-Identity-Identity-Api-Controllers-WhoAmIController-cs.ToLower())
-- [78. .\src\services\Identity\Identity.Api\HealthTech.Identity.Api.csproj](#078---src-services-Identity-Identity-Api-HealthTech-Identity-Api-csproj.ToLower())
-- [79. .\src\services\Identity\Identity.Api\Program.cs](#079---src-services-Identity-Identity-Api-Program-cs.ToLower())
-- [80. .\src\services\Identity\Identity.Api\Properties\launchSettings.json](#080---src-services-Identity-Identity-Api-Properties-launchSettings-json.ToLower())
-- [81. .\src\services\Identity\Identity.Application\Class1.cs](#081---src-services-Identity-Identity-Application-Class1-cs.ToLower())
-- [82. .\src\services\Identity\Identity.Application\HealthTech.Identity.Application.csproj](#082---src-services-Identity-Identity-Application-HealthTech-Identity-Application-csproj.ToLower())
-- [83. .\src\services\Identity\Identity.Domain\Class1.cs](#083---src-services-Identity-Identity-Domain-Class1-cs.ToLower())
-- [84. .\src\services\Identity\Identity.Domain\HealthTech.Identity.Domain.csproj](#084---src-services-Identity-Identity-Domain-HealthTech-Identity-Domain-csproj.ToLower())
-- [85. .\src\services\Identity\Identity.Infrastructure\Class1.cs](#085---src-services-Identity-Identity-Infrastructure-Class1-cs.ToLower())
-- [86. .\src\services\Identity\Identity.Infrastructure\HealthTech.Identity.Infrastructure.csproj](#086---src-services-Identity-Identity-Infrastructure-HealthTech-Identity-Infrastructure-csproj.ToLower())
-- [87. .\src\services\Patients\Patients.Api\appsettings.Development.json](#087---src-services-Patients-Patients-Api-appsettings-Development-json.ToLower())
-- [88. .\src\services\Patients\Patients.Api\appsettings.json](#088---src-services-Patients-Patients-Api-appsettings-json.ToLower())
-- [89. .\src\services\Patients\Patients.Api\HealthTech.Patients.Api.csproj](#089---src-services-Patients-Patients-Api-HealthTech-Patients-Api-csproj.ToLower())
-- [90. .\src\services\Patients\Patients.Api\Program.cs](#090---src-services-Patients-Patients-Api-Program-cs.ToLower())
-- [91. .\src\services\Patients\Patients.Api\Properties\launchSettings.json](#091---src-services-Patients-Patients-Api-Properties-launchSettings-json.ToLower())
-- [92. .\src\services\Patients\Patients.Application\Application.cs](#092---src-services-Patients-Patients-Application-Application-cs.ToLower())
-- [93. .\src\services\Patients\Patients.Application\HealthTech.Patients.Application.csproj](#093---src-services-Patients-Patients-Application-HealthTech-Patients-Application-csproj.ToLower())
-- [94. .\src\services\Patients\Patients.Domain\HealthTech.Patients.Domain.csproj](#094---src-services-Patients-Patients-Domain-HealthTech-Patients-Domain-csproj.ToLower())
-- [95. .\src\services\Patients\Patients.Domain\Patient.cs](#095---src-services-Patients-Patients-Domain-Patient-cs.ToLower())
-- [96. .\src\services\Patients\Patients.Infrastructure\HealthTech.Patients.Infrastructure.csproj](#096---src-services-Patients-Patients-Infrastructure-HealthTech-Patients-Infrastructure-csproj.ToLower())
-- [97. .\src\services\Patients\Patients.Infrastructure\Infrastructure.cs](#097---src-services-Patients-Patients-Infrastructure-Infrastructure-cs.ToLower())
+- [Project Dump (2025-10-05 22:04:27)](#project-dump-2025-10-05-220427)
+  - [1. .\\Directory.Build.props](#1-directorybuildprops)
+  - [2. .\\HealthTech.sln](#2-healthtechsln)
+  - [3. .\\scripts\\dumpScript.ps1](#3-scriptsdumpscriptps1)
+  - [4. .\\scripts\\healthtech\_bootstrap.ps1](#4-scriptshealthtech_bootstrapps1)
+  - [5. .\\src\\apphost\\appsettings.json](#5-srcapphostappsettingsjson)
+  - [6. .\\src\\apphost\\HealthTech.AppHost.csproj](#6-srcapphosthealthtechapphostcsproj)
+  - [7. .\\src\\apphost\\Program.cs](#7-srcapphostprogramcs)
+  - [8. .\\src\\apphost\\Properties\\launchSettings.json](#8-srcapphostpropertieslaunchsettingsjson)
+  - [9. .\\src\\building-blocks\\Abstractions\\Class1.cs](#9-srcbuilding-blocksabstractionsclass1cs)
+  - [10. .\\src\\building-blocks\\Abstractions\\HealthTech.BuildingBlocks.Abstractions.csproj](#10-srcbuilding-blocksabstractionshealthtechbuildingblocksabstractionscsproj)
+  - [11. .\\src\\building-blocks\\SharedKernel\\Class1.cs](#11-srcbuilding-blockssharedkernelclass1cs)
+  - [12. .\\src\\building-blocks\\SharedKernel\\HealthTech.BuildingBlocks.SharedKernel.csproj](#12-srcbuilding-blockssharedkernelhealthtechbuildingblockssharedkernelcsproj)
+  - [13. .\\src\\frontends\\app-shell\_Imports.razor](#13-srcfrontendsapp-shell_importsrazor)
+  - [14. .\\src\\frontends\\app-shell\\App.razor](#14-srcfrontendsapp-shellapprazor)
+  - [15. .\\src\\frontends\\app-shell\\appsettings.json](#15-srcfrontendsapp-shellappsettingsjson)
+  - [16. .\\src\\frontends\\app-shell\\HealthTech.AppShell.csproj](#16-srcfrontendsapp-shellhealthtechappshellcsproj)
+  - [17. .\\src\\frontends\\app-shell\\Layout\\MainLayout.razor](#17-srcfrontendsapp-shelllayoutmainlayoutrazor)
+  - [18. .\\src\\frontends\\app-shell\\Layout\\NavMenu.razor](#18-srcfrontendsapp-shelllayoutnavmenurazor)
+  - [19. .\\src\\frontends\\app-shell\\Pages\\Counter.razor](#19-srcfrontendsapp-shellpagescounterrazor)
+  - [20. .\\src\\frontends\\app-shell\\Pages\\Home.razor](#20-srcfrontendsapp-shellpageshomerazor)
+  - [21. .\\src\\frontends\\app-shell\\Pages\\Login.razor](#21-srcfrontendsapp-shellpagesloginrazor)
+  - [22. .\\src\\frontends\\app-shell\\Pages\\Weather.razor](#22-srcfrontendsapp-shellpagesweatherrazor)
+  - [23. .\\src\\frontends\\app-shell\\Program.cs](#23-srcfrontendsapp-shellprogramcs)
+  - [24. .\\src\\frontends\\app-shell\\Properties\\launchSettings.json](#24-srcfrontendsapp-shellpropertieslaunchsettingsjson)
+  - [25. .\\src\\frontends\\app-shell\\Services\\BearerAuthorizationMessageHandler.cs](#25-srcfrontendsapp-shellservicesbearerauthorizationmessagehandlercs)
+  - [26. .\\src\\frontends\\app-shell\\Services\\SupabaseAuthService.cs](#26-srcfrontendsapp-shellservicessupabaseauthservicecs)
+  - [27. .\\src\\frontends\\app-shell\\wwwroot\\css\\app.css](#27-srcfrontendsapp-shellwwwrootcssappcss)
+  - [28. .\\src\\frontends\\app-shell\\wwwroot\\sample-data\\weather.json](#28-srcfrontendsapp-shellwwwrootsample-dataweatherjson)
+  - [29. .\\src\\frontends\\mf-appointment\_Imports.razor](#29-srcfrontendsmf-appointment_importsrazor)
+  - [30. .\\src\\frontends\\mf-appointment\\Component1.razor](#30-srcfrontendsmf-appointmentcomponent1razor)
+  - [31. .\\src\\frontends\\mf-appointment\\Component1.razor.css](#31-srcfrontendsmf-appointmentcomponent1razorcss)
+  - [32. .\\src\\frontends\\mf-appointment\\ExampleJsInterop.cs](#32-srcfrontendsmf-appointmentexamplejsinteropcs)
+  - [33. .\\src\\frontends\\mf-appointment\\HealthTech.mf.appointment.csproj](#33-srcfrontendsmf-appointmenthealthtechmfappointmentcsproj)
+  - [34. .\\src\\frontends\\mf-appointment\\wwwroot\\exampleJsInterop.js](#34-srcfrontendsmf-appointmentwwwrootexamplejsinteropjs)
+  - [35. .\\src\\frontends\\mf-billing\_Imports.razor](#35-srcfrontendsmf-billing_importsrazor)
+  - [36. .\\src\\frontends\\mf-billing\\Component1.razor](#36-srcfrontendsmf-billingcomponent1razor)
+  - [37. .\\src\\frontends\\mf-billing\\Component1.razor.css](#37-srcfrontendsmf-billingcomponent1razorcss)
+  - [38. .\\src\\frontends\\mf-billing\\ExampleJsInterop.cs](#38-srcfrontendsmf-billingexamplejsinteropcs)
+  - [39. .\\src\\frontends\\mf-billing\\HealthTech.mf.billing.csproj](#39-srcfrontendsmf-billinghealthtechmfbillingcsproj)
+  - [40. .\\src\\frontends\\mf-billing\\wwwroot\\exampleJsInterop.js](#40-srcfrontendsmf-billingwwwrootexamplejsinteropjs)
+  - [41. .\\src\\frontends\\mf-ehr\_Imports.razor](#41-srcfrontendsmf-ehr_importsrazor)
+  - [42. .\\src\\frontends\\mf-ehr\\Component1.razor](#42-srcfrontendsmf-ehrcomponent1razor)
+  - [43. .\\src\\frontends\\mf-ehr\\Component1.razor.css](#43-srcfrontendsmf-ehrcomponent1razorcss)
+  - [44. .\\src\\frontends\\mf-ehr\\ExampleJsInterop.cs](#44-srcfrontendsmf-ehrexamplejsinteropcs)
+  - [45. .\\src\\frontends\\mf-ehr\\HealthTech.mf.ehr.csproj](#45-srcfrontendsmf-ehrhealthtechmfehrcsproj)
+  - [46. .\\src\\frontends\\mf-ehr\\wwwroot\\exampleJsInterop.js](#46-srcfrontendsmf-ehrwwwrootexamplejsinteropjs)
+  - [47. .\\src\\frontends\\mf-patient\_Imports.razor](#47-srcfrontendsmf-patient_importsrazor)
+  - [48. .\\src\\frontends\\mf-patient\\Component1.razor](#48-srcfrontendsmf-patientcomponent1razor)
+  - [49. .\\src\\frontends\\mf-patient\\Component1.razor.css](#49-srcfrontendsmf-patientcomponent1razorcss)
+  - [50. .\\src\\frontends\\mf-patient\\ExampleJsInterop.cs](#50-srcfrontendsmf-patientexamplejsinteropcs)
+  - [51. .\\src\\frontends\\mf-patient\\HealthTech.mf.patient.csproj](#51-srcfrontendsmf-patienthealthtechmfpatientcsproj)
+  - [52. .\\src\\frontends\\mf-patient\\wwwroot\\exampleJsInterop.js](#52-srcfrontendsmf-patientwwwrootexamplejsinteropjs)
+  - [53. .\\src\\frontends\\ui-kit\_Imports.razor](#53-srcfrontendsui-kit_importsrazor)
+  - [54. .\\src\\frontends\\ui-kit\\Component1.razor](#54-srcfrontendsui-kitcomponent1razor)
+  - [55. .\\src\\frontends\\ui-kit\\Component1.razor.css](#55-srcfrontendsui-kitcomponent1razorcss)
+  - [56. .\\src\\frontends\\ui-kit\\ExampleJsInterop.cs](#56-srcfrontendsui-kitexamplejsinteropcs)
+  - [57. .\\src\\frontends\\ui-kit\\HealthTech.ui.kit.csproj](#57-srcfrontendsui-kithealthtechuikitcsproj)
+  - [58. .\\src\\frontends\\ui-kit\\wwwroot\\exampleJsInterop.js](#58-srcfrontendsui-kitwwwrootexamplejsinteropjs)
+  - [59. .\\src\\gateway\\appsettings.Development.json](#59-srcgatewayappsettingsdevelopmentjson)
+  - [60. .\\src\\gateway\\appsettings.json](#60-srcgatewayappsettingsjson)
+  - [61. .\\src\\gateway\\HealthTech.Gateway.csproj](#61-srcgatewayhealthtechgatewaycsproj)
+  - [62. .\\src\\gateway\\Program.cs](#62-srcgatewayprogramcs)
+  - [63. .\\src\\gateway\\Properties\\launchSettings.json](#63-srcgatewaypropertieslaunchsettingsjson)
+  - [64. .\\src\\services\\Appointments\\Appointments.Api\\appsettings.Development.json](#64-srcservicesappointmentsappointmentsapiappsettingsdevelopmentjson)
+  - [65. .\\src\\services\\Appointments\\Appointments.Api\\appsettings.json](#65-srcservicesappointmentsappointmentsapiappsettingsjson)
+  - [66. .\\src\\services\\Appointments\\Appointments.Api\\HealthTech.Appointments.Api.csproj](#66-srcservicesappointmentsappointmentsapihealthtechappointmentsapicsproj)
+  - [67. .\\src\\services\\Appointments\\Appointments.Api\\Program.cs](#67-srcservicesappointmentsappointmentsapiprogramcs)
+  - [68. .\\src\\services\\Appointments\\Appointments.Api\\Properties\\launchSettings.json](#68-srcservicesappointmentsappointmentsapipropertieslaunchsettingsjson)
+  - [69. .\\src\\services\\Appointments\\Appointments.Application\\Class1.cs](#69-srcservicesappointmentsappointmentsapplicationclass1cs)
+  - [70. .\\src\\services\\Appointments\\Appointments.Application\\HealthTech.Appointments.Application.csproj](#70-srcservicesappointmentsappointmentsapplicationhealthtechappointmentsapplicationcsproj)
+  - [71. .\\src\\services\\Appointments\\Appointments.Domain\\Class1.cs](#71-srcservicesappointmentsappointmentsdomainclass1cs)
+  - [72. .\\src\\services\\Appointments\\Appointments.Domain\\HealthTech.Appointments.Domain.csproj](#72-srcservicesappointmentsappointmentsdomainhealthtechappointmentsdomaincsproj)
+  - [73. .\\src\\services\\Appointments\\Appointments.Infrastructure\\Class1.cs](#73-srcservicesappointmentsappointmentsinfrastructureclass1cs)
+  - [74. .\\src\\services\\Appointments\\Appointments.Infrastructure\\HealthTech.Appointments.Infrastructure.csproj](#74-srcservicesappointmentsappointmentsinfrastructurehealthtechappointmentsinfrastructurecsproj)
+  - [75. .\\src\\services\\Identity\\Identity.Api\\appsettings.Development.json](#75-srcservicesidentityidentityapiappsettingsdevelopmentjson)
+  - [76. .\\src\\services\\Identity\\Identity.Api\\appsettings.json](#76-srcservicesidentityidentityapiappsettingsjson)
+  - [77. .\\src\\services\\Identity\\Identity.Api\\Controllers\\WhoAmIController.cs](#77-srcservicesidentityidentityapicontrollerswhoamicontrollercs)
+  - [78. .\\src\\services\\Identity\\Identity.Api\\HealthTech.Identity.Api.csproj](#78-srcservicesidentityidentityapihealthtechidentityapicsproj)
+  - [79. .\\src\\services\\Identity\\Identity.Api\\Program.cs](#79-srcservicesidentityidentityapiprogramcs)
+  - [80. .\\src\\services\\Identity\\Identity.Api\\Properties\\launchSettings.json](#80-srcservicesidentityidentityapipropertieslaunchsettingsjson)
+  - [81. .\\src\\services\\Identity\\Identity.Application\\Class1.cs](#81-srcservicesidentityidentityapplicationclass1cs)
+  - [82. .\\src\\services\\Identity\\Identity.Application\\HealthTech.Identity.Application.csproj](#82-srcservicesidentityidentityapplicationhealthtechidentityapplicationcsproj)
+  - [83. .\\src\\services\\Identity\\Identity.Domain\\Class1.cs](#83-srcservicesidentityidentitydomainclass1cs)
+  - [84. .\\src\\services\\Identity\\Identity.Domain\\HealthTech.Identity.Domain.csproj](#84-srcservicesidentityidentitydomainhealthtechidentitydomaincsproj)
+  - [85. .\\src\\services\\Identity\\Identity.Infrastructure\\Class1.cs](#85-srcservicesidentityidentityinfrastructureclass1cs)
+  - [86. .\\src\\services\\Identity\\Identity.Infrastructure\\HealthTech.Identity.Infrastructure.csproj](#86-srcservicesidentityidentityinfrastructurehealthtechidentityinfrastructurecsproj)
+  - [87. .\\src\\services\\Patients\\Patients.Api\\appsettings.Development.json](#87-srcservicespatientspatientsapiappsettingsdevelopmentjson)
+  - [88. .\\src\\services\\Patients\\Patients.Api\\appsettings.json](#88-srcservicespatientspatientsapiappsettingsjson)
+  - [89. .\\src\\services\\Patients\\Patients.Api\\HealthTech.Patients.Api.csproj](#89-srcservicespatientspatientsapihealthtechpatientsapicsproj)
+  - [90. .\\src\\services\\Patients\\Patients.Api\\Program.cs](#90-srcservicespatientspatientsapiprogramcs)
+  - [91. .\\src\\services\\Patients\\Patients.Api\\Properties\\launchSettings.json](#91-srcservicespatientspatientsapipropertieslaunchsettingsjson)
+  - [92. .\\src\\services\\Patients\\Patients.Application\\Application.cs](#92-srcservicespatientspatientsapplicationapplicationcs)
+  - [93. .\\src\\services\\Patients\\Patients.Application\\HealthTech.Patients.Application.csproj](#93-srcservicespatientspatientsapplicationhealthtechpatientsapplicationcsproj)
+  - [94. .\\src\\services\\Patients\\Patients.Domain\\HealthTech.Patients.Domain.csproj](#94-srcservicespatientspatientsdomainhealthtechpatientsdomaincsproj)
+  - [95. .\\src\\services\\Patients\\Patients.Domain\\Patient.cs](#95-srcservicespatientspatientsdomainpatientcs)
+  - [96. .\\src\\services\\Patients\\Patients.Infrastructure\\HealthTech.Patients.Infrastructure.csproj](#96-srcservicespatientspatientsinfrastructurehealthtechpatientsinfrastructurecsproj)
+  - [97. .\\src\\services\\Patients\\Patients.Infrastructure\\Infrastructure.cs](#97-srcservicespatientspatientsinfrastructureinfrastructurecs)
 </details>
 
 ## 1. .\Directory.Build.props
@@ -107,8 +108,8 @@
 ```xml
 <Project>
   <PropertyGroup>
-    <Company>Acme</Company>
-    <Authors>Acme</Authors>
+    <Company>Coutinho</Company>
+    <Authors>Guilherme Coutinho</Authors>
     <TargetFramework>net9.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
@@ -120,8 +121,426 @@
 
 ```
 
-## 2. .\dumpScript.ps1
-<a id="002---dumpScript-ps1.ToLower()"></a>
+## 2. .\HealthTech.sln
+<a id="002---HealthTech-sln.ToLower()"></a>
+
+```
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "building-blocks", "building-blocks", "{C13E73B6-616D-3195-CD22-1E55A7D1F969}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedKernel", "SharedKernel", "{0691B57A-016E-CC34-00A2-3232A94D6774}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.BuildingBlocks.SharedKernel", "src\building-blocks\SharedKernel\HealthTech.BuildingBlocks.SharedKernel.csproj", "{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Abstractions", "Abstractions", "{17398E91-D91F-340C-59F4-1EE173D477A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.BuildingBlocks.Abstractions", "src\building-blocks\Abstractions\HealthTech.BuildingBlocks.Abstractions.csproj", "{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{984BB9B3-3FA3-BE33-9484-CAC21695A33C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Patients", "Patients", "{0F7B896F-8F20-A128-DE69-B3ECEFF261A9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Patients.Api", "Patients.Api", "{1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Patients.Api", "src\services\Patients\Patients.Api\HealthTech.Patients.Api.csproj", "{9655DF01-16E3-44E5-AFB2-94555025C6E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Patients.Application", "src\services\Patients\Patients.Application\HealthTech.Patients.Application.csproj", "{CEBE1C78-646E-4A69-B261-414EBAA7459F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Patients.Domain", "src\services\Patients\Patients.Domain\HealthTech.Patients.Domain.csproj", "{352D00C4-135E-4D67-822C-C050A763EDA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Patients.Infrastructure", "src\services\Patients\Patients.Infrastructure\HealthTech.Patients.Infrastructure.csproj", "{874E7206-992C-489F-83F5-3A47D6F9643B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Appointments", "Appointments", "{18CD5D4C-C90B-F91A-C84E-055041F9F9F9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Appointments.Api", "Appointments.Api", "{0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Appointments.Api", "src\services\Appointments\Appointments.Api\HealthTech.Appointments.Api.csproj", "{6EB7CCED-ADFF-4901-966D-69E234C78B29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Appointments.Application", "src\services\Appointments\Appointments.Application\HealthTech.Appointments.Application.csproj", "{A1F171D8-39C5-483D-AC3E-56787B184FFD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Appointments.Domain", "src\services\Appointments\Appointments.Domain\HealthTech.Appointments.Domain.csproj", "{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Appointments.Infrastructure", "src\services\Appointments\Appointments.Infrastructure\HealthTech.Appointments.Infrastructure.csproj", "{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{1BFC9479-12BF-35C3-06B8-42D89D95092B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity.Api", "Identity.Api", "{08275E4F-9D48-4557-7502-064122A05153}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Identity.Api", "src\services\Identity\Identity.Api\HealthTech.Identity.Api.csproj", "{F16924D6-9020-4289-9366-BA1DB28288F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Identity.Application", "src\services\Identity\Identity.Application\HealthTech.Identity.Application.csproj", "{C085460D-4B6E-468B-9BE8-91E42074BF37}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Identity.Domain", "src\services\Identity\Identity.Domain\HealthTech.Identity.Domain.csproj", "{C31E7F32-B32F-4494-9AF1-476AC7719CB4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Identity.Infrastructure", "src\services\Identity\Identity.Infrastructure\HealthTech.Identity.Infrastructure.csproj", "{42CF600E-AD15-417A-B687-58C8643F65DA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "gateway", "gateway", "{6306A8FB-679E-111F-6585-8F70E0EE6013}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Gateway", "src\gateway\HealthTech.Gateway.csproj", "{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apphost", "apphost", "{63882A7C-90E5-DEE3-63BB-E6ABDBC8A365}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.AppHost", "src\apphost\HealthTech.AppHost.csproj", "{A800594F-9A9C-4B78-9983-4130828E5508}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "frontends", "frontends", "{FD11E8FD-FA37-D09A-0E3B-962F97776DA7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app-shell", "app-shell", "{4D2E7B1B-2526-EBBC-F6B3-37229C795DD3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.AppShell", "src\frontends\app-shell\HealthTech.AppShell.csproj", "{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mf-patient", "mf-patient", "{C13D1D1E-F56B-E13F-2CB3-41C225EB9028}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.mf.patient", "src\frontends\mf-patient\HealthTech.mf.patient.csproj", "{24A2D484-1155-4459-B861-5A312E37C22C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mf-appointment", "mf-appointment", "{EC13D640-B63E-5DF5-8423-78F5754BCB04}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.mf.appointment", "src\frontends\mf-appointment\HealthTech.mf.appointment.csproj", "{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mf-ehr", "mf-ehr", "{D0EA2945-A714-1FCD-8E4D-522B2AAF6602}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.mf.ehr", "src\frontends\mf-ehr\HealthTech.mf.ehr.csproj", "{3C1906DD-01DE-4C8A-AE7D-E61180A86680}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mf-billing", "mf-billing", "{FA49C31E-91F7-FF19-6028-9B3D7133ABE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.mf.billing", "src\frontends\mf-billing\HealthTech.mf.billing.csproj", "{C1FCE134-ED4B-482A-BE54-37DECD357735}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ui-kit", "ui-kit", "{83D8EDDF-4362-4EAC-9DFF-24DE79F1740B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.ui.kit", "src\frontends\ui-kit\HealthTech.ui.kit.csproj", "{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|x64.Build.0 = Debug|Any CPU
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|x86.Build.0 = Debug|Any CPU
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|x64.ActiveCfg = Release|Any CPU
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|x64.Build.0 = Release|Any CPU
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|x86.ActiveCfg = Release|Any CPU
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|x86.Build.0 = Release|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|x64.Build.0 = Debug|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|x86.Build.0 = Debug|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|x64.ActiveCfg = Release|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|x64.Build.0 = Release|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|x86.ActiveCfg = Release|Any CPU
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|x86.Build.0 = Release|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|x64.Build.0 = Debug|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|x86.Build.0 = Debug|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|x64.ActiveCfg = Release|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|x64.Build.0 = Release|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|x86.ActiveCfg = Release|Any CPU
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|x86.Build.0 = Release|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|x64.Build.0 = Debug|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|x86.Build.0 = Debug|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|x64.ActiveCfg = Release|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|x64.Build.0 = Release|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|x86.ActiveCfg = Release|Any CPU
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|x86.Build.0 = Release|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|x64.Build.0 = Debug|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|x86.Build.0 = Debug|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|x64.ActiveCfg = Release|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|x64.Build.0 = Release|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|x86.ActiveCfg = Release|Any CPU
+		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|x86.Build.0 = Release|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|x64.Build.0 = Debug|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|x86.Build.0 = Debug|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|x64.ActiveCfg = Release|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|x64.Build.0 = Release|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|x86.ActiveCfg = Release|Any CPU
+		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|x86.Build.0 = Release|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|x64.Build.0 = Debug|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|x86.Build.0 = Debug|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|x64.ActiveCfg = Release|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|x64.Build.0 = Release|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|x86.ActiveCfg = Release|Any CPU
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|x86.Build.0 = Release|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|x64.Build.0 = Debug|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|x86.Build.0 = Debug|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|x64.ActiveCfg = Release|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|x64.Build.0 = Release|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|x86.ActiveCfg = Release|Any CPU
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|x86.Build.0 = Release|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|x64.Build.0 = Debug|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|x86.Build.0 = Debug|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|x64.ActiveCfg = Release|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|x64.Build.0 = Release|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|x86.ActiveCfg = Release|Any CPU
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|x86.Build.0 = Release|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|x64.Build.0 = Debug|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|x86.Build.0 = Debug|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|x64.ActiveCfg = Release|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|x64.Build.0 = Release|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|x86.ActiveCfg = Release|Any CPU
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|x86.Build.0 = Release|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|x64.Build.0 = Debug|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|x86.Build.0 = Debug|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|x64.ActiveCfg = Release|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|x64.Build.0 = Release|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|x86.ActiveCfg = Release|Any CPU
+		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|x86.Build.0 = Release|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|x64.Build.0 = Debug|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|x86.Build.0 = Debug|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|x64.ActiveCfg = Release|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|x64.Build.0 = Release|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|x86.ActiveCfg = Release|Any CPU
+		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|x86.Build.0 = Release|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|x64.Build.0 = Debug|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|x86.Build.0 = Debug|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|x64.ActiveCfg = Release|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|x64.Build.0 = Release|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|x86.ActiveCfg = Release|Any CPU
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|x86.Build.0 = Release|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|x64.Build.0 = Debug|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|x86.Build.0 = Debug|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|x64.ActiveCfg = Release|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|x64.Build.0 = Release|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|x86.ActiveCfg = Release|Any CPU
+		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|x86.Build.0 = Release|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|x64.Build.0 = Debug|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|x86.Build.0 = Debug|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|x64.ActiveCfg = Release|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|x64.Build.0 = Release|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|x86.ActiveCfg = Release|Any CPU
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|x86.Build.0 = Release|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|x64.Build.0 = Debug|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|x86.Build.0 = Debug|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|x64.ActiveCfg = Release|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|x64.Build.0 = Release|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|x86.ActiveCfg = Release|Any CPU
+		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|x86.Build.0 = Release|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|x64.Build.0 = Debug|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|x86.Build.0 = Debug|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|x64.ActiveCfg = Release|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|x64.Build.0 = Release|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|x86.ActiveCfg = Release|Any CPU
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|x86.Build.0 = Release|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|x64.Build.0 = Debug|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|x86.Build.0 = Debug|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|x64.ActiveCfg = Release|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|x64.Build.0 = Release|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|x86.ActiveCfg = Release|Any CPU
+		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|x86.Build.0 = Release|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|x64.Build.0 = Debug|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|x86.Build.0 = Debug|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|x64.ActiveCfg = Release|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|x64.Build.0 = Release|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|x86.ActiveCfg = Release|Any CPU
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|x86.Build.0 = Release|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|x64.Build.0 = Debug|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|x86.Build.0 = Debug|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|x64.ActiveCfg = Release|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|x64.Build.0 = Release|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|x86.ActiveCfg = Release|Any CPU
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|x86.Build.0 = Release|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|x64.Build.0 = Debug|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|x86.Build.0 = Debug|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|x64.ActiveCfg = Release|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|x64.Build.0 = Release|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|x86.ActiveCfg = Release|Any CPU
+		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|x86.Build.0 = Release|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|x64.Build.0 = Debug|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|x86.Build.0 = Debug|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|x64.ActiveCfg = Release|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|x64.Build.0 = Release|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|x86.ActiveCfg = Release|Any CPU
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C13E73B6-616D-3195-CD22-1E55A7D1F969} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{0691B57A-016E-CC34-00A2-3232A94D6774} = {C13E73B6-616D-3195-CD22-1E55A7D1F969}
+		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D} = {0691B57A-016E-CC34-00A2-3232A94D6774}
+		{17398E91-D91F-340C-59F4-1EE173D477A0} = {C13E73B6-616D-3195-CD22-1E55A7D1F969}
+		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717} = {17398E91-D91F-340C-59F4-1EE173D477A0}
+		{984BB9B3-3FA3-BE33-9484-CAC21695A33C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{0F7B896F-8F20-A128-DE69-B3ECEFF261A9} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
+		{1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7} = {0F7B896F-8F20-A128-DE69-B3ECEFF261A9}
+		{9655DF01-16E3-44E5-AFB2-94555025C6E7} = {1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7}
+		{CEBE1C78-646E-4A69-B261-414EBAA7459F} = {1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7}
+		{352D00C4-135E-4D67-822C-C050A763EDA7} = {1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7}
+		{874E7206-992C-489F-83F5-3A47D6F9643B} = {1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7}
+		{18CD5D4C-C90B-F91A-C84E-055041F9F9F9} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
+		{0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0} = {18CD5D4C-C90B-F91A-C84E-055041F9F9F9}
+		{6EB7CCED-ADFF-4901-966D-69E234C78B29} = {0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0}
+		{A1F171D8-39C5-483D-AC3E-56787B184FFD} = {0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0}
+		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8} = {0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0}
+		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7} = {0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0}
+		{1BFC9479-12BF-35C3-06B8-42D89D95092B} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
+		{08275E4F-9D48-4557-7502-064122A05153} = {1BFC9479-12BF-35C3-06B8-42D89D95092B}
+		{F16924D6-9020-4289-9366-BA1DB28288F0} = {08275E4F-9D48-4557-7502-064122A05153}
+		{C085460D-4B6E-468B-9BE8-91E42074BF37} = {08275E4F-9D48-4557-7502-064122A05153}
+		{C31E7F32-B32F-4494-9AF1-476AC7719CB4} = {08275E4F-9D48-4557-7502-064122A05153}
+		{42CF600E-AD15-417A-B687-58C8643F65DA} = {08275E4F-9D48-4557-7502-064122A05153}
+		{6306A8FB-679E-111F-6585-8F70E0EE6013} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA} = {6306A8FB-679E-111F-6585-8F70E0EE6013}
+		{63882A7C-90E5-DEE3-63BB-E6ABDBC8A365} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{A800594F-9A9C-4B78-9983-4130828E5508} = {63882A7C-90E5-DEE3-63BB-E6ABDBC8A365}
+		{FD11E8FD-FA37-D09A-0E3B-962F97776DA7} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{4D2E7B1B-2526-EBBC-F6B3-37229C795DD3} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
+		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2} = {4D2E7B1B-2526-EBBC-F6B3-37229C795DD3}
+		{C13D1D1E-F56B-E13F-2CB3-41C225EB9028} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
+		{24A2D484-1155-4459-B861-5A312E37C22C} = {C13D1D1E-F56B-E13F-2CB3-41C225EB9028}
+		{EC13D640-B63E-5DF5-8423-78F5754BCB04} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
+		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B} = {EC13D640-B63E-5DF5-8423-78F5754BCB04}
+		{D0EA2945-A714-1FCD-8E4D-522B2AAF6602} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
+		{3C1906DD-01DE-4C8A-AE7D-E61180A86680} = {D0EA2945-A714-1FCD-8E4D-522B2AAF6602}
+		{FA49C31E-91F7-FF19-6028-9B3D7133ABE9} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
+		{C1FCE134-ED4B-482A-BE54-37DECD357735} = {FA49C31E-91F7-FF19-6028-9B3D7133ABE9}
+		{83D8EDDF-4362-4EAC-9DFF-24DE79F1740B} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
+		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A} = {83D8EDDF-4362-4EAC-9DFF-24DE79F1740B}
+	EndGlobalSection
+EndGlobal
+
+```
+
+## 3. .\scripts\dumpScript.ps1
+<a id="003---scripts-dumpScript-ps1.ToLower()"></a>
 
 ```powershell
 param(
@@ -273,8 +692,8 @@ if (-not $NoZip -and $OutZip) {
 
 ```
 
-## 3. .\healthtech_bootstrap.ps1
-<a id="003---healthtech_bootstrap-ps1.ToLower()"></a>
+## 4. .\scripts\healthtech_bootstrap.ps1
+<a id="004---scripts-healthtech_bootstrap-ps1.ToLower()"></a>
 
 ```powershell
 param(
@@ -764,424 +1183,6 @@ $readme = @"
 Write-File (Join-Path $root "README.md") $readme
 
 Write-Host "`n✅ Blueprint criado com sucesso! Abra a solução '$SolutionName.sln' e siga o README." -ForegroundColor Green
-
-```
-
-## 4. .\HealthTech.sln
-<a id="004---HealthTech-sln.ToLower()"></a>
-
-```
-
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "building-blocks", "building-blocks", "{C13E73B6-616D-3195-CD22-1E55A7D1F969}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedKernel", "SharedKernel", "{0691B57A-016E-CC34-00A2-3232A94D6774}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.BuildingBlocks.SharedKernel", "src\building-blocks\SharedKernel\HealthTech.BuildingBlocks.SharedKernel.csproj", "{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Abstractions", "Abstractions", "{17398E91-D91F-340C-59F4-1EE173D477A0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.BuildingBlocks.Abstractions", "src\building-blocks\Abstractions\HealthTech.BuildingBlocks.Abstractions.csproj", "{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{984BB9B3-3FA3-BE33-9484-CAC21695A33C}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Patients", "Patients", "{0F7B896F-8F20-A128-DE69-B3ECEFF261A9}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Patients.Api", "Patients.Api", "{1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Patients.Api", "src\services\Patients\Patients.Api\HealthTech.Patients.Api.csproj", "{9655DF01-16E3-44E5-AFB2-94555025C6E7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Patients.Application", "src\services\Patients\Patients.Application\HealthTech.Patients.Application.csproj", "{CEBE1C78-646E-4A69-B261-414EBAA7459F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Patients.Domain", "src\services\Patients\Patients.Domain\HealthTech.Patients.Domain.csproj", "{352D00C4-135E-4D67-822C-C050A763EDA7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Patients.Infrastructure", "src\services\Patients\Patients.Infrastructure\HealthTech.Patients.Infrastructure.csproj", "{874E7206-992C-489F-83F5-3A47D6F9643B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Appointments", "Appointments", "{18CD5D4C-C90B-F91A-C84E-055041F9F9F9}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Appointments.Api", "Appointments.Api", "{0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Appointments.Api", "src\services\Appointments\Appointments.Api\HealthTech.Appointments.Api.csproj", "{6EB7CCED-ADFF-4901-966D-69E234C78B29}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Appointments.Application", "src\services\Appointments\Appointments.Application\HealthTech.Appointments.Application.csproj", "{A1F171D8-39C5-483D-AC3E-56787B184FFD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Appointments.Domain", "src\services\Appointments\Appointments.Domain\HealthTech.Appointments.Domain.csproj", "{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Appointments.Infrastructure", "src\services\Appointments\Appointments.Infrastructure\HealthTech.Appointments.Infrastructure.csproj", "{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{1BFC9479-12BF-35C3-06B8-42D89D95092B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity.Api", "Identity.Api", "{08275E4F-9D48-4557-7502-064122A05153}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Identity.Api", "src\services\Identity\Identity.Api\HealthTech.Identity.Api.csproj", "{F16924D6-9020-4289-9366-BA1DB28288F0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Identity.Application", "src\services\Identity\Identity.Application\HealthTech.Identity.Application.csproj", "{C085460D-4B6E-468B-9BE8-91E42074BF37}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Identity.Domain", "src\services\Identity\Identity.Domain\HealthTech.Identity.Domain.csproj", "{C31E7F32-B32F-4494-9AF1-476AC7719CB4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Identity.Infrastructure", "src\services\Identity\Identity.Infrastructure\HealthTech.Identity.Infrastructure.csproj", "{42CF600E-AD15-417A-B687-58C8643F65DA}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "gateway", "gateway", "{6306A8FB-679E-111F-6585-8F70E0EE6013}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.Gateway", "src\gateway\HealthTech.Gateway.csproj", "{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apphost", "apphost", "{63882A7C-90E5-DEE3-63BB-E6ABDBC8A365}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.AppHost", "src\apphost\HealthTech.AppHost.csproj", "{A800594F-9A9C-4B78-9983-4130828E5508}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "frontends", "frontends", "{FD11E8FD-FA37-D09A-0E3B-962F97776DA7}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app-shell", "app-shell", "{4D2E7B1B-2526-EBBC-F6B3-37229C795DD3}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.AppShell", "src\frontends\app-shell\HealthTech.AppShell.csproj", "{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mf-patient", "mf-patient", "{C13D1D1E-F56B-E13F-2CB3-41C225EB9028}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.mf.patient", "src\frontends\mf-patient\HealthTech.mf.patient.csproj", "{24A2D484-1155-4459-B861-5A312E37C22C}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mf-appointment", "mf-appointment", "{EC13D640-B63E-5DF5-8423-78F5754BCB04}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.mf.appointment", "src\frontends\mf-appointment\HealthTech.mf.appointment.csproj", "{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mf-ehr", "mf-ehr", "{D0EA2945-A714-1FCD-8E4D-522B2AAF6602}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.mf.ehr", "src\frontends\mf-ehr\HealthTech.mf.ehr.csproj", "{3C1906DD-01DE-4C8A-AE7D-E61180A86680}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mf-billing", "mf-billing", "{FA49C31E-91F7-FF19-6028-9B3D7133ABE9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.mf.billing", "src\frontends\mf-billing\HealthTech.mf.billing.csproj", "{C1FCE134-ED4B-482A-BE54-37DECD357735}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ui-kit", "ui-kit", "{83D8EDDF-4362-4EAC-9DFF-24DE79F1740B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthTech.ui.kit", "src\frontends\ui-kit\HealthTech.ui.kit.csproj", "{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
-		Release|Any CPU = Release|Any CPU
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|x64.Build.0 = Debug|Any CPU
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Debug|x86.Build.0 = Debug|Any CPU
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|x64.ActiveCfg = Release|Any CPU
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|x64.Build.0 = Release|Any CPU
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|x86.ActiveCfg = Release|Any CPU
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D}.Release|x86.Build.0 = Release|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|x64.Build.0 = Debug|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Debug|x86.Build.0 = Debug|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|x64.ActiveCfg = Release|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|x64.Build.0 = Release|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|x86.ActiveCfg = Release|Any CPU
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717}.Release|x86.Build.0 = Release|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|x64.Build.0 = Debug|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Debug|x86.Build.0 = Debug|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|x64.ActiveCfg = Release|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|x64.Build.0 = Release|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|x86.ActiveCfg = Release|Any CPU
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7}.Release|x86.Build.0 = Release|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|x64.Build.0 = Debug|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Debug|x86.Build.0 = Debug|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|x64.ActiveCfg = Release|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|x64.Build.0 = Release|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|x86.ActiveCfg = Release|Any CPU
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F}.Release|x86.Build.0 = Release|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|x64.Build.0 = Debug|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Debug|x86.Build.0 = Debug|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|x64.ActiveCfg = Release|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|x64.Build.0 = Release|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|x86.ActiveCfg = Release|Any CPU
-		{352D00C4-135E-4D67-822C-C050A763EDA7}.Release|x86.Build.0 = Release|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|x64.Build.0 = Debug|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Debug|x86.Build.0 = Debug|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|x64.ActiveCfg = Release|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|x64.Build.0 = Release|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|x86.ActiveCfg = Release|Any CPU
-		{874E7206-992C-489F-83F5-3A47D6F9643B}.Release|x86.Build.0 = Release|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|x64.Build.0 = Debug|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Debug|x86.Build.0 = Debug|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|x64.ActiveCfg = Release|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|x64.Build.0 = Release|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|x86.ActiveCfg = Release|Any CPU
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29}.Release|x86.Build.0 = Release|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|x64.Build.0 = Debug|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Debug|x86.Build.0 = Debug|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|x64.ActiveCfg = Release|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|x64.Build.0 = Release|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|x86.ActiveCfg = Release|Any CPU
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD}.Release|x86.Build.0 = Release|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|x64.Build.0 = Debug|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Debug|x86.Build.0 = Debug|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|x64.ActiveCfg = Release|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|x64.Build.0 = Release|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|x86.ActiveCfg = Release|Any CPU
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8}.Release|x86.Build.0 = Release|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|x64.Build.0 = Debug|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Debug|x86.Build.0 = Debug|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|x64.ActiveCfg = Release|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|x64.Build.0 = Release|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|x86.ActiveCfg = Release|Any CPU
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7}.Release|x86.Build.0 = Release|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|x64.Build.0 = Debug|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Debug|x86.Build.0 = Debug|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|x64.ActiveCfg = Release|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|x64.Build.0 = Release|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|x86.ActiveCfg = Release|Any CPU
-		{F16924D6-9020-4289-9366-BA1DB28288F0}.Release|x86.Build.0 = Release|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|x64.Build.0 = Debug|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Debug|x86.Build.0 = Debug|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|x64.ActiveCfg = Release|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|x64.Build.0 = Release|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|x86.ActiveCfg = Release|Any CPU
-		{C085460D-4B6E-468B-9BE8-91E42074BF37}.Release|x86.Build.0 = Release|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|x64.Build.0 = Debug|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Debug|x86.Build.0 = Debug|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|x64.ActiveCfg = Release|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|x64.Build.0 = Release|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|x86.ActiveCfg = Release|Any CPU
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4}.Release|x86.Build.0 = Release|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|x64.Build.0 = Debug|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Debug|x86.Build.0 = Debug|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|x64.ActiveCfg = Release|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|x64.Build.0 = Release|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|x86.ActiveCfg = Release|Any CPU
-		{42CF600E-AD15-417A-B687-58C8643F65DA}.Release|x86.Build.0 = Release|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|x64.Build.0 = Debug|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Debug|x86.Build.0 = Debug|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|x64.ActiveCfg = Release|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|x64.Build.0 = Release|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|x86.ActiveCfg = Release|Any CPU
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA}.Release|x86.Build.0 = Release|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|x64.Build.0 = Debug|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Debug|x86.Build.0 = Debug|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|x64.ActiveCfg = Release|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|x64.Build.0 = Release|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|x86.ActiveCfg = Release|Any CPU
-		{A800594F-9A9C-4B78-9983-4130828E5508}.Release|x86.Build.0 = Release|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|x64.Build.0 = Debug|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Debug|x86.Build.0 = Debug|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|x64.ActiveCfg = Release|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|x64.Build.0 = Release|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|x86.ActiveCfg = Release|Any CPU
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2}.Release|x86.Build.0 = Release|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|x64.Build.0 = Debug|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Debug|x86.Build.0 = Debug|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|x64.ActiveCfg = Release|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|x64.Build.0 = Release|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|x86.ActiveCfg = Release|Any CPU
-		{24A2D484-1155-4459-B861-5A312E37C22C}.Release|x86.Build.0 = Release|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|x64.Build.0 = Debug|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Debug|x86.Build.0 = Debug|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|x64.ActiveCfg = Release|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|x64.Build.0 = Release|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|x86.ActiveCfg = Release|Any CPU
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B}.Release|x86.Build.0 = Release|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|x64.Build.0 = Debug|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Debug|x86.Build.0 = Debug|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|x64.ActiveCfg = Release|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|x64.Build.0 = Release|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|x86.ActiveCfg = Release|Any CPU
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680}.Release|x86.Build.0 = Release|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|x64.Build.0 = Debug|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Debug|x86.Build.0 = Debug|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|x64.ActiveCfg = Release|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|x64.Build.0 = Release|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|x86.ActiveCfg = Release|Any CPU
-		{C1FCE134-ED4B-482A-BE54-37DECD357735}.Release|x86.Build.0 = Release|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|x64.Build.0 = Debug|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Debug|x86.Build.0 = Debug|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|x64.ActiveCfg = Release|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|x64.Build.0 = Release|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|x86.ActiveCfg = Release|Any CPU
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A}.Release|x86.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{C13E73B6-616D-3195-CD22-1E55A7D1F969} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{0691B57A-016E-CC34-00A2-3232A94D6774} = {C13E73B6-616D-3195-CD22-1E55A7D1F969}
-		{0AE35F2E-82D8-48C7-9BCC-930B40B7EE2D} = {0691B57A-016E-CC34-00A2-3232A94D6774}
-		{17398E91-D91F-340C-59F4-1EE173D477A0} = {C13E73B6-616D-3195-CD22-1E55A7D1F969}
-		{BC988A2B-F816-4F6A-B4C9-CDF6BDDC3717} = {17398E91-D91F-340C-59F4-1EE173D477A0}
-		{984BB9B3-3FA3-BE33-9484-CAC21695A33C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{0F7B896F-8F20-A128-DE69-B3ECEFF261A9} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
-		{1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7} = {0F7B896F-8F20-A128-DE69-B3ECEFF261A9}
-		{9655DF01-16E3-44E5-AFB2-94555025C6E7} = {1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7}
-		{CEBE1C78-646E-4A69-B261-414EBAA7459F} = {1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7}
-		{352D00C4-135E-4D67-822C-C050A763EDA7} = {1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7}
-		{874E7206-992C-489F-83F5-3A47D6F9643B} = {1F3947EB-E5A7-D4BC-7D18-598BC1F3E5A7}
-		{18CD5D4C-C90B-F91A-C84E-055041F9F9F9} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
-		{0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0} = {18CD5D4C-C90B-F91A-C84E-055041F9F9F9}
-		{6EB7CCED-ADFF-4901-966D-69E234C78B29} = {0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0}
-		{A1F171D8-39C5-483D-AC3E-56787B184FFD} = {0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0}
-		{07CEB35E-FC4E-47FC-A2FC-1385DD3E07F8} = {0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0}
-		{2CCBC6F5-6AC4-42EB-8AF1-7996AF8744D7} = {0C74EC83-CADA-D1AA-32D8-8BB46D5A82F0}
-		{1BFC9479-12BF-35C3-06B8-42D89D95092B} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
-		{08275E4F-9D48-4557-7502-064122A05153} = {1BFC9479-12BF-35C3-06B8-42D89D95092B}
-		{F16924D6-9020-4289-9366-BA1DB28288F0} = {08275E4F-9D48-4557-7502-064122A05153}
-		{C085460D-4B6E-468B-9BE8-91E42074BF37} = {08275E4F-9D48-4557-7502-064122A05153}
-		{C31E7F32-B32F-4494-9AF1-476AC7719CB4} = {08275E4F-9D48-4557-7502-064122A05153}
-		{42CF600E-AD15-417A-B687-58C8643F65DA} = {08275E4F-9D48-4557-7502-064122A05153}
-		{6306A8FB-679E-111F-6585-8F70E0EE6013} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{A2C5261E-29FF-4D08-A5BA-8EE8800767CA} = {6306A8FB-679E-111F-6585-8F70E0EE6013}
-		{63882A7C-90E5-DEE3-63BB-E6ABDBC8A365} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{A800594F-9A9C-4B78-9983-4130828E5508} = {63882A7C-90E5-DEE3-63BB-E6ABDBC8A365}
-		{FD11E8FD-FA37-D09A-0E3B-962F97776DA7} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{4D2E7B1B-2526-EBBC-F6B3-37229C795DD3} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
-		{1D15B8CF-C2C5-41D9-B69C-BDE4B05BEBF2} = {4D2E7B1B-2526-EBBC-F6B3-37229C795DD3}
-		{C13D1D1E-F56B-E13F-2CB3-41C225EB9028} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
-		{24A2D484-1155-4459-B861-5A312E37C22C} = {C13D1D1E-F56B-E13F-2CB3-41C225EB9028}
-		{EC13D640-B63E-5DF5-8423-78F5754BCB04} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
-		{2AE4552D-A806-4312-83FF-48BCA0AC7D8B} = {EC13D640-B63E-5DF5-8423-78F5754BCB04}
-		{D0EA2945-A714-1FCD-8E4D-522B2AAF6602} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
-		{3C1906DD-01DE-4C8A-AE7D-E61180A86680} = {D0EA2945-A714-1FCD-8E4D-522B2AAF6602}
-		{FA49C31E-91F7-FF19-6028-9B3D7133ABE9} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
-		{C1FCE134-ED4B-482A-BE54-37DECD357735} = {FA49C31E-91F7-FF19-6028-9B3D7133ABE9}
-		{83D8EDDF-4362-4EAC-9DFF-24DE79F1740B} = {FD11E8FD-FA37-D09A-0E3B-962F97776DA7}
-		{C1543FD9-44DE-4DE9-949C-5AC6527AC45A} = {83D8EDDF-4362-4EAC-9DFF-24DE79F1740B}
-	EndGlobalSection
-EndGlobal
 
 ```
 

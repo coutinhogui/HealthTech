@@ -1,0 +1,58 @@
+# =======================================
+# .NET / Visual Studio / HealthTech
+# =======================================
+
+## Build artifacts
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Aa]rtifacts/
+[Tt]est[Rr]esults/
+*.tmp
+*.log
+
+## User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.vspscc
+.vscode/
+.vs/
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+*.nuspec
+project.lock.json
+project.fragment.lock.json
+
+## ASP.NET / Blazor / WASM
+wwwroot/dist/
+wwwroot/build/
+node_modules/
+dist/
+build/
+*.gz
+*.br
+
+## Supabase / Secrets / Local configs
+appsettings.*.json.local
+secrets.json
+*.env
+.env.*
+
+## OS-specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## JetBrains Rider
+.idea/
+*.sln.iml
+
+# =======================================
+# End of .gitignore
+# =======================================
