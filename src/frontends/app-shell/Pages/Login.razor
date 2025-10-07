@@ -1,58 +1,96 @@
 ﻿@page "/login"
 @inject HealthTech.AppShell.Services.SupabaseAuthService Auth
 @inject IHttpClientFactory HttpClientFactory
-@using System.Net.Http.Json
 
-<h3>Login</h3>
+<PageTitle>Login</PageTitle>
 
-@if (!string.IsNullOrWhiteSpace(Error))
-{
-    <p style="color:red">@Error</p>
-}
+<MudPaper Class="mx-auto mt-12 pa-6" Style="max-width:420px">
+    <MudText Typo="Typo.h5" GutterBottom>Entrar</MudText>
 
-<input @bind="Email" placeholder="email" />
-<br />
-<input @bind="Password" type="password" placeholder="senha" />
-<br />
-<button @onclick="DoLogin">Entrar</button>
+    <EditForm Model="@model" OnValidSubmit="@DoLogin">
+        <DataAnnotationsValidator />
+        <MudTextField @bind-Value="model.Email" Label="E-mail" Required="true" For="@(() => model.Email)" />
+        <MudTextField @bind-Value="model.Password" Label="Senha" InputType="InputType.Password" Required="true" For="@(() => model.Password)" />
 
-@if (UserEmail is not null)
-{
-    <p>Logado como: @UserEmail</p>
-    <button @onclick="CallProtected">Chamar API protegida (WhoAmI)</button>
+        @if (!string.IsNullOrWhiteSpace(Error))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-3">@Error</MudAlert>
+        }
 
-    <p>@ApiResponse</p>
-}
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="mt-4" Disabled="@loading" ButtonType="ButtonType.Submit">
+            @(loading ? "Entrando..." : "Entrar")
+        </MudButton>
+        <MudText Class="mt-3">
+            Não tem conta?
+            <MudLink Href="/register">Criar conta</MudLink>
+        </MudText>
+
+        @if (UserEmail is not null)
+        {
+            <MudDivider Class="my-4" />
+            <MudAlert Severity="Severity.Success">Logado como: <b>@UserEmail</b></MudAlert>
+            <MudButton OnClick="@CallProtected" Class="mt-2" Variant="Variant.Outlined">Chamar WhoAmI</MudButton>
+
+           @if (!string.IsNullOrWhiteSpace(ApiResponse))
+            {
+                <MudPaper Class="mt-2 pa-3">
+                    <pre style="white-space: pre-wrap; margin: 0;">@ApiResponse</pre>
+                </MudPaper>
+            }
+
+        }
+    </EditForm>
+</MudPaper>
 
 @code {
-    string Email { get; set; } = "";
-    string Password { get; set; } = "";
-    string? UserEmail { get; set; }
-    string? ApiResponse { get; set; }
-    string? Error { get; set; }
+    private readonly LoginModel model = new();
+    private bool loading;
+    string? UserEmail;
+    string? ApiResponse;
+    string? Error;
 
     private async Task DoLogin()
     {
         Error = null;
+        ApiResponse = null;
+        loading = true;
         try
         {
-            var user = await Auth.SignInAsync(Email, Password);
+            // Garante que URL/Key estão válidos no SupabaseAuthService
+            var user = await Auth.SignInAsync(model.Email, model.Password);
             UserEmail = user?.Email;
-
             if (UserEmail is null)
-                Error = "Falha no login";
+                Error = "Falha no login. Verifique e-mail/senha.";
         }
         catch (Exception ex)
         {
             Error = ex.Message;
         }
+        finally
+        {
+            loading = false;
+        }
     }
 
     private async Task CallProtected()
     {
-        var client = HttpClientFactory.CreateClient("IdentityApi");
-        // BearerAuthorizationMessageHandler injeta o token automaticamente
-        var result = await client.GetFromJsonAsync<object>("api/whoami");
-        ApiResponse = System.Text.Json.JsonSerializer.Serialize(result);
+        try
+        {
+            var client = HttpClientFactory.CreateClient("IdentityApi"); // já injeta o Bearer
+            var result = await client.GetStringAsync("api/whoami");
+            ApiResponse = result;
+        }
+        catch (HttpRequestException ex)
+        {
+            ApiResponse = $"Erro ao chamar API: {ex.Message}";
+        }
+    }
+
+    private sealed class LoginModel
+    {
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.EmailAddress]
+        public string Email { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Password { get; set; } = "";
     }
 }

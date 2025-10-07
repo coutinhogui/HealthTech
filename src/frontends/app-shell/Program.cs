@@ -12,6 +12,7 @@ builder.RootComponents.Add<App>("#app");
 // Serviços
 builder.Services.AddScoped<SupabaseAuthService>();
 builder.Services.AddScoped<BearerAuthorizationMessageHandler>();
+builder.Services.AddScoped<BlazorLocalStorageSessionPersistence>();
 
 builder.Services.AddMudServices();
 
@@ -20,8 +21,7 @@ builder.Services.AddHttpClient("IdentityApi", client =>
 {
     var baseUrl = builder.Configuration["Apis:Identity"];
     client.BaseAddress = new Uri(baseUrl!);
-})
-.AddHttpMessageHandler<BearerAuthorizationMessageHandler>();
+});
 
 // HttpClient “padrão” (útil para chamadas ao mesmo host do app)
 builder.Services.AddScoped(sp => new HttpClient

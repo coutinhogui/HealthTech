@@ -14,7 +14,8 @@ var patientsApi = builder.AddProject<Projects.HealthTech_Patients_Api>("patients
                          .WithReference(schedulingDb);
 //                         .WithReference(redis)        // injeta services__redis__...
 //                         .WithHttpEndpoint(env: "ASPNETCORE_URLS"); // expõe endpoint http
-
+var identityApi = builder.AddProject<Projects.HealthTech_Identity_Api>("identity-api")
+                         .WithReference(schedulingDb);
 // Appointments API (se existir, mesmo padrão)
 // var appointmentsDb = pg.AddDatabase("appointmentsdb");
 // var appointmentsApi = builder.AddProject<Projects.HealthTech_Appointments_Api>("appointments-api")
@@ -28,8 +29,8 @@ var gateway = builder.AddProject<Projects.HealthTech_Gateway>("gateway")
 
 // (Opcional) Frontend Blazor WASM como projeto .NET (dev server)
 var appShell = builder.AddProject<Projects.HealthTech_AppShell>("app-shell")
-                      .WithReference(gateway);
-
-
+                      .WithReference(gateway)
+                      .WithExternalHttpEndpoints();
+                       
 // Dashboard do Aspire abre automaticamente ao rodar o AppHost
 builder.Build().Run();

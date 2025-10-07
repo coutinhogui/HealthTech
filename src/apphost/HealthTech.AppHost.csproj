@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\frontends\app-shell\HealthTech.AppShell.csproj" />
     <ProjectReference Include="..\gateway\HealthTech.Gateway.csproj" />
+    <ProjectReference Include="..\services\Identity\Identity.Api\HealthTech.Identity.Api.csproj" />
     <ProjectReference Include="..\services\Patients\Patients.Api\HealthTech.Patients.Api.csproj" />
   </ItemGroup>
 

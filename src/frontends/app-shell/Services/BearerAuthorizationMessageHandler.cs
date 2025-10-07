@@ -14,7 +14,7 @@ public class BearerAuthorizationMessageHandler : DelegatingHandler
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         // se precisar garantir que o cliente está inicializado/refresh, você pode chamar InitializeAsync aqui
-        var token = _auth.GetJwt();
+        var token = _auth.GetAccessToken();
         if (!string.IsNullOrWhiteSpace(token))
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
