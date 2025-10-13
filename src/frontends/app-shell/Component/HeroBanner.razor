@@ -1,0 +1,40 @@
+﻿@inject NavigationManager Nav
+<MudPaper Class="pa-6 pa-md-10 mb-8 rounded-2xl d-flex align-center justify-space-between" Elevation="2">
+    <div class="mr-md-8">
+        <MudText Typo="Typo.h3" Class="mb-1">HealthTech</MudText>
+        <MudText Typo="Typo.subtitle1" Class="mb-4" Color="Color.Secondary">
+            Prontuário, agenda e financeiro em um só lugar — simples, seguro e rápido.
+        </MudText>
+
+        <MudStack Row="true" Spacing="2">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                    OnClick="@(()=>Nav.NavigateTo("/register"))"
+                    StartIcon="@Icons.Material.Filled.PersonAdd">
+                Criar conta grátis
+            </MudButton>
+
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined"
+                    OnClick="@(()=>Nav.NavigateTo("/sobre"))"
+                    StartIcon="@Icons.Material.Filled.Info">
+                Saiba mais
+            </MudButton>
+        </MudStack>
+
+        <MudText Typo="Typo.caption" Class="mt-3" Color="Color.Secondary">
+            Já tem conta? Use o <b>Login</b> no menu superior.
+        </MudText>
+
+        <MudStack Row="true" Spacing="2" Class="mt-4">
+            <MudChip T="string" Color="Color.Success" StartIcon="@Icons.Material.Filled.Verified">
+                LGPD-ready
+            </MudChip>
+            <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.CloudDone">
+                99,9% uptime
+            </MudChip>
+            <MudChip T="string" Color="Color.Warning" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Lock">
+                Criptografia em trânsito e em repouso
+            </MudChip>
+        </MudStack>
+    </div>
+
+</MudPaper>

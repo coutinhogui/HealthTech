@@ -1,0 +1,83 @@
+﻿@page "/loginGoogle"
+@inject HealthTech.AppShell.Services.SupabaseAuthService Auth
+@inject IHttpClientFactory HttpClientFactory
+
+@using System.ComponentModel.DataAnnotations
+
+<MudContainer MaxWidth="MaxWidth.False" Class="d-flex justify-center">
+    <MudPaper Elevation="0" Class="login-card">
+        <MudText Typo="Typo.h5" Class="mb-4">Faça login em sua conta</MudText>
+
+        <!-- OAuth -->
+        <MudStack Spacing="1">
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="oauth-btn" @onclick="()=>Auth.SignInWithGoogleAsync()">
+                <span class="oauth-icon">@((MarkupString)GoogleSvg)</span>
+                <span>Continuar com Google</span>
+            </MudButton>
+
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="oauth-btn" OnClick="@(()=>{})">
+                <span class="oauth-icon">@((MarkupString)AppleSvg)</span>
+                <span>Continuar com a Apple</span>
+            </MudButton>
+        </MudStack>
+
+        <!-- Divider "ou" -->
+        <MudStack AlignItems="AlignItems.Center">
+            <MudDivider />
+            <MudText>ou</MudText>
+        </MudStack>
+
+        <!-- Form -->
+        <EditForm Model="@model" OnValidSubmit="@OnSubmit">
+            <DataAnnotationsValidator />
+            <MudStack Spacing="1">
+                <MudTextField @bind-Value="model.Email" Label="E-mail" For="@(()=>model.Email)" Required="true" />
+                <MudTextField @bind-Value="model.Password" Label="Senha" For="@(()=>model.Password)" InputType="InputType.Password" Required="true" />
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="w-100">
+                    Entrar
+                </MudButton>
+            </MudStack>
+
+            <div class="forgot-wrap">
+                <MudLink Href="#" Underline="Underline.Hover">Esqueceu sua senha?</MudLink>
+            </div>
+        </EditForm>
+
+        <MudDivider Class="my-6" />
+
+        <div class="signup-wrap">
+            <MudText> Ainda não tem conta?
+                <MudLink Href="#" Underline="Underline.Hover">Faça seu cadastro!</MudLink>
+            </MudText>
+        </div>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private readonly LoginModel model = new();
+
+    private Task OnSubmit()
+    {
+        // apenas layout – coloque sua lógica aqui
+        return Task.CompletedTask;
+    }
+
+    private sealed class LoginModel
+    {
+        [Required, EmailAddress] public string Email { get; set; } = "";
+        [Required] public string Password { get; set; } = "";
+    }
+
+    // SVGs inline para ícones Google/Apple (mantém visual fiel sem dependências externas)
+    private const string GoogleSvg = @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='18' height='18'>
+      <path fill='#EA4335' d='M24 9.5c3.94 0 7.49 1.36 10.28 4.03l6.87-6.87C36.9 2.6 30.84 0 24 0 14.62 0 6.36 5.38 2.56 13.17l8.99 6.98C13.19 13.75 18.17 9.5 24 9.5z'/>
+      <path fill='#4285F4' d='M46.5 24c0-1.68-.15-3.29-.44-4.83H24v9.16h12.64c-.55 2.98-2.22 5.51-4.74 7.19l7.26 5.64C43.63 37.42 46.5 31.23 46.5 24z'/>
+      <path fill='#FBBC05' d='M11.55 28.85a14.42 14.42 0 0 1 0-9.7l-8.99-6.98C-1.2 16.07-1.2 31.93 2.56 39.83l8.99-6.98z'/>
+      <path fill='#34A853' d='M24 48c6.48 0 11.94-2.14 15.92-5.84l-7.26-5.64c-2.01 1.36-4.6 2.16-8.66 2.16-5.83 0-10.81-4.25-12.45-10.65l-8.99 6.98C6.36 42.62 14.62 48 24 48z'/>
+    </svg>";
+
+    private const string AppleSvg = @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512' width='18' height='18' aria-hidden='true'>
+      <path fill='currentColor' d='M318.7 268.7c-.3-37.8 16.6-66.4 51.6-87.4-19.3-28.1-48.5-43.6-86.7-46-36.4-2.3-76.2 21.1-90.3 21.1-15 0-50-20.2-77.4-20.2C68.1 136.6 25.7 171.4 9.3 222.9c-27.5 85.1 7.1 211.5 49.2 281.2 17.5 28.4 38.3 60.3 66.1 59.2 26.5-1 36.6-17 68.6-17 31.9 0 40.8 17 68.9 16.4 28.5-.6 46.6-28.9 64-57.5 20.1-32.9 28.4-64.8 28.8-66.4-.6-.3-55.2-21.3-55.2-84.1zM253.8 96.7c27.7-33.6 25.2-64.4 24.3-75.4-23.7 1.4-51.2 16.1-67.7 35.8-17.5 20.6-27.9 46.2-25.7 73.4 26.3 2 51.4-11.3 69.1-33.8z'/>
+    </svg>";
+}
+

@@ -1,0 +1,191 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using HealthTech.AppShell.Services
+@inject SupabaseAuthService Auth
+@inject IJSRuntime JS
+
+<MudIconButton @ref="_anchor"
+               OnClick="Toggle"
+               Size="Size.Small">
+@if (!string.IsNullOrEmpty(Auth.AvatarUrl)) 
+{ 
+    <MudAvatar Size="Size.Medium">
+        <MudImage Src="@Auth.AvatarUrl" Alt="@Auth.DisplayName" Elevation="25" />
+    </MudAvatar> 
+} else 
+{ 
+    <div class="d-flex align-center gap-1 px-1">
+        <MudText Typo="Typo.body2">Sign in </MudText>
+        <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Size="Size.Medium" />
+    </div>
+}
+</MudIconButton>
+
+<MudPopover Open="_open"
+            AnchorReference="_anchor!"
+            CloseOnOutsideClick="true"
+            AnchorOrigin="Origin.TopRight"
+            TransformOrigin="Origin.BottomRight"
+            OffsetY="14"
+            OffsetX="0"
+            Class="account-popover">
+
+<AuthorizeView Context="authState">
+<!-- ====================== USUÁRIO AUTENTICADO ====================== -->
+    <Authorized>
+        <MudPaper Elevation="8" Class="account-card">
+            <!-- Header -->
+            <div class="header">
+                <div class="greet">
+                        <MudAvatar Size="Size.Large">
+                            <MudImage Src="@Auth.AvatarUrl" Alt="@Auth.DisplayName" Elevation="25" />
+                        </MudAvatar> 
+                    <MudText Typo="Typo.h6">Olá, @(!string.IsNullOrEmpty(Auth.DisplayName) ? Auth.DisplayName : "there")!</MudText>
+                    <MudText Color="Color.Secondary" Typo="Typo.caption">@Auth.CurrentUser?.Email</MudText>
+                </div>
+            </div>
+
+            @* <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="w-full mb-2"
+                    OnClick="@ManageAccount">
+                Manage your Google Account
+            </MudButton> *@
+
+            <MudDivider Class="my-2" />
+
+            <!-- Accounts -->
+            @*<MudList T="Account" Dense="true">
+                <!-- Conta atual -->
+                <MudListItem T="Account" Class="account-item">
+                    @if (!string.IsNullOrWhiteSpace(Auth.AvatarUrl))
+                    {
+                        <MudAvatar Size="Size.Medium">
+                            <MudImage Src="@Auth.AvatarUrl" Alt="@Auth.DisplayName" Elevation="25" />
+                        </MudAvatar> 
+                    }
+                    else
+                    {
+                        <MudAvatar Size="Size.Medium" Color="Color.Primary">@Initials(Auth.DisplayName)</MudAvatar>
+                    }
+                    <div class="acc-info">
+                        <MudText Typo="Typo.body2">@Auth.DisplayName</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@Auth.CurrentUser?.Email</MudText>
+                    </div>
+                    <MudChip T="string" Class="ml-auto" Color="Color.Primary" Variant="Variant.Outlined" Label="true">Active</MudChip>
+                </MudListItem>
+
+                <!-- Outras contas (exemplo) -->
+                 @foreach (var acc in Accounts)
+                {
+                    <MudListItem T="Account" Class="account-item" OnClick="@(()=>SwitchAccount(acc))">
+                        <MudAvatar Size="Size.Medium" Image="@acc.PhotoUrl" />
+                        <div class="acc-info">
+                            <MudText Typo="Typo.body2">@acc.DisplayName</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@acc.Email</MudText>
+                        </div>
+                    </MudListItem>
+                }
+
+                <MudListItem T="Account" OnClick="@AddAccount">
+                    <MudIcon Icon="@Icons.Material.Filled.AddCircle" />
+                    <MudText Class="ml-2">Add another account</MudText>
+                </MudListItem> 
+            </MudList>*@
+
+            <!-- Sign out -->
+            <MudStack AlignItems="AlignItems.Stretch">
+                <MudButton Variant="Variant.Outlined" 
+                    Color="Color.Default"
+                    Class="w-full"
+                    StartIcon="@Icons.Material.TwoTone.Logout"
+                    Disabled="@(Auth.CurrentUser is null)"
+                    OnClick="@SignOutAll">
+                    Sign out
+                </MudButton>
+            </MudStack>
+
+
+            <MudDivider Class="my-3" />
+
+            <!-- Storage (exemplo visual) -->
+            @* <div class="storage">
+                <MudText Typo="Typo.caption">@(StorageUsed)% of 200 GB used</MudText>
+                <MudProgressLinear Value="@(StorageUsed)" Rounded="true" />
+            </div> *@
+
+            <!-- Footer -->
+            <div class="footer">
+                <MudLink Href="#" Target="_blank">Contato vendas</MudLink>
+                <MudText>·</MudText>
+                <MudLink Href="#" Target="_blank">Suporte</MudLink>
+            </div>
+
+        </MudPaper>
+    </Authorized>
+    <NotAuthorized>
+
+            <LoginGoogle/>
+
+    </NotAuthorized>
+</AuthorizeView> 
+
+   
+</MudPopover>
+       
+
+@code {
+    private bool _open;
+    private MudIconButton? _anchor;       // nullable para evitar CS8618
+
+    protected override void OnInitialized()
+    {
+        Auth.AuthStateChanged += OnAuthChanged;
+    }
+
+    private void OnAuthChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnAuthChanged;
+    }
+
+    private void Toggle() => _open = !_open;
+
+    // ------ mock “outras contas” (exemplo) ------
+    public record Account(string DisplayName, string Email, string PhotoUrl);
+    @*private readonly List<Account> Accounts = new()
+    {
+         new("Guilherme COUTINHO", "coutinho.gui.br@gmail.com", "img/avatar2.jpg") 
+    };*@
+
+    //private int StorageUsed = 39;
+
+    // ------ ações ------
+    @* private async Task ManageAccount()
+    {
+        await JS.InvokeVoidAsync("open", "https://myaccount.google.com/", "_blank");
+    } *@
+
+    private void SwitchAccount(Account a)
+    {
+        // aqui você poderia iniciar outro fluxo OAuth
+        _open = false;
+    }
+
+    @* private async Task AddAccount()
+    {
+        // inicia o fluxo Google OAuth
+        // await Auth.SignInWithGoogleAsync();
+        _open = false;
+    } *@
+
+    private async Task SignOutAll()
+    {
+        await Auth.SignOutAsync();
+        _open = false;
+        StateHasChanged();
+    }
+
+    private static string Initials(string? name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" :
+        string.Join("", name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .Take(2).Select(s => s[0])).ToUpperInvariant();
+}
