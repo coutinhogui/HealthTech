@@ -14,34 +14,6 @@
                 <MudSpacer />
                 <HealthTech.AppShell.Component.AccountMenu />
                 <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-                @* <MudMenu Dense
-                        Variant="Variant.Text"
-                        Size="Size.Medium"
-                        Color="Color.Inherit"
-                        Icon="@Icons.Material.TwoTone.MoreVert">
-
-                    <MudMenu StartIcon="@Icons.Material.TwoTone.Settings"
-                            IconColor="Color.Primary"
-                            Label="Settings">
-                        <MudMenuItem Icon="@Icons.Material.TwoTone.DarkMode"
-                                    IconColor="Color.Secondary"
-                                    Label="Dark Theme" />
-                    </MudMenu>
-
-                    <MudDivider />
-
-                    <MudMenuItem Href="/"
-                                ForceLoad
-                                Icon="@Icons.Material.TwoTone.Login"
-                                IconColor="Color.Primary"
-                                Label="Sign In" />
-
-                    <MudMenuItem Href="/"
-                                ForceLoad
-                                Icon="@Icons.Material.TwoTone.Logout"
-                                IconColor="Color.Primary"
-                                Label="Sign Out" />
-                </MudMenu> *@
             </MudAppBar>
             <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
                 <NavMenu />
