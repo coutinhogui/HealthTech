@@ -1,16 +1,19 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using HealthTech.AppShell.Services
+@using System.Runtime.Intrinsics.X86
 @inject SupabaseAuthService Auth
 @inject IJSRuntime JS
 
-<MudIconButton @ref="_anchor"
-               OnClick="Toggle"
-               Size="Size.Small">
+<div class="avatar-click" @onclick="Toggle" role="button" aria-label="Abrir menu de usuário">
+
 @if (!string.IsNullOrEmpty(Auth.AvatarUrl)) 
 { 
-    <MudAvatar Size="Size.Medium">
-        <MudImage Src="@Auth.AvatarUrl" Alt="@Auth.DisplayName" Elevation="25" />
-    </MudAvatar> 
+<MudAvatar Size="Size.Medium" Class="cursor-pointer">
+            <MudImage Src="@Auth.AvatarUrl"
+                      Alt="@Auth.DisplayName"
+                      ObjectFit="ObjectFit.Cover"
+                      Style="width:100%; height:100%; object-position:center;" />
+        </MudAvatar>
 } else 
 { 
     <div class="d-flex align-center gap-1 px-1">
@@ -18,8 +21,8 @@
         <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Size="Size.Medium" />
     </div>
 }
-</MudIconButton>
 
+</div>
 <MudPopover Open="_open"
             AnchorReference="_anchor!"
             CloseOnOutsideClick="true"
