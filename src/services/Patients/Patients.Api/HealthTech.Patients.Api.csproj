@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\building-blocks\Abstractions\HealthTech.BuildingBlocks.Abstractions.csproj" />
     <ProjectReference Include="..\Patients.Application\HealthTech.Patients.Application.csproj" />
     <ProjectReference Include="..\Patients.Infrastructure\HealthTech.Patients.Infrastructure.csproj" />
     <ProjectReference Include="..\Patients.Domain\HealthTech.Patients.Domain.csproj" />

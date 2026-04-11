@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Appointments.Domain\HealthTech.Appointments.Domain.csproj" />
+    <ProjectReference Include="..\Appointments.Application\HealthTech.Appointments.Application.csproj" />
     <ProjectReference Include="..\..\..\building-blocks\Abstractions\HealthTech.BuildingBlocks.Abstractions.csproj" />
   </ItemGroup>
 

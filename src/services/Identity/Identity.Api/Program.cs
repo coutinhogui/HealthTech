@@ -1,34 +1,15 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
+using HealthTech.BuildingBlocks.Abstractions;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        var authSection = builder.Configuration.GetSection("Auth");
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
-        options.Authority = authSection["Authority"];
-        options.RequireHttpsMetadata = true;
-
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = authSection["Issuer"],
-            ValidateAudience = true,
-            ValidAudience = authSection["Audience"],
-            ValidateLifetime = true
-        };
-    });
-
-builder.Services.AddAuthorization();
-// ---------- MVC / Controllers ----------
+builder.Services.AddHealthTechJwtAuthentication(builder.Configuration);
+builder.Services.AddHealthTechRequestContext(builder.Configuration);
 builder.Services.AddControllers();
-// ---------- Swagger com Bearer ----------
+builder.Services.AddHealthChecks();
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -52,16 +33,17 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
 var app = builder.Build();
+
+app.UseExceptionHandler();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
 app.UseAuthentication();
+app.UseHealthTechRequestContext();
 app.UseAuthorization();
 
-app.MapControllers(); // por padrão, protegido por [Authorize] nos controllers/ações
+app.MapHealthChecks("/health").AllowAnonymous();
+app.MapControllers();
 
 app.Run();
-

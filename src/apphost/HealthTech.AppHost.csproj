@@ -1,6 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <Sdk Name="Aspire.AppHost.Sdk" Version="9.5.0" />
+<Project Sdk="Aspire.AppHost.Sdk/13.2.2">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -11,12 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\frontends\app-shell\HealthTech.AppShell.csproj" />
     <ProjectReference Include="..\gateway\HealthTech.Gateway.csproj" />
+    <ProjectReference Include="..\services\Appointments\Appointments.Api\HealthTech.Appointments.Api.csproj" />
     <ProjectReference Include="..\services\Identity\Identity.Api\HealthTech.Identity.Api.csproj" />
     <ProjectReference Include="..\services\Patients\Patients.Api\HealthTech.Patients.Api.csproj" />
   </ItemGroup>

@@ -2,35 +2,23 @@ using Aspire.Hosting;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// ===== Recursos de infraestrutura =====
+var platformDb = builder.AddConnectionString("PatientsDb");
 
-// ConnectionStrings:schedulingdb sera repassada ao Scheduling
-var schedulingDb = builder.AddConnectionString("PatientsDb");
-
-// ===== Projetos (suas APIs e gateway) =====
-
-// Patients API
 var patientsApi = builder.AddProject<Projects.HealthTech_Patients_Api>("patients-api")
-                         .WithReference(schedulingDb);
-//                         .WithReference(redis)        // injeta services__redis__...
-//                         .WithHttpEndpoint(env: "ASPNETCORE_URLS"); // expõe endpoint http
-var identityApi = builder.AddProject<Projects.HealthTech_Identity_Api>("identity-api")
-                         .WithReference(schedulingDb);
-// Appointments API (se existir, mesmo padrão)
-// var appointmentsDb = pg.AddDatabase("appointmentsdb");
-// var appointmentsApi = builder.AddProject<Projects.HealthTech_Appointments_Api>("appointments-api")
-//                              .WithReference(appointmentsDb)
-//                              .WithReference(redis)
-//                              .WithHttpEndpoint(env: "ASPNETCORE_URLS");
+    .WithReference(platformDb);
 
-// Gateway (YARP) – vamos usar service discovery para localizar as APIs
+var identityApi = builder.AddProject<Projects.HealthTech_Identity_Api>("identity-api");
+
+var appointmentsApi = builder.AddProject<Projects.HealthTech_Appointments_Api>("appointments-api")
+    .WithReference(platformDb);
+
 var gateway = builder.AddProject<Projects.HealthTech_Gateway>("gateway")
-                     .WithReference(patientsApi);
+    .WithReference(patientsApi)
+    .WithReference(identityApi)
+    .WithReference(appointmentsApi);
 
-// (Opcional) Frontend Blazor WASM como projeto .NET (dev server)
-var appShell = builder.AddProject<Projects.HealthTech_AppShell>("app-shell")
-                      .WithReference(gateway)
-                      .WithExternalHttpEndpoints();
-                       
-// Dashboard do Aspire abre automaticamente ao rodar o AppHost
+builder.AddProject<Projects.HealthTech_AppShell>("app-shell")
+    .WithReference(gateway)
+    .WithExternalHttpEndpoints();
+
 builder.Build().Run();
