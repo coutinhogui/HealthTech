@@ -1,0 +1,208 @@
+name: healthtech
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: healthtech-postgres
+    environment:
+      POSTGRES_DB: ${HEALTHTECH_DB_NAME:-healthtech}
+      POSTGRES_PASSWORD: ${HEALTHTECH_DB_PASSWORD:-postgres}
+    ports:
+      - "${HEALTHTECH_POSTGRES_PORT:-55433}:5432"
+    volumes:
+      - healthtech-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${HEALTHTECH_DB_NAME:-healthtech}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - healthtech
+
+  db-migrate:
+    image: postgres:16
+    container_name: healthtech-db-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${HEALTHTECH_DB_PASSWORD:-postgres}
+      HEALTHTECH_APP_DB_USER: ${HEALTHTECH_APP_DB_USER:-healthtech_app}
+      HEALTHTECH_APP_DB_PASSWORD: ${HEALTHTECH_APP_DB_PASSWORD:-healthtech_app}
+    volumes:
+      - ./supabase:/supabase:ro
+    command: >
+      sh -c "
+      for file in /supabase/migrations/*.sql; do
+        echo Applying migration: $$file;
+        psql -h postgres -U postgres -d ${HEALTHTECH_DB_NAME:-healthtech} -v ON_ERROR_STOP=1 -v app_db_user=${HEALTHTECH_APP_DB_USER:-healthtech_app} -v app_db_password=${HEALTHTECH_APP_DB_PASSWORD:-healthtech_app} -f $$file || exit 1;
+      done &&
+      psql -h postgres -U postgres -d ${HEALTHTECH_DB_NAME:-healthtech} -v ON_ERROR_STOP=1 -f /supabase/seed.sql
+      "
+    networks:
+      - healthtech
+
+  patients-api:
+    build:
+      context: .
+      dockerfile: docker/dotnet-api.Dockerfile
+      args:
+        PROJECT: src/services/Patients/Patients.Api/HealthTech.Patients.Api.csproj
+        APP_DLL: HealthTech.Patients.Api.dll
+    container_name: healthtech-patients-api
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__PatientsDb: Host=postgres;Port=5432;Database=${HEALTHTECH_DB_NAME:-healthtech};Username=${HEALTHTECH_APP_DB_USER:-healthtech_app};Password=${HEALTHTECH_APP_DB_PASSWORD:-healthtech_app}
+      InternalGateway__SharedSecret: ${HEALTHTECH_INTERNAL_GATEWAY_SECRET:-dev-internal-gateway-secret}
+      TenantAccess__Users__0__SubjectId: bootstrap-admin
+      TenantAccess__Users__0__Email: admin@healthtech.local
+      TenantAccess__Users__0__Memberships__0__TenantId: 11111111-1111-1111-1111-111111111111
+      TenantAccess__Users__0__Memberships__0__TenantName: Demo Clinic
+      TenantAccess__Users__0__Memberships__0__Role: admin
+      TenantAccess__Users__0__Memberships__0__Enabled: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - healthtech
+
+  appointments-api:
+    build:
+      context: .
+      dockerfile: docker/dotnet-api.Dockerfile
+      args:
+        PROJECT: src/services/Appointments/Appointments.Api/HealthTech.Appointments.Api.csproj
+        APP_DLL: HealthTech.Appointments.Api.dll
+    container_name: healthtech-appointments-api
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__AppointmentsDb: Host=postgres;Port=5432;Database=${HEALTHTECH_DB_NAME:-healthtech};Username=${HEALTHTECH_APP_DB_USER:-healthtech_app};Password=${HEALTHTECH_APP_DB_PASSWORD:-healthtech_app}
+      InternalGateway__SharedSecret: ${HEALTHTECH_INTERNAL_GATEWAY_SECRET:-dev-internal-gateway-secret}
+      TenantAccess__Users__0__SubjectId: bootstrap-admin
+      TenantAccess__Users__0__Email: admin@healthtech.local
+      TenantAccess__Users__0__Memberships__0__TenantId: 11111111-1111-1111-1111-111111111111
+      TenantAccess__Users__0__Memberships__0__TenantName: Demo Clinic
+      TenantAccess__Users__0__Memberships__0__Role: admin
+      TenantAccess__Users__0__Memberships__0__Enabled: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - healthtech
+
+  identity-api:
+    build:
+      context: .
+      dockerfile: docker/dotnet-api.Dockerfile
+      args:
+        PROJECT: src/services/Identity/Identity.Api/HealthTech.Identity.Api.csproj
+        APP_DLL: HealthTech.Identity.Api.dll
+    container_name: healthtech-identity-api
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      InternalGateway__SharedSecret: ${HEALTHTECH_INTERNAL_GATEWAY_SECRET:-dev-internal-gateway-secret}
+      TenantAccess__Users__0__SubjectId: bootstrap-admin
+      TenantAccess__Users__0__Email: admin@healthtech.local
+      TenantAccess__Users__0__Memberships__0__TenantId: 11111111-1111-1111-1111-111111111111
+      TenantAccess__Users__0__Memberships__0__TenantName: Demo Clinic
+      TenantAccess__Users__0__Memberships__0__Role: admin
+      TenantAccess__Users__0__Memberships__0__Enabled: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - healthtech
+
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/dotnet-api.Dockerfile
+      args:
+        PROJECT: src/gateway/HealthTech.Gateway.csproj
+        APP_DLL: HealthTech.Gateway.dll
+    container_name: healthtech-gateway
+    depends_on:
+      patients-api:
+        condition: service_healthy
+      appointments-api:
+        condition: service_healthy
+      identity-api:
+        condition: service_healthy
+    ports:
+      - "${HEALTHTECH_GATEWAY_PORT:-5026}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ReverseProxy__Clusters__patients__Destinations__d1__Address: http://patients-api:8080/
+      ReverseProxy__Clusters__appointments__Destinations__d1__Address: http://appointments-api:8080/
+      ReverseProxy__Clusters__identity__Destinations__d1__Address: http://identity-api:8080/
+      Bff__EnableDevelopmentAuth: "${HEALTHTECH_BFF_ENABLE_DEV_AUTH:-true}"
+      Bff__PublicBaseUrl: http://localhost:${HEALTHTECH_GATEWAY_PORT:-5026}
+      Bff__DataProtectionPath: /var/healthtech/dataprotection
+      Bff__DevelopmentMemberships__0__TenantId: 11111111-1111-1111-1111-111111111111
+      Bff__DevelopmentMemberships__0__TenantName: Demo Clinic
+      Bff__DevelopmentMemberships__0__Role: admin
+      Cors__AllowedOrigins__0: http://localhost:${HEALTHTECH_APPSHELL_PORT:-5191}
+      InternalGateway__SharedSecret: ${HEALTHTECH_INTERNAL_GATEWAY_SECRET:-dev-internal-gateway-secret}
+      TenantAccess__Users__0__SubjectId: bootstrap-admin
+      TenantAccess__Users__0__Email: admin@healthtech.local
+      TenantAccess__Users__0__Memberships__0__TenantId: 11111111-1111-1111-1111-111111111111
+      TenantAccess__Users__0__Memberships__0__TenantName: Demo Clinic
+      TenantAccess__Users__0__Memberships__0__Role: admin
+      TenantAccess__Users__0__Memberships__0__Enabled: "true"
+    volumes:
+      - healthtech-gateway-dpkeys:/var/healthtech/dataprotection
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - healthtech
+
+  app-shell:
+    build:
+      context: .
+      dockerfile: docker/app-shell.Dockerfile
+    container_name: healthtech-app-shell
+    depends_on:
+      gateway:
+        condition: service_healthy
+    ports:
+      - "${HEALTHTECH_APPSHELL_PORT:-5191}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - healthtech
+
+networks:
+  healthtech:
+    name: healthtech-network
+
+volumes:
+  healthtech-postgres-data:
+    name: healthtech-postgres-data
+  healthtech-gateway-dpkeys:
+    name: healthtech-gateway-dpkeys

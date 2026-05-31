@@ -33,3 +33,17 @@ public sealed class Patient : Entity<PatientId>
         BirthDate = birthDate;
     }
 }
+
+public sealed class DuplicatePatientDocumentException(Guid tenantId, string document) : Exception("Patient document already exists for this tenant.")
+{
+    public Guid TenantId { get; } = tenantId;
+    public string Document { get; } = document;
+}
+
+public sealed class DuplicateInsurancePlanException(Guid tenantId, string payerName, string planName)
+    : Exception("Insurance plan already exists for this tenant.")
+{
+    public Guid TenantId { get; } = tenantId;
+    public string PayerName { get; } = payerName;
+    public string PlanName { get; } = planName;
+}

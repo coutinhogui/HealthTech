@@ -12,6 +12,7 @@ public sealed class Appointment : Entity<AppointmentId>
     public Guid TenantId { get; private set; }
     public Guid PatientId { get; private set; }
     public Guid ProfessionalId { get; private set; }
+    public Guid? LocationId { get; private set; }
     public DateTimeOffset StartsAtUtc { get; private set; }
     public DateTimeOffset EndsAtUtc { get; private set; }
     public string Status { get; private set; }
@@ -27,6 +28,7 @@ public sealed class Appointment : Entity<AppointmentId>
         Guid tenantId,
         Guid patientId,
         Guid professionalId,
+        Guid? locationId,
         DateTimeOffset startsAtUtc,
         DateTimeOffset endsAtUtc,
         string status,
@@ -41,6 +43,7 @@ public sealed class Appointment : Entity<AppointmentId>
         TenantId = tenantId;
         PatientId = patientId;
         ProfessionalId = professionalId;
+        LocationId = locationId;
         StartsAtUtc = startsAtUtc.ToUniversalTime();
         EndsAtUtc = endsAtUtc.ToUniversalTime();
         Status = string.IsNullOrWhiteSpace(status) ? "scheduled" : status.Trim().ToLowerInvariant();

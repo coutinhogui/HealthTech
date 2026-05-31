@@ -36,12 +36,15 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 app.UseExceptionHandler();
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseAuthentication();
-app.UseHealthTechRequestContext();
 app.UseAuthorization();
+app.UseHealthTechRequestContext();
 
 app.MapHealthChecks("/health").AllowAnonymous();
 app.MapControllers();

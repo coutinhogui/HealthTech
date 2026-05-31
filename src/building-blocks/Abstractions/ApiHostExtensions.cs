@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -27,9 +28,19 @@ public static class ApiHostExtensions
                     ValidAudience = authSection["Audience"],
                     ValidateLifetime = true
                 };
-            });
+            })
+            .AddScheme<InternalGatewayAuthenticationOptions, InternalGatewayAuthenticationHandler>(
+                InternalGatewayAuthenticationDefaults.Scheme,
+                _ => { });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            options.DefaultPolicy = new AuthorizationPolicyBuilder(
+                    JwtBearerDefaults.AuthenticationScheme,
+                    InternalGatewayAuthenticationDefaults.Scheme)
+                .RequireAuthenticatedUser()
+                .Build();
+        });
         return services;
     }
 }

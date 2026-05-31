@@ -1,0 +1,15 @@
+.git
+.vs
+bin
+obj
+**/bin
+**/obj
+**/.vs
+**/*.user
+**/*.suo
+**/*.nupkg
+**/TestResults
+project-dump.md
+project-dump.zip
+scripts/project-dump.md
+scripts/project-dump.zip

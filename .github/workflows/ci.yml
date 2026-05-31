@@ -1,0 +1,372 @@
+name: HealthTech CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+      - feature/**
+      - codex/**
+
+jobs:
+  build-test:
+    name: Build and test
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: .NET info
+        run: dotnet --info
+
+      - name: Restore
+        run: dotnet restore HealthTech.sln
+
+      - name: Build
+        run: dotnet build HealthTech.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test HealthTech.sln --configuration Release --no-build --logger "trx;LogFileName=healthtech-tests.trx"
+
+      - name: Vulnerable packages
+        run: dotnet list HealthTech.sln package --vulnerable --include-transitive
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  database-integration:
+    name: Database integration
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: healthtech_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d healthtech_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      HEALTHTECH_TEST_DATABASE: Host=localhost;Port=5432;Database=healthtech_test;Username=postgres;Password=postgres;Include Error Detail=true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore database tests
+        run: dotnet restore tests/HealthTech.Database.Tests/HealthTech.Database.Tests.csproj
+
+      - name: Run database integration tests
+        run: dotnet test tests/HealthTech.Database.Tests/HealthTech.Database.Tests.csproj --configuration Release --logger "trx;LogFileName=healthtech-db-tests.trx"
+
+  docker-smoke:
+    name: Docker smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Docker compose config
+        run: docker compose config
+
+      - name: Docker compose up
+        run: docker compose up -d --build
+
+      - name: Wait for healthy services
+        run: |
+          set -euo pipefail
+          services=(
+            healthtech-postgres
+            healthtech-patients-api
+            healthtech-appointments-api
+            healthtech-identity-api
+            healthtech-gateway
+            healthtech-app-shell
+          )
+          for service in "${services[@]}"; do
+            echo "Waiting for $service to be healthy..."
+            for _ in $(seq 1 60); do
+              status=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$service")
+              if [ "$status" = "healthy" ]; then
+                echo "$service is healthy"
+                break
+              fi
+              sleep 2
+            done
+
+            status=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$service")
+            if [ "$status" != "healthy" ]; then
+              echo "$service did not become healthy. Current status: $status"
+              docker compose ps
+              docker compose logs --tail=200
+              exit 1
+            fi
+          done
+
+      - name: Validate migration job completed
+        run: |
+          set -euo pipefail
+          status=$(docker inspect -f '{{.State.Status}}' healthtech-db-migrate)
+          code=$(docker inspect -f '{{.State.ExitCode}}' healthtech-db-migrate)
+          if [ "$status" != "exited" ] || [ "$code" != "0" ]; then
+            echo "db-migrate expected exited(0), got status=$status exit_code=$code"
+            docker compose logs db-migrate --tail=200
+            exit 1
+          fi
+
+      - name: Smoke BFF and gateway routes
+        run: |
+          set -euo pipefail
+
+          curl -fsS http://localhost:5026/health > /dev/null
+
+          curl -fsS -c cookie.txt -H "Content-Type: application/json" \
+            -d '{"email":"admin@healthtech.local","password":"devpass"}' \
+            http://localhost:5026/api/auth/login > /dev/null
+
+          curl -fsS -b cookie.txt http://localhost:5026/api/session > /dev/null
+          anonymous_status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5026/api/patients)
+          test "$anonymous_status" = "401"
+
+          tenant_b_id="99999999-9999-9999-9999-999999999999"
+          patient_b_id="88888888-8888-8888-8888-888888888888"
+          specialty_b_id="77777777-7777-7777-7777-777777777777"
+          professional_b_id="66666666-6666-6666-6666-666666666666"
+          appointment_b_id="55555555-5555-5555-5555-555555555555"
+          tenant_b_doc="CI-TENANT-B-HIDDEN"
+          appointment_b_start=$(date -u -d "+4 hours" +"%Y-%m-%dT%H:00:00Z")
+          appointment_b_end=$(date -u -d "+4 hours +30 minutes" +"%Y-%m-%dT%H:%M:00Z")
+          appointment_b_to=$(date -u -d "+5 hours" +"%Y-%m-%dT%H:%M:00Z")
+
+          docker exec healthtech-postgres psql -U postgres -d healthtech -v ON_ERROR_STOP=1 -c "
+            insert into core.tenant (id, name)
+            values ('$tenant_b_id', 'CI Tenant B')
+            on conflict (id) do nothing;
+
+            insert into patients.patient (id, tenant_id, full_name, document, birth_date)
+            values ('$patient_b_id', '$tenant_b_id', 'Paciente Tenant B', '$tenant_b_doc', date '1991-01-01')
+            on conflict (id) do nothing;
+
+            insert into scheduling.specialty (id, tenant_id, name, active)
+            values ('$specialty_b_id', '$tenant_b_id', 'Especialidade Tenant B', true)
+            on conflict (id) do nothing;
+
+            insert into scheduling.professional (id, tenant_id, full_name, specialty_id, active)
+            values ('$professional_b_id', '$tenant_b_id', 'Profissional Tenant B', '$specialty_b_id', true)
+            on conflict (id) do nothing;
+
+            insert into appointments.appointment (id, tenant_id, patient_id, professional_id, location_id, starts_at_utc, ends_at_utc, status, notes)
+            values (
+              '$appointment_b_id',
+              '$tenant_b_id',
+              '$patient_b_id',
+              '$professional_b_id',
+              null,
+              timestamptz '$appointment_b_start',
+              timestamptz '$appointment_b_end',
+              'scheduled',
+              'Tenant B hidden appointment'
+            )
+            on conflict (id) do nothing;
+          "
+
+          patients=$(curl -fsS -b cookie.txt http://localhost:5026/api/patients)
+          forged_patients=$(curl -fsS -b cookie.txt -H "X-Tenant-Id: $tenant_b_id" http://localhost:5026/api/patients)
+          if echo "$forged_patients" | jq -e --arg doc "$tenant_b_doc" '.[] | select(.document == $doc)' > /dev/null; then
+            echo "Tenant isolation regression: forged X-Tenant-Id exposed tenant B data."
+            exit 1
+          fi
+
+          forged_appointments=$(curl -fsS -b cookie.txt -H "X-Tenant-Id: $tenant_b_id" \
+            "http://localhost:5026/api/appointments?fromUtc=$appointment_b_start&toUtc=$appointment_b_to")
+          if echo "$forged_appointments" | jq -e --arg id "$appointment_b_id" '.[] | select(.id == $id)' > /dev/null; then
+            echo "Tenant isolation regression: forged X-Tenant-Id exposed tenant B appointment."
+            exit 1
+          fi
+
+          forged_write_payload=$(jq -n \
+            --arg patientId "$patient_b_id" \
+            --arg professionalId "$professional_b_id" \
+            --arg startsAtUtc "$appointment_b_start" \
+            --arg endsAtUtc "$appointment_b_end" \
+            '{
+              patientId: $patientId,
+              professionalId: $professionalId,
+              locationId: null,
+              startsAtUtc: $startsAtUtc,
+              endsAtUtc: $endsAtUtc,
+              notes: "forged tenant write attempt"
+            }')
+          forged_write_status=$(curl -s -o forged_write_response.json -w "%{http_code}" \
+            -b cookie.txt -H "X-Tenant-Id: $tenant_b_id" -H "Content-Type: application/json" \
+            -d "$forged_write_payload" \
+            http://localhost:5026/api/appointments)
+          if [ "$forged_write_status" -lt "400" ] || [ "$forged_write_status" -ge "500" ]; then
+            echo "Tenant isolation regression: forged write unexpectedly succeeded (status=$forged_write_status)."
+            cat forged_write_response.json
+            exit 1
+          fi
+
+          professionals=$(curl -fsS -b cookie.txt http://localhost:5026/api/professionals)
+          locations=$(curl -fsS -b cookie.txt http://localhost:5026/api/locations)
+          plans=$(curl -fsS -b cookie.txt http://localhost:5026/api/patients/plans)
+
+          professional_id=$(echo "$professionals" | jq -r '.[0].id')
+          location_id=$(echo "$locations" | jq -r '.[0].id')
+          plan_id=$(echo "$plans" | jq -r '.[0].id')
+
+          test "$professional_id" != "null"
+          test "$location_id" != "null"
+          test "$plan_id" != "null"
+
+          doc_id="CI-$(date +%s)"
+          patient_payload=$(jq -n --arg doc "$doc_id" '{
+            fullName: "CI Patient",
+            document: $doc,
+            birthDate: "1990-01-01"
+          }')
+
+          created_patient=$(curl -fsS -b cookie.txt -H "Content-Type: application/json" \
+            -d "$patient_payload" \
+            http://localhost:5026/api/patients)
+          patient_id=$(echo "$created_patient" | jq -r '.id')
+          test "$patient_id" != "null"
+
+          ehr_payload=$(jq -n '{
+            encounteredAtUtc: null,
+            subjective: "Paciente sem queixas agudas.",
+            objective: "Sinais vitais estaveis.",
+            assessment: "Evolucao favoravel.",
+            plan: "Manter conduta e retorno."
+          }')
+          curl -fsS -b cookie.txt -H "Content-Type: application/json" \
+            -d "$ehr_payload" \
+            "http://localhost:5026/api/patients/$patient_id/evolutions" > /dev/null
+          curl -fsS -b cookie.txt "http://localhost:5026/api/patients/$patient_id/evolutions?skip=0&take=50" > /dev/null
+
+          curl -fsS -o /dev/null -X PUT -b cookie.txt \
+            "http://localhost:5026/api/patients/$patient_id/plans/$plan_id"
+          curl -fsS -b cookie.txt "http://localhost:5026/api/patients/$patient_id/plans" > /dev/null
+
+          starts_at=$(date -u -d "+3 hours" +"%Y-%m-%dT%H:00:00Z")
+          ends_at=$(date -u -d "+3 hours +30 minutes" +"%Y-%m-%dT%H:%M:00Z")
+          appointment_payload=$(jq -n \
+            --arg patientId "$patient_id" \
+            --arg professionalId "$professional_id" \
+            --arg locationId "$location_id" \
+            --arg startsAtUtc "$starts_at" \
+            --arg endsAtUtc "$ends_at" \
+            '{
+              patientId: $patientId,
+              professionalId: $professionalId,
+              locationId: $locationId,
+              startsAtUtc: $startsAtUtc,
+              endsAtUtc: $endsAtUtc,
+              notes: "CI smoke appointment"
+            }')
+
+          curl -fsS -b cookie.txt -H "Content-Type: application/json" \
+            -d "$appointment_payload" \
+            http://localhost:5026/api/appointments > created_appointment.json
+          appointment_id=$(jq -r '.id' created_appointment.json)
+          test "$appointment_id" != "null"
+
+          intent_payload=$(jq -n '{
+            recipientPhone: "+5511999999999",
+            messageText: "Lembrete manual de consulta"
+          }')
+          curl -fsS -b cookie.txt -H "Content-Type: application/json" \
+            -d "$intent_payload" \
+            "http://localhost:5026/api/appointments/$appointment_id/whatsapp/intents" > created_intent.json
+          intent_id=$(jq -r '.id' created_intent.json)
+          test "$intent_id" != "null"
+
+          sent_payload=$(jq -n '{
+            provider: "whatsapp-cloud-api",
+            providerMessageId: "ci-smoke-001"
+          }')
+          curl -fsS -X POST -b cookie.txt -H "Content-Type: application/json" \
+            -d "$sent_payload" \
+            "http://localhost:5026/api/appointments/$appointment_id/whatsapp/$intent_id/sent" > /dev/null
+
+          curl -fsS -b cookie.txt "http://localhost:5026/api/appointments/$appointment_id/whatsapp" > /dev/null
+          curl -fsS -b cookie.txt http://localhost:5026/api/appointments > /dev/null
+
+          due_date=$(date -u -d "+7 days" +"%Y-%m-%d")
+          charge_payload=$(jq -n \
+            --arg appointmentId "$appointment_id" \
+            --arg patientId "$patient_id" \
+            --arg dueDate "$due_date" \
+            '{
+              appointmentId: $appointmentId,
+              patientId: $patientId,
+              payerType: "private",
+              description: "CI smoke charge",
+              amount: 250.00,
+              dueDate: $dueDate
+            }')
+
+          curl -fsS -b cookie.txt -H "Content-Type: application/json" \
+            -d "$charge_payload" \
+            http://localhost:5026/api/appointments/charges > created_charge.json
+          charge_id=$(jq -r '.id' created_charge.json)
+          test "$charge_id" != "null"
+
+          curl -fsS -X POST -b cookie.txt \
+            "http://localhost:5026/api/appointments/charges/$charge_id/paid" > /dev/null
+
+          competence_month=$(date -u +"%Y-%m-01")
+          batch_payload=$(jq -n --arg competenceMonth "$competence_month" '{
+            competenceMonth: $competenceMonth
+          }')
+          curl -fsS -b cookie.txt -H "Content-Type: application/json" \
+            -d "$batch_payload" \
+            http://localhost:5026/api/appointments/batches/close > created_batch.json
+          batch_id=$(jq -r '.id' created_batch.json)
+          test "$batch_id" != "null"
+
+          charges=$(curl -fsS -b cookie.txt http://localhost:5026/api/appointments/charges)
+          batches=$(curl -fsS -b cookie.txt http://localhost:5026/api/appointments/batches)
+          charge_status=$(echo "$charges" | jq -r ".[] | select(.id == \"$charge_id\") | .status" | head -n1)
+
+          test "$charge_status" = "paid"
+          test "$(echo "$batches" | jq 'length')" -ge 1
+
+      - name: Docker compose logs on failure
+        if: failure()
+        run: docker compose logs --tail=300
+
+      - name: Docker compose down
+        if: always()
+        run: docker compose down -v
