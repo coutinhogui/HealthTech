@@ -1,8 +1,23 @@
-﻿
-<MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    @*<MudNavLink Href="login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
-     <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
-    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink> *@
+<div class="nav-shell">
+    <div class="nav-shell__header">
+        <span class="nav-shell__eyebrow">Workspace</span>
+        <MudText Typo="Typo.h6">Cockpit clinico</MudText>
+        <MudText Typo="Typo.body2">Visualize operacao, agenda e crescimento em uma unica camada.</MudText>
+    </div>
 
-</MudNavMenu>
+    <MudNavMenu Class="nav-shell__menu">
+        <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.SpaceDashboard">Visao geral</MudNavLink>
+        <MudNavLink Href="/pacientes" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Groups">Pacientes</MudNavLink>
+        <MudNavLink Href="/consultas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CalendarMonth">Consultas</MudNavLink>
+        <MudNavLink Href="/profissionais" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Badge">Profissionais</MudNavLink>
+        <MudNavLink Href="/prontuario" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Description">Prontuario</MudNavLink>
+        <MudNavLink Href="/financeiro" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Payments">Financeiro</MudNavLink>
+        <MudNavLink Href="/relatorios" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.QueryStats">Relatorios</MudNavLink>
+    </MudNavMenu>
+
+    <MudPaper Elevation="0" Class="nav-shell__panel">
+        <MudText Typo="Typo.overline">Status</MudText>
+        <MudText Typo="Typo.subtitle2">Tudo sincronizado</MudText>
+        <MudText Typo="Typo.body2">Nenhum alerta critico. Ultima atualizacao ha poucos segundos.</MudText>
+    </MudPaper>
+</div>

@@ -6,7 +6,6 @@ namespace HealthTech.AppShell.Auth
 {
     /// <summary>
     /// Provider simples: começa anônimo e permite setar login/logout em runtime.
-    /// Troque a leitura para sua sessão do Supabase quando quiser.
     /// </summary>
     public class SimpleAuthStateProvider : AuthenticationStateProvider
     {
@@ -30,6 +29,6 @@ namespace HealthTech.AppShell.Auth
             SetUser(new ClaimsPrincipal(identity));
         }
 
-        public void SignOut() => SetUser(null);
+        public void SignOut() => SetUser(new ClaimsPrincipal(new ClaimsIdentity()));
     }
 }

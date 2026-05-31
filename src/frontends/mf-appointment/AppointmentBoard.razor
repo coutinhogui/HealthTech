@@ -1,0 +1,635 @@
+@namespace HealthTech.Frontends.MfAppointment
+@inject AppointmentBffClient AppointmentsClient
+@inject AppointmentPatientOptionsClient PatientsClient
+@inject AppointmentProfessionalOptionsClient ProfessionalsClient
+@inject ProfessionalManagementBffClient ManagementClient
+
+<section class="mf-shell">
+    <header class="mf-header">
+        <div>
+            <h2>Consultas</h2>
+            <p>Agenda real consultando o BFF com janela de periodo e validacao de conflito.</p>
+        </div>
+        <button type="button" @onclick="ToggleFormAsync">@(IsEditing ? "Cancelar edicao" : "Nova consulta")</button>
+    </header>
+
+    @if (ShowForm)
+    {
+        <form class="mf-form" @onsubmit="SubmitAppointmentAsync" @onsubmit:preventDefault>
+            <label>
+                Paciente
+                <select @bind="NewAppointment.PatientId" disabled="@IsEditing">
+                    <option value="">Selecione</option>
+                    @foreach (var patient in Patients)
+                    {
+                        <option value="@patient.Id">@patient.FullName</option>
+                    }
+                </select>
+            </label>
+            <label>
+                Profissional
+                <select value="@NewAppointment.ProfessionalId" @onchange="OnProfessionalChangedAsync">
+                    <option value="">Selecione</option>
+                    @foreach (var professional in Professionals)
+                    {
+                        <option value="@professional.Id">@professional.FullName - @professional.SpecialtyName</option>
+                    }
+                </select>
+            </label>
+            <label>
+                Local
+                <select value="@NewAppointment.LocationId" @onchange="OnLocationChangedAsync">
+                    <option value="">Sem local definido</option>
+                    @foreach (var location in Locations)
+                    {
+                        <option value="@location.Id">@location.Name</option>
+                    }
+                </select>
+            </label>
+            <label>
+                Inicio
+                <input type="datetime-local" value="@NewAppointment.StartsAtLocal" @onchange="UpdateStartsAt" />
+            </label>
+            <label>
+                Fim
+                <input type="datetime-local" value="@NewAppointment.EndsAtLocal" @onchange="UpdateEndsAt" />
+            </label>
+            <label>
+                Observacoes
+                <input @bind="NewAppointment.Notes" placeholder="Opcional" />
+            </label>
+            <button type="submit" disabled="@Saving">@(Saving ? "Salvando..." : IsEditing ? "Salvar alteracao" : "Salvar consulta")</button>
+        </form>
+
+        @if (LoadingSlots)
+        {
+            <div class="mf-empty">Calculando slots disponiveis...</div>
+        }
+        else if (AvailableSlots.Any())
+        {
+            <div class="mf-tabs">
+                @foreach (var slot in AvailableSlots)
+                {
+                    <button type="button" @onclick="() => ApplySlot(slot)">@slot.StartsAtUtc.ToLocalTime().ToString("HH:mm") - @slot.EndsAtUtc.ToLocalTime().ToString("HH:mm")</button>
+                }
+            </div>
+        }
+    }
+
+    @if (!string.IsNullOrWhiteSpace(StatusMessage))
+    {
+        <div class="mf-alert @StatusClass">@StatusMessage</div>
+    }
+
+    <div class="mf-filters">
+        <div class="mf-tabs">
+            @foreach (var day in Days)
+            {
+                <button type="button" class="@(day == SelectedDay ? "is-active" : "")" @onclick="() => SelectDayAsync(day)">@day</button>
+            }
+        </div>
+        <button type="button" @onclick="LoadAppointmentsAsync" disabled="@Loading">Atualizar</button>
+    </div>
+
+    <div class="mf-cards">
+        <article>
+            <strong>@Appointments.Count</strong>
+            <span>Atendimentos previstos</span>
+        </article>
+        <article>
+            <strong>@Appointments.Count(a => a.Status == "scheduled")</strong>
+            <span>Agendadas</span>
+        </article>
+        <article>
+            <strong>@Professionals.Count</strong>
+            <span>Profissionais ativos</span>
+        </article>
+    </div>
+
+    @if (Loading)
+    {
+        <div class="mf-empty">Carregando consultas...</div>
+    }
+    else if (!Appointments.Any())
+    {
+        <div class="mf-empty">Nenhuma consulta encontrada para o periodo.</div>
+    }
+    else
+    {
+        <div class="mf-timeline">
+            @foreach (var slot in Appointments.OrderBy(a => a.StartsAtUtc))
+            {
+                <div class="mf-timeline__item">
+                    <span class="hour">@slot.StartsAtUtc.ToLocalTime().ToString("HH:mm")</span>
+                    <div>
+                        <strong>@ResolvePatientName(slot.PatientId)</strong>
+                        <p>@ResolveProfessionalName(slot.ProfessionalId) · @ResolveLocationName(slot.LocationId) · @(string.IsNullOrWhiteSpace(slot.Notes) ? "Sem observacoes" : slot.Notes)</p>
+                    </div>
+                    <span class="status @($"status-{ToClass(slot.Status)}")">@slot.Status</span>
+                    <div class="mf-timeline__actions">
+                        <button type="button" @onclick="() => ToggleWhatsappPanelAsync(slot)" disabled="@SavingWhatsapp">WhatsApp</button>
+                        <button type="button" @onclick="() => BeginReschedule(slot)" disabled="@(!CanMutate(slot) || Saving)">Reagendar</button>
+                        <button type="button" class="is-danger" @onclick="() => CancelAppointmentAsync(slot.Id)" disabled="@(!CanMutate(slot) || Saving)">Cancelar</button>
+                    </div>
+                </div>
+
+                @if (MessagingAppointmentId == slot.Id)
+                {
+                    <div class="mf-whatsapp">
+                        <h4>WhatsApp manual</h4>
+                        <p>Registre a intencao e confirme o envio manual desta consulta.</p>
+
+                        <div class="mf-whatsapp__form">
+                            <label>
+                                Telefone destino
+                                <input @bind="WhatsappRecipientPhone" placeholder="+55 11 99999-9999" />
+                            </label>
+                            <label>
+                                Mensagem
+                                <textarea rows="3" @bind="WhatsappMessageText"></textarea>
+                            </label>
+                            <label>
+                                Provedor (opcional)
+                                <input @bind="WhatsappProvider" placeholder="Ex.: WhatsApp Cloud API" />
+                            </label>
+                            <label>
+                                Id da mensagem no provedor (opcional)
+                                <input @bind="WhatsappProviderMessageId" placeholder="message-id" />
+                            </label>
+                        </div>
+
+                        <div class="mf-whatsapp__actions">
+                            <button type="button" @onclick="RegisterWhatsappIntentAsync" disabled="@SavingWhatsapp">
+                                @(SavingWhatsapp ? "Processando..." : "Registrar intencao")
+                            </button>
+                            <button type="button" @onclick="MarkWhatsappAsSentAsync" disabled="@SavingWhatsapp">Marcar enviado</button>
+                        </div>
+
+                        @if (WhatsappMessages.Any())
+                        {
+                            <div class="mf-whatsapp__history">
+                                @foreach (var message in WhatsappMessages)
+                                {
+                                    <article>
+                                        <strong>@message.Status</strong>
+                                        <span>@message.RecipientPhone</span>
+                                        <span>@message.CreatedAtUtc.ToLocalTime().ToString("dd/MM HH:mm")</span>
+                                        @if (message.SentAtUtc is not null)
+                                        {
+                                            <span>enviado @message.SentAtUtc.Value.ToLocalTime().ToString("dd/MM HH:mm")</span>
+                                        }
+                                    </article>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private readonly string[] Days = ["Hoje", "Amanha"];
+    private string SelectedDay { get; set; } = "Hoje";
+    private bool Loading { get; set; }
+    private bool Saving { get; set; }
+    private bool ShowForm { get; set; }
+    private Guid? EditingAppointmentId { get; set; }
+    private bool IsEditing => EditingAppointmentId is not null;
+    private string? StatusMessage { get; set; }
+    private string StatusClass { get; set; } = "mf-alert--info";
+    private List<AppointmentDto> Appointments { get; set; } = [];
+    private List<AppointmentPatientOptionDto> Patients { get; set; } = [];
+    private List<AppointmentProfessionalOptionDto> Professionals { get; set; } = [];
+    private List<LocationDto> Locations { get; set; } = [];
+    private List<AvailableSlotDto> AvailableSlots { get; set; } = [];
+    private List<ManualWhatsappMessageDto> WhatsappMessages { get; set; } = [];
+    private bool LoadingSlots { get; set; }
+    private bool SavingWhatsapp { get; set; }
+    private Guid? MessagingAppointmentId { get; set; }
+    private Guid? LastWhatsappIntentId { get; set; }
+    private string WhatsappRecipientPhone { get; set; } = "";
+    private string WhatsappMessageText { get; set; } = "";
+    private string? WhatsappProvider { get; set; }
+    private string? WhatsappProviderMessageId { get; set; }
+    private NewAppointmentForm NewAppointment { get; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPatientsAsync();
+        await LoadProfessionalsAsync();
+        await LoadLocationsAsync();
+        await LoadAppointmentsAsync();
+    }
+
+    private async Task SelectDayAsync(string day)
+    {
+        SelectedDay = day;
+        await LoadAppointmentsAsync();
+    }
+
+    private void UpdateStartsAt(ChangeEventArgs args)
+        => NewAppointment.StartsAtLocal = args.Value?.ToString() ?? "";
+
+    private void UpdateEndsAt(ChangeEventArgs args)
+        => NewAppointment.EndsAtLocal = args.Value?.ToString() ?? "";
+
+    private async Task ToggleFormAsync()
+    {
+        if (ShowForm && IsEditing)
+        {
+            ClearEditing();
+            return;
+        }
+
+        ShowForm = !ShowForm;
+        if (ShowForm && !IsEditing)
+        {
+            NewAppointment.Reset(
+                Patients.FirstOrDefault()?.Id,
+                Professionals.FirstOrDefault()?.Id,
+                Locations.FirstOrDefault()?.Id);
+            await LoadAvailableSlotsAsync();
+        }
+    }
+
+    private async Task OnProfessionalChangedAsync(ChangeEventArgs args)
+    {
+        NewAppointment.ProfessionalId = args.Value?.ToString() ?? "";
+        await LoadAvailableSlotsAsync();
+    }
+
+    private async Task OnLocationChangedAsync(ChangeEventArgs args)
+    {
+        NewAppointment.LocationId = args.Value?.ToString() ?? "";
+        await LoadAvailableSlotsAsync();
+    }
+
+    private async Task LoadPatientsAsync()
+    {
+        try
+        {
+            Patients = (await PatientsClient.ListAsync(CancellationToken.None)).ToList();
+            NewAppointment.PatientId = Patients.FirstOrDefault()?.Id.ToString("D") ?? "";
+        }
+        catch
+        {
+            Patients = [];
+        }
+    }
+
+    private async Task LoadProfessionalsAsync()
+    {
+        try
+        {
+            Professionals = (await ProfessionalsClient.ListAsync(CancellationToken.None)).ToList();
+            NewAppointment.ProfessionalId = Professionals.FirstOrDefault()?.Id.ToString("D") ?? "";
+        }
+        catch
+        {
+            Professionals = [];
+        }
+    }
+
+    private async Task LoadLocationsAsync()
+    {
+        try
+        {
+            Locations = (await ManagementClient.ListLocationsAsync(CancellationToken.None)).ToList();
+            NewAppointment.LocationId = Locations.FirstOrDefault()?.Id.ToString("D") ?? "";
+        }
+        catch
+        {
+            Locations = [];
+        }
+    }
+
+    private async Task LoadAppointmentsAsync()
+    {
+        Loading = true;
+        StatusMessage = null;
+        try
+        {
+            var from = SelectedDay == "Hoje"
+                ? new DateTimeOffset(DateTime.Today, TimeZoneInfo.Local.GetUtcOffset(DateTime.Today))
+                : new DateTimeOffset(DateTime.Today.AddDays(1), TimeZoneInfo.Local.GetUtcOffset(DateTime.Today.AddDays(1)));
+            var to = from.AddDays(1);
+            Appointments = (await AppointmentsClient.ListAsync(from.ToUniversalTime(), to.ToUniversalTime(), CancellationToken.None)).ToList();
+        }
+        catch
+        {
+            StatusClass = "mf-alert--error";
+            StatusMessage = "Nao foi possivel carregar consultas. Verifique sessao, tenant e disponibilidade da API.";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private async Task LoadAvailableSlotsAsync()
+    {
+        if (!ShowForm || !Guid.TryParse(NewAppointment.ProfessionalId, out var professionalId))
+        {
+            AvailableSlots = [];
+            return;
+        }
+
+        LoadingSlots = true;
+        try
+        {
+            Guid? locationId = Guid.TryParse(NewAppointment.LocationId, out var parsedLocationId) ? parsedLocationId : null;
+            var from = SelectedDay == "Hoje"
+                ? new DateTimeOffset(DateTime.Today, TimeZoneInfo.Local.GetUtcOffset(DateTime.Today))
+                : new DateTimeOffset(DateTime.Today.AddDays(1), TimeZoneInfo.Local.GetUtcOffset(DateTime.Today.AddDays(1)));
+            var to = from.AddDays(1);
+            var slots = await AppointmentsClient.ListAvailableSlotsAsync(
+                professionalId,
+                from.ToUniversalTime(),
+                to.ToUniversalTime(),
+                30,
+                locationId,
+                CancellationToken.None);
+            AvailableSlots = slots.Take(12).ToList();
+        }
+        catch
+        {
+            AvailableSlots = [];
+        }
+        finally
+        {
+            LoadingSlots = false;
+        }
+    }
+
+    private void ApplySlot(AvailableSlotDto slot)
+    {
+        NewAppointment.StartsAtLocal = slot.StartsAtUtc.ToLocalTime().ToString("yyyy-MM-ddTHH:mm");
+        NewAppointment.EndsAtLocal = slot.EndsAtUtc.ToLocalTime().ToString("yyyy-MM-ddTHH:mm");
+    }
+
+    private async Task SubmitAppointmentAsync()
+    {
+        Saving = true;
+        StatusMessage = null;
+        try
+        {
+            if (!Guid.TryParse(NewAppointment.PatientId, out var patientId) ||
+                !Guid.TryParse(NewAppointment.ProfessionalId, out var professionalId) ||
+                !DateTime.TryParse(NewAppointment.StartsAtLocal, out var startsLocal) ||
+                !DateTime.TryParse(NewAppointment.EndsAtLocal, out var endsLocal))
+            {
+                StatusClass = "mf-alert--error";
+                StatusMessage = "Preencha paciente, profissional, inicio e fim.";
+                return;
+            }
+
+            Guid? locationId = Guid.TryParse(NewAppointment.LocationId, out var parsedLocationId) ? parsedLocationId : null;
+            var startsAt = new DateTimeOffset(startsLocal, TimeZoneInfo.Local.GetUtcOffset(startsLocal)).ToUniversalTime();
+            var endsAt = new DateTimeOffset(endsLocal, TimeZoneInfo.Local.GetUtcOffset(endsLocal)).ToUniversalTime();
+            var result = IsEditing
+                ? await AppointmentsClient.RescheduleAsync(
+                    EditingAppointmentId!.Value,
+                    new RescheduleAppointmentDto(professionalId, locationId, startsAt, endsAt, NewAppointment.Notes),
+                    CancellationToken.None)
+                : await AppointmentsClient.CreateAsync(
+                    new CreateAppointmentDto(patientId, professionalId, locationId, startsAt, endsAt, NewAppointment.Notes),
+                    CancellationToken.None);
+
+            if (!result.Success)
+            {
+                StatusClass = "mf-alert--error";
+                StatusMessage = result.Message ?? "Nao foi possivel salvar a consulta.";
+                return;
+            }
+
+            StatusClass = "mf-alert--success";
+            StatusMessage = IsEditing ? "Consulta reagendada." : "Consulta salva.";
+            ClearEditing();
+            await LoadAppointmentsAsync();
+            await LoadAvailableSlotsAsync();
+        }
+        finally
+        {
+            Saving = false;
+        }
+    }
+
+    private void BeginReschedule(AppointmentDto appointment)
+    {
+        EditingAppointmentId = appointment.Id;
+        ShowForm = true;
+        NewAppointment.PatientId = appointment.PatientId.ToString("D");
+        NewAppointment.ProfessionalId = appointment.ProfessionalId.ToString("D");
+        NewAppointment.LocationId = appointment.LocationId?.ToString("D") ?? "";
+        NewAppointment.StartsAtLocal = appointment.StartsAtUtc.ToLocalTime().ToString("yyyy-MM-ddTHH:mm");
+        NewAppointment.EndsAtLocal = appointment.EndsAtUtc.ToLocalTime().ToString("yyyy-MM-ddTHH:mm");
+        NewAppointment.Notes = appointment.Notes;
+        StatusMessage = null;
+        _ = LoadAvailableSlotsAsync();
+    }
+
+    private async Task CancelAppointmentAsync(Guid appointmentId)
+    {
+        Saving = true;
+        StatusMessage = null;
+        try
+        {
+            var result = await AppointmentsClient.CancelAsync(appointmentId, CancellationToken.None);
+            if (!result.Success)
+            {
+                StatusClass = "mf-alert--error";
+                StatusMessage = result.Message ?? "Nao foi possivel cancelar a consulta.";
+                return;
+            }
+
+            if (EditingAppointmentId == appointmentId)
+            {
+                ClearEditing();
+            }
+
+            StatusClass = "mf-alert--success";
+            StatusMessage = "Consulta cancelada.";
+            await LoadAppointmentsAsync();
+            await LoadAvailableSlotsAsync();
+        }
+        finally
+        {
+            Saving = false;
+        }
+    }
+
+    private void ClearEditing()
+    {
+        EditingAppointmentId = null;
+        ShowForm = false;
+        AvailableSlots = [];
+        NewAppointment.Reset(
+            Patients.FirstOrDefault()?.Id,
+            Professionals.FirstOrDefault()?.Id,
+            Locations.FirstOrDefault()?.Id);
+    }
+
+    private async Task ToggleWhatsappPanelAsync(AppointmentDto appointment)
+    {
+        if (MessagingAppointmentId == appointment.Id)
+        {
+            ClearWhatsappPanel();
+            return;
+        }
+
+        MessagingAppointmentId = appointment.Id;
+        WhatsappRecipientPhone = "";
+        WhatsappMessageText = BuildDefaultWhatsappMessage(appointment);
+        WhatsappProvider = "";
+        WhatsappProviderMessageId = "";
+        await LoadWhatsappMessagesAsync(appointment.Id);
+    }
+
+    private async Task RegisterWhatsappIntentAsync()
+    {
+        if (MessagingAppointmentId is null)
+        {
+            return;
+        }
+
+        SavingWhatsapp = true;
+        StatusMessage = null;
+        try
+        {
+            var result = await AppointmentsClient.RegisterWhatsappIntentAsync(
+                MessagingAppointmentId.Value,
+                new RegisterWhatsappIntentDto(WhatsappRecipientPhone, WhatsappMessageText),
+                CancellationToken.None);
+
+            if (!result.Success)
+            {
+                StatusClass = "mf-alert--error";
+                StatusMessage = result.Message ?? "Nao foi possivel registrar a intencao WhatsApp.";
+                return;
+            }
+
+            LastWhatsappIntentId = result.Value;
+            StatusClass = "mf-alert--success";
+            StatusMessage = "Intencao de envio registrada.";
+            await LoadWhatsappMessagesAsync(MessagingAppointmentId.Value);
+        }
+        finally
+        {
+            SavingWhatsapp = false;
+        }
+    }
+
+    private async Task MarkWhatsappAsSentAsync()
+    {
+        if (MessagingAppointmentId is null)
+        {
+            return;
+        }
+
+        if (LastWhatsappIntentId is null)
+        {
+            StatusClass = "mf-alert--error";
+            StatusMessage = "Registre uma intencao antes de marcar como enviado.";
+            return;
+        }
+
+        SavingWhatsapp = true;
+        StatusMessage = null;
+        try
+        {
+            var result = await AppointmentsClient.MarkWhatsappSentAsync(
+                MessagingAppointmentId.Value,
+                LastWhatsappIntentId.Value,
+                new MarkWhatsappSentDto(WhatsappProvider, WhatsappProviderMessageId),
+                CancellationToken.None);
+
+            if (!result.Success)
+            {
+                StatusClass = "mf-alert--error";
+                StatusMessage = result.Message ?? "Nao foi possivel marcar envio manual.";
+                return;
+            }
+
+            StatusClass = "mf-alert--success";
+            StatusMessage = "Envio manual confirmado.";
+            await LoadWhatsappMessagesAsync(MessagingAppointmentId.Value);
+        }
+        finally
+        {
+            SavingWhatsapp = false;
+        }
+    }
+
+    private async Task LoadWhatsappMessagesAsync(Guid appointmentId)
+    {
+        try
+        {
+            WhatsappMessages = (await AppointmentsClient.ListWhatsappMessagesAsync(appointmentId, CancellationToken.None)).ToList();
+            LastWhatsappIntentId = WhatsappMessages.FirstOrDefault(message => message.Status == "intent")?.Id;
+        }
+        catch
+        {
+            WhatsappMessages = [];
+            LastWhatsappIntentId = null;
+            StatusClass = "mf-alert--error";
+            StatusMessage = "Nao foi possivel carregar historico WhatsApp.";
+        }
+    }
+
+    private void ClearWhatsappPanel()
+    {
+        MessagingAppointmentId = null;
+        LastWhatsappIntentId = null;
+        WhatsappRecipientPhone = "";
+        WhatsappMessageText = "";
+        WhatsappProvider = "";
+        WhatsappProviderMessageId = "";
+        WhatsappMessages = [];
+    }
+
+    private string BuildDefaultWhatsappMessage(AppointmentDto appointment)
+    {
+        var patientName = ResolvePatientName(appointment.PatientId);
+        var professional = ResolveProfessionalName(appointment.ProfessionalId);
+        var startLocal = appointment.StartsAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+        return $"Ola {patientName}, sua consulta com {professional} esta prevista para {startLocal}.";
+    }
+
+    private string ResolvePatientName(Guid patientId)
+        => Patients.FirstOrDefault(patient => patient.Id == patientId)?.FullName ?? patientId.ToString("D");
+
+    private string ResolveProfessionalName(Guid professionalId)
+        => Professionals.FirstOrDefault(professional => professional.Id == professionalId)?.FullName ?? professionalId.ToString("D");
+
+    private string ResolveLocationName(Guid? locationId)
+        => locationId is null
+            ? "Sem local"
+            : Locations.FirstOrDefault(location => location.Id == locationId)?.Name ?? locationId.Value.ToString("D");
+
+    private static bool CanMutate(AppointmentDto appointment)
+        => appointment.Status is "scheduled" or "confirmed";
+
+    private static string ToClass(string status) => status.ToLowerInvariant().Replace(" ", "-");
+
+    private sealed class NewAppointmentForm
+    {
+        public string PatientId { get; set; } = "";
+        public string ProfessionalId { get; set; } = "";
+        public string LocationId { get; set; } = "";
+        public string StartsAtLocal { get; set; } = DateTime.Now.AddHours(1).ToString("yyyy-MM-ddTHH:mm");
+        public string EndsAtLocal { get; set; } = DateTime.Now.AddHours(1.5).ToString("yyyy-MM-ddTHH:mm");
+        public string? Notes { get; set; }
+
+        public void Reset(Guid? patientId, Guid? professionalId, Guid? locationId)
+        {
+            PatientId = patientId?.ToString("D") ?? "";
+            ProfessionalId = professionalId?.ToString("D") ?? "";
+            LocationId = locationId?.ToString("D") ?? "";
+            StartsAtLocal = DateTime.Now.AddHours(1).ToString("yyyy-MM-ddTHH:mm");
+            EndsAtLocal = DateTime.Now.AddHours(1.5).ToString("yyyy-MM-ddTHH:mm");
+            Notes = null;
+        }
+    }
+}

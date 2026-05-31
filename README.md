@@ -2,7 +2,7 @@
 
 Este documento resume o **core** do HealthTech: uma plataforma B2B para clínicas, consultórios e profissionais de saúde com módulos essenciais (agenda, cadastro de pacientes e profissionais, comunicação por WhatsApp, cadastro/validação de planos de saúde e discovery de profissionais por especialidade).
 
-> Stack combinando **.NET 8** (backend), **Blazor** (frontend) e **Supabase** (Auth + DB + Storage + Realtime). Objetivo: lançar MVP rápido, escalável e com custo inicial baixo.
+> Stack combinando **.NET 10 LTS** (backend), **Blazor** (frontend) e **Supabase Postgres** (DB + RLS + Auth server-side via BFF). Objetivo: lançar MVP rápido, escalável e com custo inicial baixo sem expor tokens sensíveis no browser.
 
 ---
 
@@ -18,17 +18,17 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 
 ## Arquitetura (alto nível)
 
-* **Frontend (Blazor .NET 8)**
+* **Frontend (Blazor .NET 10)**
 
   * Opções: **Blazor WebAssembly (WASM)** ou **Blazor Server**; para o MVP, considerar WASM hospedado com ASP.NET Core para melhor escalabilidade de leitura.
   * Roteamento com `<Router>` e componentes Razor; formulários com `EditForm` + validações por `DataAnnotations`.
-  * Autenticação via **Supabase Auth** usando **supabase-csharp** (validação e refresh de JWT) com armazenamento seguro (`ProtectedLocalStorage`).
-  * `HttpClient` com `AuthorizationMessageHandler` para anexar o token automaticamente às chamadas das APIs.
+  * Autenticação via **BFF no Gateway**: o browser usa cookie `HttpOnly`, `Secure`, `SameSite=Strict`; access/refresh tokens ficam no servidor.
+  * `HttpClient` chama o BFF com credenciais de cookie; o BFF injeta tokens/tenant nas chamadas internas.
   * Páginas/áreas: Recepção, Profissional, Administração; `AuthorizeView` e `CascadingAuthenticationState` para RBAC.
 
-* **Backend (.NET 8 / ASP.NET Minimal APIs)** (.NET 8 / ASP.NET Minimal APIs)**
+* **Backend (.NET 10 / ASP.NET Minimal APIs)**
 
-  * **Serviço de Identidade**: integra com Supabase Auth (validação de JWT); emite claims de domínio (papéis, tenant, plano).
+  * **Serviço de Identidade/BFF**: integra com Supabase Auth no servidor; emite cookie BFF e claims de domínio (papéis, tenant, plano).
   * **Serviço de Pacientes**: CRUD de pacientes, anotações básicas e preferências de contato.
   * **Serviço de Agenda**: slots, reservas, cancelamentos, no-shows, regras por profissional/local.
   * **Serviço de Convênios/Planos**: cadastro, tabelas, vínculo paciente→plano, validação prévia (mock inicialmente).
@@ -37,7 +37,7 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 * **Dados**
 
   * **Supabase Postgres** como banco primário; schemas por domínio (identity, patients, scheduling, payers).
-  * **Storage** (Supabase) para anexos (laudos/arquivos simples) — no MVP: limite de tipos e tamanho.
+  * **Storage** (Supabase) para anexos (laudos/arquivos simples) fica para fase posterior; o MVP atual não chama Storage direto pelo browser.
 
 * **Mensageria & Jobs (fase 2)**
 
@@ -56,7 +56,7 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 * **Plan**(id, payer, name, externalCode?)
 * **PatientPlan**(patientId, planId, status)
 * **Appointment**(id, patientId, professionalId, locationId, startsAt, endsAt, status, notes)
-* **User**(id, email, role, professionalId?, clinicId?) — provisionado a partir do Supabase Auth
+* **User**(id, email, role, professionalId?, clinicId?) — provisionado a partir do BFF/Supabase Auth server-side
 
 > Multi‑tenant simples por **clinicId** em tabelas principais; enforcement por claim + filtros em todas as queries.
 
@@ -72,14 +72,15 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
    * Job busca consultas de D-1 / H-3 → dispara mensagem → recebe webhook de resposta → atualiza status.
 3. **Login e sessão**
 
-   * Supabase Auth emite JWT → .NET valida (chave pública) → adiciona claims de domínio → autoriza rotas.
+   * BFF troca credenciais/callback com Supabase → emite cookie seguro → adiciona claims de domínio → autoriza rotas.
 
 ---
 
 ## Segurança e Acesso
 
-* JWT do Supabase validado no gateway/serviços; **políticas** por role (admin, prof, recepção).
-* **Row-Level Security** (RLS) no Postgres (fase 2) para reforço de multi-tenant.
+* O browser usa apenas cookie BFF `HttpOnly`; tokens Supabase não ficam em `localStorage` ou `sessionStorage`.
+* Gateway resolve usuário/tenant/role pela sessão, rejeita `X-Tenant-Id` forjado e injeta headers internos server-side.
+* **Row-Level Security** (RLS) no Postgres reforça isolamento multi-tenant.
 * Rate limit no gateway p/ endpoints sensíveis.
 
 ---
@@ -92,13 +93,17 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 
 ---
 
-## Endpoints (rascunho)
+## Endpoints atuais pelo Gateway/BFF
 
-* **/auth/me** → perfil e claims
-* **/patients** → CRUD
-* **/scheduling/slots?professionalId&from&to** → listar slots
-* **/appointments** → criar/cancelar/listar
-* **/plans** → CRUD e vínculo paciente‑plano
+* **GET /api/session** -> sessão BFF atual.
+* **POST /api/auth/login** -> login BFF; em desenvolvimento usa bootstrap local quando habilitado.
+* **POST /api/auth/logout** -> encerra cookie BFF.
+* **GET/POST /api/patients** -> pacientes.
+* **GET/POST /api/patients/plans** -> convênios/planos.
+* **GET/POST /api/appointments** -> consultas.
+* **GET /api/appointments/slots** -> slots disponíveis.
+* **GET/POST /api/professionals**, **/api/specialties**, **/api/locations** -> base de agenda.
+* **/api/appointments/{id}/whatsapp** e **/api/appointments/charges** -> WhatsApp manual e financeiro básico.
 
 ---
 
@@ -109,24 +114,19 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 ```mermaid
 flowchart LR
   U["Usuário (Paciente / Recepção / Profissional)"] -->|"HTTP / HTTPS"| F["Blazor App"]
-  F -->|"JWT via Supabase"| G["API Gateway"]
-  G --> I["Identity API (.NET)"]
+  F -->|"Cookie HttpOnly"| G["Gateway/BFF"]
+  G -->|"Headers internos + tenant resolvido"| I["Identity API (.NET)"]
   G --> P["Patients API (.NET)"]
-  G --> S["Scheduling API (.NET)"]
-  G --> C["Plans API (.NET)"]
+  G --> S["Appointments API (.NET)"]
 
   subgraph Supabase
     DB[(Postgres)]
-    ST[(Storage)]
     AU[(Auth)]
   end
 
-  I --- AU
+  G --- AU
   P --- DB
   S --- DB
-  C --- DB
-  F <--> AU
-  F <--> ST
 ```
 
 ### 2) Sequência: Marcação de consulta
@@ -135,23 +135,25 @@ flowchart LR
 sequenceDiagram
   participant U as Usuário
   participant F as Blazor
-  participant G as API Gateway
-  participant S as Scheduling API
+  participant G as Gateway/BFF
+  participant S as Appointments API
   participant DB as Supabase Postgres
 
   U->>F: Buscar disponibilidade (plano + especialidade)
-  F->>G: GET /scheduling/slots
-  G->>S: Proxy
+  F->>G: GET /api/appointments/slots com cookie
+  G->>S: Proxy com tenant server-side
   S->>DB: Query slots por filtros
   DB-->>S: Slots
-  S-->>F: Slots disponíveis
+  S-->>G: Slots disponíveis
+  G-->>F: Slots disponíveis
   F-->>U: Exibe opções
   U->>F: Confirmar horário
-  F->>G: POST /appointments
+  F->>G: POST /api/appointments com cookie
   G->>S: Criar agendamento
   S->>DB: INSERT Appointment
   DB-->>S: OK
-  S-->>F: Confirmação
+  S-->>G: Confirmação
+  G-->>F: Confirmação
   F-->>U: Detalhes da consulta
 ```
 
@@ -165,35 +167,28 @@ sequenceDiagram
 @startuml
 !theme plain
 package "Gateway" {
-  [API Gateway]
+  [Gateway/BFF]
 }
 
-package "APIs .NET 8" {
+package "APIs .NET 10" {
   [Identity API]
   [Patients API]
-  [Scheduling API]
-  [Plans API]
+  [Appointments API]
 }
 
 package "Supabase" {
   [Auth]
   [Postgres]
-  [Storage]
 }
 
-[Blazor App] -down-> [API Gateway]
-[API Gateway] -right-> [Identity API]
-[API Gateway] -right-> [Patients API]
-[API Gateway] -right-> [Scheduling API]
-[API Gateway] -right-> [Plans API]
+[Blazor App] -down-> [Gateway/BFF] : Cookie HttpOnly
+[Gateway/BFF] -right-> [Identity API]
+[Gateway/BFF] -right-> [Patients API]
+[Gateway/BFF] -right-> [Appointments API]
 
-[Identity API] ..> [Auth] : valida JWT
+[Gateway/BFF] ..> [Auth] : login/callback server-side
 [Patients API] ..> [Postgres]
-[Scheduling API] ..> [Postgres]
-[Plans API] ..> [Postgres]
-
-[Blazor App] ..> [Auth]
-[Blazor App] ..> [Storage]
+[Appointments API] ..> [Postgres]
 @enduml
 ```
 
@@ -206,31 +201,25 @@ node "CDN / Static Hosting" as CDN {
 }
 
 node "Container Apps" as CA {
-  component "API Gateway" as Gw
+  component "Gateway/BFF" as Gw
   component "Identity API" as Id
   component "Patients API" as Pa
-  component "Scheduling API" as Sc
-  component "Plans API" as Pl
+  component "Appointments API" as Sc
 }
 
 node "Supabase Cloud" as Supa {
   database "Postgres" as Pg
   component "Auth" as Auth
-  storage "Storage" as St
 }
 
 Blz --> Gw
 Gw --> Id
 Gw --> Pa
 Gw --> Sc
-Gw --> Pl
 
-Id ..> Auth
+Gw ..> Auth
 Pa ..> Pg
 Sc ..> Pg
-Pl ..> Pg
-Blz ..> Auth
-Blz ..> St
 @enduml
 ```
 
@@ -247,231 +236,135 @@ Blz ..> St
 
 ## Próximos passos sugeridos
 
-1. Definir **esquema inicial** no Postgres (migrations) e seed de especialidades/planos.
-2. Entregar **/patients** e **/scheduling/slots** com integração real ao DB.
-3. Implementar **autenticação** no Blazor: `AuthenticationStateProvider` + `AuthorizeView` e `AuthorizationMessageHandler` no `HttpClient` para anexar o JWT do Supabase às requisições.
+1. Conectar as migrations Supabase ao ambiente remoto e validar RLS com dois tenants reais.
+2. Expandir a vertical para profissionais, locais e slots disponíveis com testes de concorrência.
+3. Configurar Supabase OAuth no BFF (`Bff:SupabaseUrl`, `Bff:SupabaseAnonKey`, `Cors:AllowedOrigins`) e validar Google end-to-end.
 4. Integrar **provedor de WhatsApp** (ex.: Z-API/Meta Cloud) com um único fluxo de lembrete.
-5. Esboçar telas no Figma e alinhar navegação (Recepção, Profissional, Admin).
+5. Refinar telas de Recepção, Profissional e Admin com dados reais do BFF.
+
+Para validação local de RLS/constraints em Postgres real, use um banco descartável com `HEALTHTECH_TEST_DATABASE`; o CI já sobe `postgres:16` e executa `tests/HealthTech.Database.Tests`.
+
+## Docker Compose local
+
+O projeto pode subir agrupado no Docker Desktop como um unico stack chamado `healthtech`.
+
+1. Copie as variaveis de ambiente:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+2. Suba o stack:
+
+```powershell
+docker compose up -d --build
+```
+
+URLs locais:
+
+- AppShell: http://localhost:5191
+- Gateway/BFF: http://localhost:5026
+- Postgres: `localhost:55433`, database `healthtech`, usuario `postgres`, senha `postgres`
+
+Observacoes:
+
+- `db-migrate` e um job one-shot: executa migrations + seed e finaliza com status `0`.
+- APIs e frontend possuem healthcheck no Compose; valide com `docker compose ps`.
+- O Gateway persiste chaves de DataProtection em volume Docker (`healthtech-gateway-dpkeys`) para manter cookies validos entre recreacoes.
+
+Se existir container legado fora do stack (ex.: `healthtech-postgres-e2e`), remova:
+
+```powershell
+docker rm -f healthtech-postgres-e2e
+```
+
+Comandos uteis:
+
+```powershell
+docker compose ps
+docker compose logs -f
+docker compose stop
+docker compose start
+docker compose down
+```
+
+Reset completo do ambiente local (remove containers, rede e volumes do stack e sobe de novo):
+
+```powershell
+docker compose down -v
+docker compose up -d --build
+```
+
+Atalhos equivalentes:
+
+```powershell
+.\scripts\healthtech-docker.ps1 up
+.\scripts\healthtech-docker.ps1 pause
+.\scripts\healthtech-docker.ps1 unpause
+.\scripts\healthtech-docker.ps1 stop
+.\scripts\healthtech-docker.ps1 start
+.\scripts\healthtech-docker.ps1 logs
+.\scripts\healthtech-docker.ps1 reset
+```
+
+Para apagar tambem o volume do banco local:
+
+```powershell
+docker compose down -v
+```
+
+Teste de integracao de banco com Postgres real local:
+
+```powershell
+$env:HEALTHTECH_TEST_DATABASE="Host=localhost;Port=55433;Database=healthtech_test;Username=postgres;Password=postgres;Include Error Detail=true"
+dotnet test tests/HealthTech.Database.Tests/HealthTech.Database.Tests.csproj -c Release
+```
+
+Diferencas operacionais entre comandos:
+
+- `docker compose stop`: para os containers, mantendo-os para `start` rapido.
+- `docker compose pause`: congela processos dos containers sem encerramento.
+- `docker compose down`: remove containers e rede do stack, preserva volumes.
+- `docker compose down -v`: remove tambem volumes (zera dados persistidos locais).
+
+Os containers, rede e volume usam nomes `healthtech-*`, e o `compose.yml` define `name: healthtech` para aparecer agrupado no Docker Desktop.
 
 ---
 
-## Autenticação no Blazor — Exemplo de Arquitetura
+## Autenticação BFF — Estado Atual
 
-### Objetivo
+O frontend não persiste tokens Supabase no browser. O AppShell chama o Gateway/BFF com cookies incluídos, e o Gateway emite um cookie `HealthTech.Bff` com `HttpOnly`, `Secure` e `SameSite=Strict`.
 
-* Armazenar a sessão (JWT + refresh token) com segurança.
-* Injetar `Authorization: Bearer <token>` automaticamente no `HttpClient`.
-* Renovar o token quando próximo de expirar (refresh) sem interromper a navegação.
-* Expor `ClaimsPrincipal` via `AuthenticationStateProvider` para `AuthorizeView`/`[Authorize]`.
+Endpoints principais:
 
-### Registro de serviços (Program.cs)
-
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-
-// HttpClient base para BFF/APIs
-builder.Services.AddHttpClient("Api", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!);
-});
-
-// Handler que injeta o Bearer e tenta refresh transparente
-builder.Services.AddTransient<AuthTokenHandler>();
-
-builder.Services.AddHttpClient("Api.Authenticated", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!);
-})
-.AddHttpMessageHandler<AuthTokenHandler>();
-
-// Auth state
-builder.Services.AddScoped<AuthenticationStateProvider, SupabaseAuthStateProvider>();
-builder.Services.AddAuthorizationCore(options =>
-{
-    options.AddPolicy("ReceptionOnly", p => p.RequireRole("reception"));
-});
-
-// Storage protegido para tokens
-builder.Services.AddScoped<ProtectedLocalStorage>();
-
-var app = builder.Build();
-app.Run();
-```
-
-### AuthenticationStateProvider (simplificado)
-
-```csharp
-public class SupabaseAuthStateProvider : AuthenticationStateProvider
-{
-    private readonly ProtectedLocalStorage _storage;
-    private const string SessionKey = "auth_session"; // { accessToken, refreshToken, expiresAt }
-
-    public SupabaseAuthStateProvider(ProtectedLocalStorage storage)
-    {
-        _storage = storage;
-    }
-
-    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
-    {
-        var session = await ReadSessionAsync();
-        if (session is null || session.IsExpired)
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
-
-        var identity = new ClaimsIdentity(ParseClaims(session.AccessToken), authType: "jwt");
-        return new AuthenticationState(new ClaimsPrincipal(identity));
-    }
-
-    public async Task SignInAsync(AuthSession session)
-    {
-        await _storage.SetAsync(SessionKey, session);
-        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-    }
-
-    public async Task SignOutAsync()
-    {
-        await _storage.DeleteAsync(SessionKey);
-        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-    }
-
-    public async Task<AuthSession?> ReadSessionAsync()
-    {
-        var result = await _storage.GetAsync<AuthSession>(SessionKey);
-        return result.Success ? result.Value : null;
-    }
-
-    private static IEnumerable<Claim> ParseClaims(string jwt)
-    {
-        // decodifica payload (base64url) e projeta para Claims; omisso por brevidade
-        return new List<Claim>();
-    }
-}
-
-public record AuthSession(string AccessToken, string RefreshToken, DateTimeOffset ExpiresAt)
-{
-    public bool IsExpired => DateTimeOffset.UtcNow.AddMinutes(1) >= ExpiresAt; // margem de segurança
-}
-```
-
-### HttpMessageHandler com refresh
-
-```csharp
-public class AuthTokenHandler : DelegatingHandler
-{
-    private readonly SupabaseAuthStateProvider _auth;
-    private readonly IServiceProvider _sp;
-
-    public AuthTokenHandler(SupabaseAuthStateProvider auth, IServiceProvider sp)
-    {
-        _auth = auth; _sp = sp;
-    }
-
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
-    {
-        var session = await _auth.ReadSessionAsync();
-        if (session is null)
-            return await base.SendAsync(request, ct);
-
-        // tenta refresh se vencido/próximo
-        if (session.IsExpired)
-        {
-            var refreshed = await TryRefreshAsync(session, ct);
-            if (refreshed is not null) session = refreshed; else await _auth.SignOutAsync();
-        }
-
-        if (session is not null)
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", session.AccessToken);
-
-        var response = await base.SendAsync(request, ct);
-
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            // uma última tentativa de refresh reativa
-            var refreshed = await TryRefreshAsync(session!, ct);
-            if (refreshed is not null)
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", refreshed.AccessToken);
-                response.Dispose();
-                return await base.SendAsync(request, ct);
-            }
-        }
-
-        return response;
-    }
-
-    private async Task<AuthSession?> TryRefreshAsync(AuthSession session, CancellationToken ct)
-    {
-        // Chame seu endpoint de refresh do BFF ou a API do provedor (ex.: Supabase Auth) aqui.
-        // Supondo um BFF: POST /auth/refresh { refreshToken }
-        var client = _sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api");
-        var res = await client.PostAsJsonAsync("/auth/refresh", new { refreshToken = session.RefreshToken }, ct);
-        if (!res.IsSuccessStatusCode) return null;
-        var payload = await res.Content.ReadFromJsonAsync<AuthSession>(cancellationToken: ct);
-        if (payload is null) return null;
-        await _sp.GetRequiredService<SupabaseAuthStateProvider>().SignInAsync(payload);
-        return payload;
-    }
-}
-```
-
-### Login/Logout (exemplo de página)
-
-```razor
-@page "/login"
-@inject SupabaseAuthStateProvider Auth
-@inject NavigationManager Nav
-
-<EditForm Model="login" OnValidSubmit="HandleLogin">
-  <!-- campos de e-mail/senha -->
-  <button type="submit">Entrar</button>
-</EditForm>
-
-@code {
-  private LoginModel login = new();
-
-  private async Task HandleLogin()
-  {
-    // Chame seu BFF: /auth/login -> retorna { accessToken, refreshToken, expiresAt }
-    var session = await DoLoginAsync(login.Email, login.Password);
-    await Auth.SignInAsync(session);
-    Nav.NavigateTo("/");
-  }
-}
-```
-
----
-
-## Diagrama (Mermaid) — Fluxo de Login e Refresh
+* `GET /api/session` — retorna sessão atual ou anônimo.
+* `GET /api/auth/providers` — informa se OAuth server-side está configurado e quais provedores podem aparecer no frontend.
+* `POST /api/auth/login` — autentica no BFF; em desenvolvimento pode usar bootstrap local.
+* `GET /api/auth/login/{provider}` — inicia OAuth server-side com PKCE e cookie temporário de correlação.
+* `GET /api/auth/callback` — valida state/correlação, troca o code no Supabase pelo BFF e emite a sessão segura.
+* `POST /api/auth/logout` — encerra o cookie BFF.
+* `GET/POST /api/patients` e `/api/appointments` — passam pelo Gateway e usam tenant resolvido pela sessão.
 
 ```mermaid
 sequenceDiagram
   autonumber
-  participant U as Usuário
-  participant B as Blazor (WASM/Server)
-  participant G as BFF/API Gateway
-  participant A as Auth Provider (Supabase)
+  participant U as Usuario
+  participant B as Blazor WASM
+  participant G as Gateway BFF
+  participant A as Supabase Auth
+  participant S as APIs internas
 
   U->>B: Submit credenciais
-  B->>G: POST /auth/login (email, senha)
-  G->>A: Verifica credenciais
-  A-->>G: accessToken, refreshToken, expiresAt
-  G-->>B: Sessão (tokens + expiração)
-  B->>B: Persistir sessão (ProtectedLocalStorage)
-  B-->>U: Navega área autenticada
-
-  U->>B: Requisição autenticada
-  B->>G: GET /api/resource (Bearer accessToken)
-  G-->>B: 200 OK (dados)
-
-  Note over B: Antes de cada chamada, checar expiração do token
-  B->>G: POST /auth/refresh (refreshToken)
-  G->>A: Valida refresh
-  A-->>G: Novo accessToken + expiração
-  G-->>B: Nova sessão
-  B->>B: Atualiza sessão e prossegue requisição
+  B->>G: POST /api/auth/login
+  G->>A: Troca credenciais por tokens
+  A-->>G: access token + refresh token
+  G-->>B: Set-Cookie HealthTech.Bff
+  B->>G: GET /api/session
+  G-->>B: Usuario, tenant e role
+  B->>G: GET /api/patients com cookie
+  G->>S: Encaminha token e X-Tenant-Id server-side
+  S-->>G: Dados do tenant
+  G-->>B: Resposta da API
 ```
 
-### Observações
-
-* **BFF /auth/login** e **/auth/refresh** simplificam a lógica no cliente e evitam expor chaves do provedor.
-* Guarde apenas o necessário (mínimo de dados pessoais) no storage e use **HTTPS** sempre.
-* Considere invalidar refresh tokens no servidor ao fazer logout e rotação periódica de chaves.
+Segredos devem ficar em `user-secrets`, variáveis de ambiente ou secrets do CI. A senha Supabase removida do repositório precisa ser rotacionada no provedor.

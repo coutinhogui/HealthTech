@@ -1,17 +1,13 @@
-﻿@page "/"
+@page "/"
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Globalization
-@code {
-    CultureInfo _pt = new("pt-BR");
-}
-<PageTitle>Home</PageTitle>
 
 @inject NavigationManager Nav
 
-<MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
+<PageTitle>Home</PageTitle>
 
+<MudContainer MaxWidth="MaxWidth.Large" Class="home-shell">
     <AuthorizeView Context="authState">
-        <!-- ====================== USUÁRIO AUTENTICADO ====================== -->
         <Authorized>
             @{
                 var user = authState?.User;
@@ -20,268 +16,270 @@
                     : "Profissional";
             }
 
-            <!-- HERO (logado) -->
-            <MudPaper Class="pa-6 mb-6 rounded-2xl d-flex align-center justify-space-between" Elevation="2">
-                <div>
-                    <MudText Typo="Typo.h4" Class="mb-1">Bem-vindo, @nome</MudText>
-                    <MudText Typo="Typo.subtitle1" Class="mb-4" Color="Color.Secondary">
+            <section class="dashboard-hero">
+                <div class="dashboard-hero__copy">
+                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">Painel operacional</MudChip>
+                    <MudText Typo="Typo.h2" Class="dashboard-hero__title">Bem-vindo, @nome</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="dashboard-hero__subtitle">
                         @DateTimeOffset.Now.ToLocalTime().ToString("dddd, dd 'de' MMMM 'de' yyyy", _pt)
                     </MudText>
+                    <MudText Typo="Typo.body1" Class="dashboard-hero__body">
+                        O workspace agora destaca o que precisa de acao rapida: ritmo da agenda, gargalos e impacto financeiro.
+                    </MudText>
 
-                    <MudStack Row="true" Spacing="2">
-                        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@(()=>Nav.NavigateTo("/pacientes"))" StartIcon="@Icons.Material.Filled.Group">
-                            Pacientes
+                    <MudStack Row="true" Spacing="2" Class="dashboard-hero__actions">
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="#operacoes" StartIcon="@Icons.Material.Filled.NorthEast">
+                            Ver operacoes
                         </MudButton>
-                        <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="@(()=>Nav.NavigateTo("/consultas"))" StartIcon="@Icons.Material.Filled.Event">
-                            Consultas
-                        </MudButton>
-                        <MudButton Color="Color.Info" Variant="Variant.Outlined" OnClick="@(()=>Nav.NavigateTo("/relatorios"))" StartIcon="@Icons.Material.Filled.Assessment">
-                            Relatórios
+                        <MudButton Color="Color.Default" Variant="Variant.Outlined" Href="#metricas" StartIcon="@Icons.Material.Filled.QueryStats">
+                            Explorar metricas
                         </MudButton>
                     </MudStack>
                 </div>
-            </MudPaper>
 
-            <!-- KPIs -->
-            <MudGrid Class="mb-6">
+                <MudPaper Elevation="0" Class="dashboard-hero__panel">
+                    <div class="dashboard-hero__panel-row">
+                        <span>Agenda confirmada</span>
+                        <strong>92%</strong>
+                    </div>
+                    <div class="dashboard-hero__panel-row">
+                        <span>Atendimentos em risco</span>
+                        <strong>04</strong>
+                    </div>
+                    <div class="dashboard-hero__panel-row">
+                        <span>Receita projetada</span>
+                        <strong>@ReceitaMes.ToString("C0", _pt)</strong>
+                    </div>
+                </MudPaper>
+            </section>
+
+            <MudGrid Class="kpi-grid">
                 <MudItem xs="12" sm="6" md="3">
-                    <MudCard Class="rounded-2xl"><MudCardContent>
-                        <MudText Typo="Typo.overline">Pacientes ativos</MudText>
-                        <MudText Typo="Typo.h5">@KpiPacientes</MudText>
-                        <MudProgressLinear Value="@PacientesPct" Class="mt-2" />
-                        <MudText Typo="Typo.caption" Color="Color.Success">+@PacientesDelta% vs. ontem</MudText>
-                    </MudCardContent></MudCard>
+                    <MudCard Class="kpi-card" Elevation="0">
+                        <MudCardContent>
+                            <MudText Typo="Typo.overline">Pacientes ativos</MudText>
+                            <MudText Typo="Typo.h5">@KpiPacientes</MudText>
+                            <MudProgressLinear Value="@PacientesPct" Class="mt-2" />
+                            <MudText Typo="Typo.caption" Color="Color.Success">+@PacientesDelta% vs. ontem</MudText>
+                        </MudCardContent>
+                    </MudCard>
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
-                    <MudCard Class="rounded-2xl"><MudCardContent>
-                        <MudText Typo="Typo.overline">Consultas hoje</MudText>
-                        <MudText Typo="Typo.h5">@KpiConsultasHoje</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">Agenda @AgendaOcupacao% ocupada</MudText>
-                    </MudCardContent></MudCard>
+                    <MudCard Class="kpi-card" Elevation="0">
+                        <MudCardContent>
+                            <MudText Typo="Typo.overline">Consultas hoje</MudText>
+                            <MudText Typo="Typo.h5">@KpiConsultasHoje</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Agenda @AgendaOcupacao% ocupada</MudText>
+                        </MudCardContent>
+                    </MudCard>
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
-                    <MudCard Class="rounded-2xl"><MudCardContent>
-                        <MudText Typo="Typo.overline">Absenteísmo</MudText>
-                        <MudText Typo="Typo.h5">@NoShowRate%</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Error">Meta &lt; 5%</MudText>
-                    </MudCardContent></MudCard>
+                    <MudCard Class="kpi-card" Elevation="0">
+                        <MudCardContent>
+                            <MudText Typo="Typo.overline">Absenteismo</MudText>
+                            <MudText Typo="Typo.h5">@NoShowRate%</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Error">Meta &lt; 5%</MudText>
+                        </MudCardContent>
+                    </MudCard>
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
-                    <MudCard Class="rounded-2xl"><MudCardContent>
-                        <MudText Typo="Typo.overline">Receita (mês)</MudText>
-                        <MudText Typo="Typo.h5">@ReceitaMes.ToString("C0", _pt)</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Success">+@ReceitaDelta% vs. mês passado</MudText>
-                    </MudCardContent></MudCard>
+                    <MudCard Class="kpi-card" Elevation="0">
+                        <MudCardContent>
+                            <MudText Typo="Typo.overline">Receita do mes</MudText>
+                            <MudText Typo="Typo.h5">@ReceitaMes.ToString("C0", _pt)</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Success">+@ReceitaDelta% vs. mes passado</MudText>
+                        </MudCardContent>
+                    </MudCard>
                 </MudItem>
             </MudGrid>
 
-            <!-- Gráfico (compatível) -->
-            <MudPaper Class="pa-4 mb-6 rounded-2xl" Elevation="1">
-                <MudText Typo="Typo.h6" Class="mb-3">Consultas por semana</MudText>
-                <MudChart ChartType="ChartType.Line"
-                          Labels="@ChartLabels"
-                          Datasets="@ChartValues" />
-                <MudText Typo="Typo.caption" Color="Color.Secondary">Dados ilustrativos.</MudText>
-            </MudPaper>
+            <MudGrid Class="dashboard-sections">
+                <MudItem xs="12" lg="8" id="metricas">
+                    <MudPaper Class="surface-card surface-card--chart" Elevation="0">
+                        <MudText Typo="Typo.h6" Class="mb-1">Consultas por semana</MudText>
+                        <MudText Typo="Typo.body2" Class="mb-3" Color="Color.Secondary">
+                            Tendencia consolidada para leitura rapida da operacao.
+                        </MudText>
+                        <MudChart ChartType="ChartType.Line"
+                                  ChartSeries="@ChartSeries"
+                                  XAxisLabels="@ChartLabels" />
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" lg="4">
+                    <MudPaper Class="surface-card surface-card--list" Elevation="0">
+                        <MudText Typo="Typo.h6" Class="mb-3">Alertas acionaveis</MudText>
+                        <div class="insight-list">
+                            <div class="insight-list__item">
+                                <strong>Retornos pendentes</strong>
+                                <span>12 pacientes sem reagendamento nos ultimos 30 dias.</span>
+                            </div>
+                            <div class="insight-list__item">
+                                <strong>Fila de espera</strong>
+                                <span>3 encaixes possiveis para preencher lacunas de hoje.</span>
+                            </div>
+                            <div class="insight-list__item">
+                                <strong>Financeiro</strong>
+                                <span>2 repasses aguardando conciliacao ate o fim do turno.</span>
+                            </div>
+                        </div>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudGrid Class="dashboard-sections" id="operacoes">
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="surface-card module-card" Elevation="0">
+                        <MudIcon Icon="@Icons.Material.Filled.Group" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6">Pacientes</MudText>
+                        <MudText Typo="Typo.body2">Historico clinico, anexos e proximas acoes com leitura objetiva.</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="surface-card module-card" Elevation="0">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6">Agenda</MudText>
+                        <MudText Typo="Typo.body2">Blocos claros para equipe, encaixes e confirmacoes automaticas.</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4" id="planos">
+                    <MudPaper Class="surface-card module-card" Elevation="0">
+                        <MudIcon Icon="@Icons.Material.Filled.Payments" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6">Receita</MudText>
+                        <MudText Typo="Typo.body2">Indicadores financeiros com menos ruido visual e mais prioridade real.</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
         </Authorized>
 
-        <!-- ====================== VISITANTE / NÃO AUTENTICADO ====================== -->
         <NotAuthorized>
+            <HealthTech.AppShell.Component.HeroBanner />
 
-        <HealthTech.AppShell.Component.HeroBanner/>
-            
-
-            <!-- PROVAS SOCIAIS (logos ou selos simples) -->
-            <MudPaper Class="pa-4 rounded-2xl mb-8" Elevation="1">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">Escolhido por clínicas e consultórios independentes</MudText>
-                <MudStack Row="true" Spacing="4" Class="mt-2" AlignItems="AlignItems.Center">
+            <section class="trust-strip">
+                <span>Escolhido por consultorios independentes, policlinicas e operacoes em crescimento.</span>
+                <div>
                     <MudIcon Icon="@Icons.Material.Filled.LocalHospital" Size="Size.Large" />
                     <MudIcon Icon="@Icons.Material.Filled.MedicalServices" Size="Size.Large" />
                     <MudIcon Icon="@Icons.Material.Filled.HealthAndSafety" Size="Size.Large" />
                     <MudIcon Icon="@Icons.Material.Filled.Vaccines" Size="Size.Large" />
-                </MudStack>
-            </MudPaper>
+                </div>
+            </section>
 
-            <!-- BENEFÍCIOS / FEATURES -->
-            <MudGrid Class="mb-8">
+            <MudGrid Class="feature-grid">
                 <MudItem xs="12" md="4">
-                    <MudCard Class="h-100 rounded-2xl" Elevation="1">
-                        <MudCardHeader>
-                            <CardHeaderContent>
-                                <MudText Typo="Typo.subtitle1">Prontuário eletrônico</MudText>
-                            </CardHeaderContent>
-                            <CardHeaderActions>
-                                <MudIconButton Icon="@Icons.Material.Filled.Description" Color="Color.Primary" />
-                            </CardHeaderActions>
-                        </MudCardHeader>
-                        <MudCardContent>
-                            Evoluções estruturadas, anexos, prescrições e CID/DSM. Modelos prontos e campos personalizados.
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-
-                <MudItem xs="12" md="4">
-                    <MudCard Class="h-100 rounded-2xl" Elevation="1">
-                        <MudCardHeader>
-                            <CardHeaderContent>
-                                <MudText Typo="Typo.subtitle1">Agenda inteligente</MudText>
-                            </CardHeaderContent>
-                            <CardHeaderActions>
-                                <MudIconButton Icon="@Icons.Material.Filled.Event" Color="Color.Primary" />
-                            </CardHeaderActions>
-                        </MudCardHeader>
-                        <MudCardContent>
-                            Confirmações automáticas por WhatsApp/SMS, fila de espera, teleconsulta e triagem online.
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-
-                <MudItem xs="12" md="4">
-                    <MudCard Class="h-100 rounded-2xl" Elevation="1">
-                        <MudCardHeader>
-                            <CardHeaderContent>
-                                <MudText Typo="Typo.subtitle1">Financeiro sem dor</MudText>
-                            </CardHeaderContent>
-                            <CardHeaderActions>
-                                <MudIconButton Icon="@Icons.Material.Filled.Payments" Color="Color.Primary" />
-                            </CardHeaderActions>
-                        </MudCardHeader>
-                        <MudCardContent>
-                            Faturamento por convênio, repasses por profissional e indicadores de receita e inadimplência.
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-            </MudGrid>
-
-            <!-- COMO FUNCIONA -->
-            <MudPaper Class="pa-4 rounded-2xl mb-8" Elevation="1">
-                <MudText Typo="Typo.h6" Class="mb-2">Comece em minutos</MudText>
-                <MudList T="string" Dense="true">
-                    <MudListItem T="string">
-                        <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-2" />
-                        Crie sua conta e configure seu perfil profissional.
-                    </MudListItem>
-                    <MudListItem T="string">
-                        <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Class="mr-2" />
-                        Importe pacientes (CSV) ou cadastre manualmente.
-                    </MudListItem>
-                    <MudListItem T="string">
-                        <MudIcon Icon="@Icons.Material.Filled.PlayCircle" Class="mr-2" />
-                        Agende, atenda e acompanhe indicadores em um único painel.
-                    </MudListItem>
-                </MudList>
-            </MudPaper>
-
-            <!-- DEPOIMENTOS -->
-            <MudGrid Class="mb-8">
-                <MudItem xs="12" md="6">
-                    <MudCard Elevation="1" Class="rounded-2xl h-100">
-                        <MudCardContent>
-                            <MudIcon Icon="@Icons.Material.Filled.FormatQuote" />
-                            <MudText Typo="Typo.body1" Class="mt-2">
-                                “Reduzi o no-show em 38% usando confirmações automáticas e fila de espera.”
-                            </MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
-                                — Dra. Carolina, Dermatologia
-                            </MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="12" md="6">
-                    <MudCard Elevation="1" Class="rounded-2xl h-100">
-                        <MudCardContent>
-                            <MudIcon Icon="@Icons.Material.Filled.FormatQuote" />
-                            <MudText Typo="Typo.body1" Class="mt-2">
-                                “Faturamento por convênio ficou simples e padronizado — acabou o retrabalho.”
-                            </MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
-                                — Dr. Felipe, Ortopedia
-                            </MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-            </MudGrid>
-
-            <!-- PLANO / PREÇO (CTA) -->
-            <MudPaper Class="pa-6 rounded-2xl mb-8" Elevation="2">
-                <MudGrid AlignItems="AlignItems.Center">
-                    <MudItem xs="12" md="7">
-                        <MudText Typo="Typo.h6">Plano Profissional</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
-                            Tudo que você precisa para operar o consultório. Sem taxas ocultas.
+                    <MudPaper Class="surface-card feature-card" Elevation="0">
+                        <MudIcon Icon="@Icons.Material.Filled.Description" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6">Prontuario com contexto</MudText>
+                        <MudText Typo="Typo.body2">
+                            Evolucoes, anexos e prescricoes organizados em blocos claros, sem cara de sistema legado.
                         </MudText>
-                        <MudList T="string" Dense="true">
-                            <MudListItem T="string"><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" /> Usuários ilimitados</MudListItem>
-                            <MudListItem T="string"><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" /> Teleconsulta integrada</MudListItem>
-                            <MudListItem T="string"><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" /> Relatórios e exportações</MudListItem>
-                            <MudListItem T="string"><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" /> Suporte por WhatsApp</MudListItem>
-                        </MudList>
-                    </MudItem>
-                    <MudItem xs="12" md="5" Class="d-flex justify-end">
-                        <MudPaper Class="pa-4 rounded-2xl text-center" Elevation="1" Style="min-width: 260px;">
-                            <MudText Typo="Typo.h4" Class="mb-0">R$ 99<span style="font-size:14px">/mês</span></MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">7 dias grátis • cancele quando quiser</MudText>
-                            <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="mt-3" Size="Size.Large"
-                                    OnClick="@(()=>Nav.NavigateTo("/register"))">
-                                Começar agora
-                            </MudButton>
-                        </MudPaper>
-                    </MudItem>
-                </MudGrid>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="surface-card feature-card" Elevation="0">
+                        <MudIcon Icon="@Icons.Material.Filled.Event" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6">Agenda inteligente</MudText>
+                        <MudText Typo="Typo.body2">
+                            Confirmacoes automaticas, fila de espera e teleatendimento alinhados ao ritmo da clinica.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="surface-card feature-card" Elevation="0">
+                        <MudIcon Icon="@Icons.Material.Filled.Payments" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6">Financeiro com leitura rapida</MudText>
+                        <MudText Typo="Typo.body2">
+                            Repasse, faturamento e indicadores em paineis que priorizam decisao, nao ruido.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <section class="story-grid">
+                <MudPaper Class="surface-card story-card" Elevation="0">
+                    <MudText Typo="Typo.h5">Comece em minutos</MudText>
+                    <div class="story-steps">
+                        <div><strong>01</strong><span>Crie sua conta e configure o perfil da equipe.</span></div>
+                        <div><strong>02</strong><span>Importe pacientes ou comece do zero com formularios limpos.</span></div>
+                        <div><strong>03</strong><span>Acompanhe agenda, atendimento e receita em um mesmo fluxo.</span></div>
+                    </div>
+                </MudPaper>
+
+                <MudPaper Class="surface-card quote-card" Elevation="0">
+                    <MudIcon Icon="@Icons.Material.Filled.FormatQuote" />
+                    <MudText Typo="Typo.h5">
+                        "Reduzimos no-show e retrabalho porque a operacao finalmente ficou legivel."
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        Dra. Carolina, dermatologia
+                    </MudText>
+                </MudPaper>
+            </section>
+
+            <MudPaper Class="pricing-banner" Elevation="0">
+                <div>
+                    <MudText Typo="Typo.h4">Plano profissional para clinicas que querem crescer com mais clareza.</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary">
+                        Teleconsulta integrada, usuarios ilimitados, relatorios e suporte proximo.
+                    </MudText>
+                </div>
+                <div class="pricing-banner__card">
+                    <MudText Typo="Typo.h3">R$ 99</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">por mes, com 7 dias gratis</MudText>
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="mt-3" Size="Size.Large"
+                               OnClick="@(()=>Nav.NavigateTo("/register"))">
+                        Comecar agora
+                    </MudButton>
+                </div>
             </MudPaper>
 
-            <!-- FAQ -->
-            <MudPaper Class="pa-4 rounded-2xl mb-10" Elevation="1">
+            <MudPaper Class="surface-card faq-card" Elevation="0">
                 <MudText Typo="Typo.h6" Class="mb-3">Perguntas frequentes</MudText>
-                <MudExpansionPanels Elevation="0" Dense="true">
+                <MudExpansionPanels Elevation="0" Dense="true" Class="faq-panels">
                     <MudExpansionPanel Text="Posso cancelar a qualquer momento?">
-                        Sim. O cancelamento é imediato e você não será cobrado no próximo ciclo.
+                        Sim. O cancelamento e imediato e voce nao sera cobrado no proximo ciclo.
                     </MudExpansionPanel>
-                    <MudExpansionPanel Text="Há limite de pacientes ou usuários?">
-                        Não. O plano profissional inclui pacientes e usuários ilimitados.
+                    <MudExpansionPanel Text="Ha limite de pacientes ou usuarios?">
+                        Nao. O plano profissional inclui pacientes e usuarios ilimitados.
                     </MudExpansionPanel>
-                    <MudExpansionPanel Text="Vocês ajudam a migrar meus dados?">
-                        Sim. Oferecemos importação por CSV e suporte para migração assistida.
+                    <MudExpansionPanel Text="Voces ajudam a migrar meus dados?">
+                        Sim. Oferecemos importacao por CSV e suporte para migracao assistida.
                     </MudExpansionPanel>
                 </MudExpansionPanels>
             </MudPaper>
 
-            <!-- RODAPÉ CTA -->
-            <MudPaper Class="pa-6 rounded-2xl" Elevation="2">
+            <MudPaper Class="footer-cta" Elevation="0">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                     <div>
                         <MudText Typo="Typo.h6" Class="mb-1">Pronto para simplificar sua rotina?</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Crie sua conta em menos de 2 minutos.</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Ative sua conta e experimente a nova camada visual do produto.</MudText>
                     </div>
                     <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large"
-                            OnClick="@(()=>Nav.NavigateTo("/register"))">
-                        Criar conta grátis
+                               OnClick="@(()=>Nav.NavigateTo("/register"))">
+                        Criar conta gratis
                     </MudButton>
                 </MudStack>
             </MudPaper>
         </NotAuthorized>
     </AuthorizeView>
-
 </MudContainer>
 
 @code {
-    // ====== DADOS DE EXEMPLO (substituir por dados reais quando logado) ======
-    int KpiPacientes = 1280;
-    int PacientesDelta = 3;
-    int PacientesPct = 72;
+    private readonly CultureInfo _pt = new("pt-BR");
 
-    int KpiConsultasHoje = 42;
-    int AgendaOcupacao = 85;
+    private const int KpiPacientes = 1280;
+    private const int PacientesDelta = 3;
+    private const int PacientesPct = 72;
+    private const int KpiConsultasHoje = 42;
+    private const int AgendaOcupacao = 85;
+    private const int NoShowRate = 7;
+    private const decimal ReceitaMes = 183450m;
+    private const int ReceitaDelta = 12;
 
-    int NoShowRate = 7;
-
-    decimal ReceitaMes = 183450m;
-    int ReceitaDelta = 12;
-
-    // Gráfico compatível (sem MudChartDataset)
-    string[] ChartLabels = new[] { "Semana 1", "Semana 2", "Semana 3", "Semana 4" };
-    double[][] ChartValues = new[]
-    {
-        new double[] { 120, 160, 140, 190 }
-    };
+    private readonly string[] ChartLabels = ["Semana 1", "Semana 2", "Semana 3", "Semana 4"];
+    private readonly List<ChartSeries> ChartSeries =
+    [
+        new() { Name = "Consultas", Data = [120, 160, 140, 190] }
+    ];
 }

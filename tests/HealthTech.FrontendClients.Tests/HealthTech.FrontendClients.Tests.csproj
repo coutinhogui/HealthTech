@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\frontends\mf-patient\HealthTech.mf.patient.csproj" />
+    <ProjectReference Include="..\..\src\frontends\mf-appointment\HealthTech.mf.appointment.csproj" />
+    <ProjectReference Include="..\..\src\frontends\mf-ehr\HealthTech.mf.ehr.csproj" />
+    <ProjectReference Include="..\..\src\frontends\mf-billing\HealthTech.mf.billing.csproj" />
+  </ItemGroup>
+</Project>

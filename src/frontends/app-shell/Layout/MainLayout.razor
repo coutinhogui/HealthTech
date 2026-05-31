@@ -1,49 +1,62 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Authorization
-<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
+
+<MudThemeProvider Theme="@_theme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
-<MudLayout>
-    <!-- ====================== USUÁRIO AUTENTICADO ====================== -->
+
+<MudLayout Class="app-shell">
     <AuthorizeView Context="authState">
         <Authorized>
-            <MudAppBar Elevation="1" Dense="true">
-                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-                <MudText Typo="Typo.h5" Class="ml-3">HealthTech</MudText>
+            <MudAppBar Elevation="0" Dense="true" Class="app-topbar">
+                <MudIconButton Icon="@Icons.Material.Filled.MenuOpen" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+                <MudLink Href="/" Underline="Underline.None" Class="brand-lockup">
+                    <span class="brand-mark">HT</span>
+                    <span class="brand-copy">
+                        <strong>HealthTech</strong>
+                        <small>Operations hub</small>
+                    </span>
+                </MudLink>
                 <MudSpacer />
+                <MudChip T="string" Color="Color.Success" Variant="Variant.Text" Class="topbar-chip">
+                    Clinica em tempo real
+                </MudChip>
                 <HealthTech.AppShell.Component.AccountMenu />
-                <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
             </MudAppBar>
-            <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+
+            <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="0" Class="app-drawer">
                 <NavMenu />
             </MudDrawer>
         </Authorized>
         <NotAuthorized>
-            <MudAppBar Elevation="1" >
-                <MudLink Href="/" Underline="Underline.None" Typo="Typo.h5" Class="ml-3">HealthTech</MudLink>
-                <MudSpacer />
-                <HealthTech.AppShell.Component.AccountMenu />
-                <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
+            <MudAppBar Elevation="0" Class="app-topbar">
+                <MudLink Href="/" Underline="Underline.None" Class="brand-lockup">
+                    <span class="brand-mark">HT</span>
+                    <span class="brand-copy">
+                        <strong>HealthTech</strong>
+                        <small>Practice OS</small>
+                    </span>
+                </MudLink>
             </MudAppBar>
         </NotAuthorized>
     </AuthorizeView>
-    <MudMainContent Class="pt-16 pa-4">
+
+    <MudMainContent Class="app-main">
         @Body
     </MudMainContent>
 </MudLayout>
 
-
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <span class="dismiss">x</span>
 </div>
 
 @code {
-    private bool _drawerOpen = true;
-    private bool _isDarkMode = true;
-    private MudTheme? _theme = null;
+    private bool _drawerOpen = false;
+    private MudTheme? _theme;
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -51,7 +64,6 @@
         _theme = new()
         {
             PaletteLight = _lightPalette,
-            PaletteDark = _darkPalette,
             LayoutProperties = new LayoutProperties()
         };
     }
@@ -61,55 +73,31 @@
         _drawerOpen = !_drawerOpen;
     }
 
-    private void DarkModeToggle()
-    {
-        _isDarkMode = !_isDarkMode;
-    }
-
     private readonly PaletteLight _lightPalette = new()
     {
-        Black = "#110e2d",
-        AppbarText = "#424242",
-        AppbarBackground = "rgba(255,255,255,0.8)",
-        DrawerBackground = "#ffffff",
-        GrayLight = "#e8e8e8",
-        GrayLighter = "#f9f9f9",
+        Primary = "#167C80",
+        Secondary = "#10211D",
+        Tertiary = "#F59E0B",
+        Background = "#F4F7F4",
+        BackgroundGray = "#EDF3EF",
+        Surface = "#FFFFFF",
+        AppbarText = "#10211D",
+        AppbarBackground = "rgba(244,247,244,0.78)",
+        DrawerBackground = "rgba(255,255,255,0.82)",
+        DrawerText = "#29413A",
+        DrawerIcon = "#167C80",
+        TextPrimary = "#10211D",
+        TextSecondary = "#60716B",
+        Info = "#1D4ED8",
+        Success = "#0F9F6E",
+        Warning = "#D97706",
+        Error = "#DC2626",
+        GrayLight = "#D5DFD8",
+        GrayLighter = "#EDF3EF",
+        LinesDefault = "#DBE5DE",
+        TableLines = "#DBE5DE",
+        Divider = "#DBE5DE",
+        OverlayLight = "#10211D33",
     };
 
-    private readonly PaletteDark _darkPalette = new()
-    {
-        Primary = "#7e6fff",
-        Surface = "#1e1e2d",
-        Background = "#1a1a27",
-        BackgroundGray = "#151521",
-        AppbarText = "#92929f",
-        AppbarBackground = "rgba(26,26,39,0.8)",
-        DrawerBackground = "#1a1a27",
-        ActionDefault = "#74718e",
-        ActionDisabled = "#9999994d",
-        ActionDisabledBackground = "#605f6d4d",
-        TextPrimary = "#b2b0bf",
-        TextSecondary = "#92929f",
-        TextDisabled = "#ffffff33",
-        DrawerIcon = "#92929f",
-        DrawerText = "#92929f",
-        GrayLight = "#2a2833",
-        GrayLighter = "#1e1e2d",
-        Info = "#4a86ff",
-        Success = "#3dcb6c",
-        Warning = "#ffb545",
-        Error = "#ff3f5f",
-        LinesDefault = "#33323e",
-        TableLines = "#33323e",
-        Divider = "#292838",
-        OverlayLight = "#1e1e2d80",
-    };
-
-    public string DarkLightModeButtonIcon => _isDarkMode switch
-    {
-        true => Icons.Material.Rounded.AutoMode,
-        false => Icons.Material.Outlined.DarkMode,
-    };
 }
-
-

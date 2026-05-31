@@ -1,40 +1,76 @@
-﻿@inject NavigationManager Nav
-<MudPaper Class="pa-6 pa-md-10 mb-8 rounded-2xl d-flex align-center justify-space-between" Elevation="2">
-    <div class="mr-md-8">
-        <MudText Typo="Typo.h3" Class="mb-1">HealthTech</MudText>
-        <MudText Typo="Typo.subtitle1" Class="mb-4" Color="Color.Secondary">
-            Prontuário, agenda e financeiro em um só lugar — simples, seguro e rápido.
+@inject NavigationManager Nav
+
+<section class="hero-banner">
+    <div class="hero-banner__content">
+        <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled" Class="hero-banner__chip">
+            Plataforma para clinicas ambulatoriais
+        </MudChip>
+        <MudText Typo="Typo.h1" Class="hero-banner__title">
+            Gestao clinica com cara de produto premium, nao de planilha.
+        </MudText>
+        <MudText Typo="Typo.subtitle1" Class="hero-banner__subtitle">
+            Prontuario, agenda, teleatendimento e financeiro conectados em uma experiencia clara, veloz e confiavel para a equipe inteira.
         </MudText>
 
-        <MudStack Row="true" Spacing="2">
+        <MudStack Row="true" Spacing="2" Class="hero-banner__actions">
             <MudButton Color="Color.Primary" Variant="Variant.Filled"
-                    OnClick="@(()=>Nav.NavigateTo("/register"))"
-                    StartIcon="@Icons.Material.Filled.PersonAdd">
-                Criar conta grátis
+                       OnClick="@(()=>Nav.NavigateTo("/register"))"
+                       StartIcon="@Icons.Material.Filled.NorthEast">
+                Iniciar avaliacao
             </MudButton>
 
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined"
-                    OnClick="@(()=>Nav.NavigateTo("/sobre"))"
-                    StartIcon="@Icons.Material.Filled.Info">
-                Saiba mais
+            <MudButton Color="Color.Default" Variant="Variant.Outlined"
+                       OnClick="@(()=>Nav.NavigateTo("/login"))"
+                       StartIcon="@Icons.Material.Filled.LockOpen">
+                Entrar na plataforma
             </MudButton>
         </MudStack>
 
-        <MudText Typo="Typo.caption" Class="mt-3" Color="Color.Secondary">
-            Já tem conta? Use o <b>Login</b> no menu superior.
-        </MudText>
-
-        <MudStack Row="true" Spacing="2" Class="mt-4">
-            <MudChip T="string" Color="Color.Success" StartIcon="@Icons.Material.Filled.Verified">
-                LGPD-ready
-            </MudChip>
-            <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.CloudDone">
-                99,9% uptime
-            </MudChip>
-            <MudChip T="string" Color="Color.Warning" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Lock">
-                Criptografia em trânsito e em repouso
-            </MudChip>
-        </MudStack>
+        <div class="hero-banner__trust">
+            <span>LGPD-ready</span>
+            <span>Ativacao em minutos</span>
+            <span>Visao operacional em tempo real</span>
+        </div>
     </div>
 
-</MudPaper>
+    <MudPaper Elevation="0" Class="hero-banner__panel">
+        <div class="hero-panel__top">
+            <span class="hero-panel__kicker">Pulse board</span>
+            <MudText Typo="Typo.h6">Turno da manha</MudText>
+        </div>
+
+        <div class="hero-panel__grid">
+            <div class="hero-metric">
+                <strong>92%</strong>
+                <span>agenda confirmada</span>
+            </div>
+            <div class="hero-metric">
+                <strong>17 min</strong>
+                <span>tempo medio de espera</span>
+            </div>
+            <div class="hero-metric">
+                <strong>+14%</strong>
+                <span>receita recorrente</span>
+            </div>
+            <div class="hero-metric">
+                <strong>04</strong>
+                <span>alertas acionaveis</span>
+            </div>
+        </div>
+
+        <div class="hero-panel__timeline">
+            <div>
+                <span class="timeline-hour">08:30</span>
+                <p>Confirmacoes automaticas enviadas para os proximos atendimentos.</p>
+            </div>
+            <div>
+                <span class="timeline-hour">09:10</span>
+                <p>Triagem digital finalizada com anexos disponiveis no prontuario.</p>
+            </div>
+            <div>
+                <span class="timeline-hour">10:00</span>
+                <p>Repasse parcial atualizado sem retrabalho do financeiro.</p>
+            </div>
+        </div>
+    </MudPaper>
+</section>

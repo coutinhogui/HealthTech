@@ -49,7 +49,7 @@
                 Ferramentas poderosas projetadas para aprimorar seu fluxo de trabalho e aumentar a produtividade.
             </MudText>
 
-            <MudGrid GutterSize="3">
+            <MudGrid Spacing="3">
                 <MudItem xs="12" sm="6" md="4">
                     <MudPaper Class="cloudsync-card h-100" Elevation="1">
                         <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Class="cloudsync-primary mb-2" />
@@ -117,7 +117,7 @@
                 Escolha o plano ideal de acordo com o tamanho da sua equipe e suas necessidades de armazenamento.
             </MudText>
 
-            <MudGrid GutterSize="3">
+            <MudGrid Spacing="3">
                 <MudItem xs="12" md="4">
                     <MudPaper Class="cloudsync-pricecard h-100" Elevation="1">
                         <MudText Typo="Typo.subtitle1">Starter</MudText>
@@ -171,7 +171,7 @@
                 Desde 2020, nossa missão é revolucionar a forma como as equipes colaboram e gerenciam seus ativos digitais.
             </MudText>
 
-            <MudGrid GutterSize="3" Class="mb-6">
+            <MudGrid Spacing="3" Class="mb-6">
                 <MudItem xs="6" md="3">
                     <MudPaper Class="stat-box" Elevation="1">
                         <MudText Typo="Typo.h4">99,9%</MudText>
@@ -212,12 +212,12 @@
                 Tem dúvidas? Adoraríamos ouvir você. Envie-nos uma mensagem e responderemos o mais rápido possível.
             </MudText>
 
-            <MudGrid GutterSize="3">
+            <MudGrid Spacing="3">
                 <MudItem xs="12" md="6">
                     <MudPaper Class="cloudsync-card" Elevation="1">
                         <MudForm @ref="_form">
                             <MudTextField @bind-Value="_name" Label="Nome completo" Placeholder="Seu nome" Required="true" />
-                            <MudTextField @bind-Value="_email" Label="Email" Placeholder="seuemail@exemplo.com" Required="true" Type="InputType.Email" Class="mt-4" />
+                            <MudTextField @bind-Value="_email" Label="Email" Placeholder="seuemail@exemplo.com" Required="true" InputType="InputType.Email" Class="mt-4" />
                             <MudTextField @bind-Value="_company" Label="Empresa" Placeholder="Sua empresa (opcional)" Class="mt-4" />
                             
                             <MudTextField @bind-Value="_message" Label="Mensagem" Placeholder="Conte-nos mais sobre suas necessidades..." Lines="6" Class="mt-4" />
@@ -278,7 +278,7 @@
     <!-- FOOTER -->
     <footer class="cloudsync-footer">
         <MudContainer MaxWidth="MaxWidth.Large">
-            <MudGrid GutterSize="3">
+            <MudGrid Spacing="3">
                 <MudItem xs="12" md="4">
                     <MudText Typo="Typo.h6" Class="cloudsync-primary mb-2">CloudSync</MudText>
                     <MudText Class="cloudsync-muted">Armazenamento seguro na nuvem para equipes modernas.</MudText>
@@ -313,12 +313,12 @@
 </MudContainer>
 
 @code {
-    private MudForm _form;
-    private string _name;
-    private string _email;
-    private string _company;
-    private string _topic;
-    private string _message;
+    private MudForm _form = null!;
+    private string _name = string.Empty;
+    private string _email = string.Empty;
+    private string _company = string.Empty;
+    private string _topic = string.Empty;
+    private string _message = string.Empty;
 
     private void ScrollTo(string id)
     {
@@ -340,7 +340,7 @@
         }
     }
 
-    [Inject] ISnackbar Snackbar { get; set; }
+    [Inject] ISnackbar Snackbar { get; set; } = null!;
 }
 
 <style>
