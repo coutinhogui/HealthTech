@@ -266,6 +266,17 @@ URLs locais:
 - Gateway/BFF: http://localhost:5026
 - Postgres: `localhost:55433`, database `healthtech`, usuario `postgres`, senha `postgres`
 
+Para ativar Google real no ambiente local, preencha tambem no `.env`:
+
+- `HEALTHTECH_SUPABASE_URL`
+- `HEALTHTECH_SUPABASE_ANON_KEY`
+- `HEALTHTECH_SUPABASE_AUTHORITY`
+- `HEALTHTECH_SUPABASE_ISSUER`
+- `HEALTHTECH_TENANT_ADMIN_EMAIL`
+- `HEALTHTECH_OAUTH_PROVIDER_1=apple` se quiser expor Apple alem do Google
+
+Use o mesmo e-mail Google em `HEALTHTECH_TENANT_ADMIN_EMAIL`, porque o BFF resolve o tenant da sessao por e-mail quando o usuario volta do Supabase OAuth.
+
 Observacoes:
 
 - `db-migrate` e um job one-shot: executa migrations + seed e finaliza com status `0`.
@@ -368,3 +379,11 @@ sequenceDiagram
 ```
 
 Segredos devem ficar em `user-secrets`, variáveis de ambiente ou secrets do CI. A senha Supabase removida do repositório precisa ser rotacionada no provedor.
+
+Checklist de Google OAuth real no Supabase:
+
+1. Ative o provider Google no projeto Supabase.
+2. Cadastre `http://localhost:5191/auth/callback` como redirect URL permitida.
+3. Preencha no `.env` o `HEALTHTECH_SUPABASE_URL`, `HEALTHTECH_SUPABASE_ANON_KEY`, `HEALTHTECH_SUPABASE_AUTHORITY`, `HEALTHTECH_SUPABASE_ISSUER` e o `HEALTHTECH_TENANT_ADMIN_EMAIL`.
+4. Se quiser Apple tambem, configure o provider Apple no Supabase e adicione `HEALTHTECH_OAUTH_PROVIDER_1=apple`.
+5. Se quiser forcar apenas login real, troque `HEALTHTECH_BFF_ENABLE_DEV_AUTH` para `false`.

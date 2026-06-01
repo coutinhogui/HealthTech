@@ -24,9 +24,9 @@ public sealed class BffOAuthFlowTests
         Assert.StartsWith("https://project.supabase.co/auth/v1/authorize?", redirect);
         Assert.Contains("provider=google", redirect);
         Assert.Contains("redirect_to=https%3A%2F%2Fapp.healthtech.local%2Fapi%2Fauth%2Fcallback", redirect);
-        Assert.Contains("state=state-123", redirect);
         Assert.Contains("code_challenge=challenge-456", redirect);
         Assert.Contains("code_challenge_method=s256", redirect);
+        Assert.DoesNotContain("state=", redirect);
     }
 
     [Fact]

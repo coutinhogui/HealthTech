@@ -39,7 +39,7 @@
                 <option value="">Selecione</option>
                 @foreach (var item in Appointments)
                 {
-                    <option value="@item.Id">@item.StartsAtUtc.ToLocalTime().ToString("dd/MM HH:mm") · @ResolvePatientName(item.PatientId)</option>
+                    <option value="@item.Id">@item.StartsAtUtc.ToLocalTime().ToString("dd/MM HH:mm") - @item.Status</option>
                 }
             </select>
         </label>

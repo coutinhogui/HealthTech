@@ -1,6 +1,7 @@
 .mf-shell {
     display: grid;
     gap: 1rem;
+    min-width: 0;
 }
 
 .mf-header,
@@ -9,6 +10,15 @@
     justify-content: space-between;
     align-items: center;
     gap: 0.8rem;
+    min-width: 0;
+}
+
+.mf-header {
+    flex-wrap: wrap;
+}
+
+.mf-header > div {
+    min-width: min(100%, 260px);
 }
 
 .mf-header h2 {
@@ -19,6 +29,8 @@
 .mf-header p {
     margin: 0.3rem 0 0;
     color: #60716b;
+    max-width: 68ch;
+    overflow-wrap: anywhere;
 }
 
 .mf-header button,
@@ -58,6 +70,7 @@
     border-radius: 12px;
     padding: 0.85rem;
     background: #fafdff;
+    min-width: 0;
 }
 
 .mf-form label {
@@ -65,6 +78,7 @@
     gap: 0.25rem;
     font-weight: 700;
     color: #29413a;
+    min-width: 0;
 }
 
 .mf-form input,
@@ -73,6 +87,8 @@
     border: 1px solid #d5dfd8;
     border-radius: 10px;
     padding: 0.58rem 0.72rem;
+    min-width: 0;
+    width: 100%;
 }
 
 .mf-form button {
@@ -84,7 +100,7 @@
 .mf-kpis {
     display: grid;
     gap: 0.8rem;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
 }
 
 .mf-kpis article {
@@ -117,6 +133,13 @@
     gap: 0.9rem;
     padding: 0.85rem 1rem;
     align-items: center;
+    min-width: 0;
+}
+
+.mf-list__head > *,
+.mf-list__row > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .mf-list__head {
@@ -131,6 +154,7 @@
 .mf-list__row p {
     margin: 0.2rem 0 0;
     color: #60716b;
+    overflow-wrap: anywhere;
 }
 
 .mf-list__row > span:last-child {

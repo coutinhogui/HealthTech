@@ -1,6 +1,8 @@
 @page "/loginGoogle"
+@implements IDisposable
 @inject HealthTech.AppShell.Services.BffAuthService Auth
 @inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Nav
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components
@@ -32,38 +34,45 @@
         <MudText Typo="Typo.h5" Class="mb-2">@CardTitle</MudText>
         <MudText Typo="Typo.body2" Class="mb-4" Color="Color.Secondary">@CardSubtitle</MudText>
 
-        <MudStack Spacing="1">
+        <MudStack Spacing="1" Class="mb-4">
             <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="oauth-btn" Disabled="@(!Auth.GoogleSignInEnabled)" OnClick="@OnGoogleSignIn">
                 <span class="oauth-icon">@((MarkupString)GoogleSvg)</span>
                 <span>@GoogleActionText</span>
             </MudButton>
 
-            <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="oauth-btn" Disabled="true">
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" Class="oauth-btn" Disabled="@(!Auth.AppleSignInEnabled)" OnClick="@OnAppleSignIn">
                 <span class="oauth-icon">@((MarkupString)AppleSvg)</span>
-                <span>@AppleActionLabel (BFF em breve)</span>
+                <span>@AppleActionText</span>
             </MudButton>
         </MudStack>
 
-        <div class="or-wrap">
-            <MudDivider Class="flex-grow-1" />
-            <MudText>ou</MudText>
-            <MudDivider Class="flex-grow-1" />
-        </div>
-
-        <EditForm Model="@model" OnValidSubmit="@OnSubmit">
-            <DataAnnotationsValidator />
-            <MudStack Spacing="1">
-                <MudTextField @bind-Value="model.Email" Label="E-mail profissional" For="@(()=>model.Email)" Required="true" Variant="Variant.Outlined" />
-                <MudTextField @bind-Value="model.Password" Label="Senha" For="@(()=>model.Password)" InputType="InputType.Password" Required="true" Variant="Variant.Outlined" />
-                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="w-100">
-                    @PrimaryButtonLabel
-                </MudButton>
-            </MudStack>
-
-            <div class="forgot-wrap">
-                <MudLink Href="/login" Underline="Underline.Hover">Acessar com e-mail e senha</MudLink>
+        @if (Auth.PasswordFallbackEnabled)
+        {
+            <div class="or-wrap">
+                <MudDivider Class="flex-grow-1" />
+                <MudText>fallback local</MudText>
+                <MudDivider Class="flex-grow-1" />
             </div>
-        </EditForm>
+
+            <EditForm Model="@model" OnValidSubmit="@OnSubmit">
+                <DataAnnotationsValidator />
+                <MudStack Spacing="1">
+                    <MudTextField @bind-Value="model.Email" Label="E-mail profissional" For="@(()=>model.Email)" Required="true" Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="model.Password" Label="Senha" For="@(()=>model.Password)" InputType="InputType.Password" Required="true" Variant="Variant.Outlined" />
+                    @if (!string.IsNullOrWhiteSpace(Error))
+                    {
+                        <MudAlert Severity="Severity.Error" Dense="true">@Error</MudAlert>
+                    }
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="w-100" Disabled="@loading">
+                        @(loading ? "Processando..." : PrimaryButtonLabel)
+                    </MudButton>
+                </MudStack>
+            </EditForm>
+        }
+        else if (!string.IsNullOrWhiteSpace(Error))
+        {
+            <MudAlert Severity="Severity.Error" Dense="true">@Error</MudAlert>
+        }
 
         <MudDivider Class="my-6" />
 
@@ -80,6 +89,8 @@
     [Parameter] public string Mode { get; set; } = "login";
 
     private readonly LoginModel model = new();
+    private bool loading;
+    private string? Error;
 
     private bool IsRegisterMode => string.Equals(Mode, "register", StringComparison.OrdinalIgnoreCase);
     private string Title => IsRegisterMode
@@ -87,31 +98,67 @@
         : "Entre no cockpit da sua clinica sem atrito.";
     private string Subtitle => IsRegisterMode
         ? "Crie seu ambiente, conecte a equipe e comece com uma base visual e operacional mais profissional."
-        : "Use seu provedor preferido ou o acesso por e-mail para retomar consultas, agenda e indicadores.";
+        : "Use Google para retomar consultas, agenda e indicadores com uma sessao BFF segura.";
     private string CardTitle => IsRegisterMode ? "Criar conta" : "Fazer login";
     private string CardSubtitle => IsRegisterMode
         ? "Comece com uma avaliacao gratuita e configure sua operacao em poucos minutos."
-        : "Acesse seu workspace seguro.";
+        : "Acesse seu workspace com Google.";
     private string GoogleActionLabel => IsRegisterMode ? "Cadastrar com Google" : "Continuar com Google";
     private string GoogleActionText => Auth.GoogleSignInEnabled ? GoogleActionLabel : $"{GoogleActionLabel} (configurar BFF)";
     private string AppleActionLabel => IsRegisterMode ? "Cadastrar com Apple" : "Continuar com Apple";
+    private string AppleActionText => Auth.AppleSignInEnabled ? AppleActionLabel : $"{AppleActionLabel} (configurar BFF)";
     private string PrimaryButtonLabel => IsRegisterMode ? "Criar conta com e-mail" : "Entrar com e-mail";
     private string FooterPrompt => IsRegisterMode ? "Ja possui conta? " : "Ainda nao tem conta? ";
     private string FooterHref => IsRegisterMode ? "/login" : "/register";
     private string FooterLinkLabel => IsRegisterMode ? "Entrar agora" : "Criar conta";
 
+    protected override void OnInitialized()
+    {
+        Auth.AuthStateChanged += OnAuthStateChanged;
+    }
+
     private async Task OnSubmit()
     {
-        if (IsRegisterMode)
+        Error = null;
+        loading = true;
+        try
         {
-            return;
-        }
+            if (IsRegisterMode)
+            {
+                await Auth.SignUpAsync(model.Email, model.Password);
+            }
+            else
+            {
+                await Auth.SignInAsync(model.Email, model.Password);
+            }
 
-        await Auth.SignInAsync(model.Email, model.Password);
+            Nav.NavigateTo(Auth.GetPostLoginPath());
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
     }
 
     private Task OnGoogleSignIn()
         => Auth.SignInWithGoogleAsync("/");
+
+    private Task OnAppleSignIn()
+        => Auth.SignInWithAppleAsync("/");
+
+    private void OnAuthStateChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnAuthStateChanged;
+    }
 
     private sealed class LoginModel
     {

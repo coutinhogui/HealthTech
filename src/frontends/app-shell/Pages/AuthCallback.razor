@@ -13,7 +13,7 @@
         try
         {
             await Auth.HandleOAuthRedirectAsync(new Uri(Nav.Uri));
-            Nav.NavigateTo("/");
+            Nav.NavigateTo(Auth.GetPostLoginPath());
         }
         catch
         {

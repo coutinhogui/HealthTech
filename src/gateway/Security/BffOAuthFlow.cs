@@ -25,7 +25,6 @@ public static class BffOAuthFlow
         {
             ["provider"] = provider,
             ["redirect_to"] = callbackUri.ToString(),
-            ["state"] = state,
             ["code_challenge"] = codeChallenge,
             ["code_challenge_method"] = "s256"
         };

@@ -30,4 +30,23 @@ public sealed class BffAuthCapabilitiesTests
         Assert.True(capabilities.OAuthConfigured);
         Assert.Equal(["google"], capabilities.Providers);
     }
+
+    [Fact]
+    public void Create_exposes_password_fallback_only_when_development_auth_is_enabled()
+    {
+        var developmentCapabilities = BffAuthCapabilities.Create(new BffAuthOptions
+        {
+            EnableDevelopmentAuth = true
+        });
+        var productionCapabilities = BffAuthCapabilities.Create(new BffAuthOptions
+        {
+            EnableDevelopmentAuth = false,
+            SupabaseUrl = "https://project.supabase.co",
+            SupabaseAnonKey = "anon",
+            OAuthProviders = ["google"]
+        });
+
+        Assert.True(developmentCapabilities.PasswordFallbackEnabled);
+        Assert.False(productionCapabilities.PasswordFallbackEnabled);
+    }
 }

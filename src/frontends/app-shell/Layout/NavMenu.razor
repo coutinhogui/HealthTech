@@ -1,10 +1,7 @@
-<div class="nav-shell">
-    <div class="nav-shell__header">
-        <span class="nav-shell__eyebrow">Workspace</span>
-        <MudText Typo="Typo.h6">Cockpit clinico</MudText>
-        <MudText Typo="Typo.body2">Visualize operacao, agenda e crescimento em uma unica camada.</MudText>
-    </div>
+@implements IDisposable
+@inject HealthTech.AppShell.Services.BffAuthService Auth
 
+<div class="nav-shell">
     <MudNavMenu Class="nav-shell__menu">
         <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.SpaceDashboard">Visao geral</MudNavLink>
         <MudNavLink Href="/pacientes" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Groups">Pacientes</MudNavLink>
@@ -16,8 +13,45 @@
     </MudNavMenu>
 
     <MudPaper Elevation="0" Class="nav-shell__panel">
-        <MudText Typo="Typo.overline">Status</MudText>
-        <MudText Typo="Typo.subtitle2">Tudo sincronizado</MudText>
-        <MudText Typo="Typo.body2">Nenhum alerta critico. Ultima atualizacao ha poucos segundos.</MudText>
+        <MudText Typo="Typo.overline">Sessao</MudText>
+        <MudText Typo="Typo.subtitle2">@(Auth.ActiveTenant?.TenantName ?? "Sem clinica ativa")</MudText>
+        <MudText Typo="Typo.body2">@SessionStatusText</MudText>
     </MudPaper>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Auth.AuthStateChanged += OnAuthStateChanged;
+    }
+
+    private string SessionStatusText
+    {
+        get
+        {
+            if (!Auth.IsAuthenticated)
+            {
+                return "Sessao BFF nao autenticada.";
+            }
+
+            if (Auth.ActiveTenant is null)
+            {
+                return "Selecione uma clinica para liberar os fluxos operacionais.";
+            }
+
+            var membershipCount = Auth.Memberships.Count;
+            var suffix = membershipCount == 1 ? "1 vinculo ativo" : $"{membershipCount} vinculos ativos";
+            return $"{Auth.ActiveTenant.Role} - {suffix}";
+        }
+    }
+
+    private void OnAuthStateChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnAuthStateChanged;
+    }
+}

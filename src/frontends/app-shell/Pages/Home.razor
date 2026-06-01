@@ -3,6 +3,7 @@
 @using System.Globalization
 
 @inject NavigationManager Nav
+@inject HealthTech.AppShell.Services.BffAuthService Auth
 
 <PageTitle>Home</PageTitle>
 
@@ -14,141 +15,70 @@
                 var nome = (user?.Identity?.IsAuthenticated ?? false)
                     ? (user?.Identity?.Name ?? "Profissional")
                     : "Profissional";
+                var tenantName = Auth.ActiveTenant?.TenantName ?? "Clinica";
             }
 
-            <section class="dashboard-hero">
-                <div class="dashboard-hero__copy">
-                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">Painel operacional</MudChip>
-                    <MudText Typo="Typo.h2" Class="dashboard-hero__title">Bem-vindo, @nome</MudText>
-                    <MudText Typo="Typo.subtitle1" Class="dashboard-hero__subtitle">
-                        @DateTimeOffset.Now.ToLocalTime().ToString("dddd, dd 'de' MMMM 'de' yyyy", _pt)
+            @if (Auth.ActiveTenant is null && Auth.Memberships.Count > 1)
+            {
+                <MudPaper Class="surface-card" Elevation="0">
+                    <MudText Typo="Typo.h5" Class="mb-2">Selecione a clinica</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                        Escolha o workspace antes de acessar pacientes, agenda e financeiro.
                     </MudText>
-                    <MudText Typo="Typo.body1" Class="dashboard-hero__body">
-                        O workspace agora destaca o que precisa de acao rapida: ritmo da agenda, gargalos e impacto financeiro.
-                    </MudText>
-
-                    <MudStack Row="true" Spacing="2" Class="dashboard-hero__actions">
-                        <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="#operacoes" StartIcon="@Icons.Material.Filled.NorthEast">
-                            Ver operacoes
-                        </MudButton>
-                        <MudButton Color="Color.Default" Variant="Variant.Outlined" Href="#metricas" StartIcon="@Icons.Material.Filled.QueryStats">
-                            Explorar metricas
-                        </MudButton>
+                    <MudStack Row="true" Spacing="2" Class="auth-card__actions">
+                        @foreach (var tenant in Auth.Memberships)
+                        {
+                            <MudButton Color="Color.Primary"
+                                       Variant="Variant.Filled"
+                                       Disabled="@selectingTenant"
+                                       StartIcon="@Icons.Material.Filled.Business"
+                                       OnClick="@(() => SelectTenant(tenant.TenantId))">
+                                @tenant.TenantName
+                            </MudButton>
+                        }
                     </MudStack>
-                </div>
-
-                <MudPaper Elevation="0" Class="dashboard-hero__panel">
-                    <div class="dashboard-hero__panel-row">
-                        <span>Agenda confirmada</span>
-                        <strong>92%</strong>
-                    </div>
-                    <div class="dashboard-hero__panel-row">
-                        <span>Atendimentos em risco</span>
-                        <strong>04</strong>
-                    </div>
-                    <div class="dashboard-hero__panel-row">
-                        <span>Receita projetada</span>
-                        <strong>@ReceitaMes.ToString("C0", _pt)</strong>
-                    </div>
                 </MudPaper>
-            </section>
-
-            <MudGrid Class="kpi-grid">
-                <MudItem xs="12" sm="6" md="3">
-                    <MudCard Class="kpi-card" Elevation="0">
-                        <MudCardContent>
-                            <MudText Typo="Typo.overline">Pacientes ativos</MudText>
-                            <MudText Typo="Typo.h5">@KpiPacientes</MudText>
-                            <MudProgressLinear Value="@PacientesPct" Class="mt-2" />
-                            <MudText Typo="Typo.caption" Color="Color.Success">+@PacientesDelta% vs. ontem</MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="12" sm="6" md="3">
-                    <MudCard Class="kpi-card" Elevation="0">
-                        <MudCardContent>
-                            <MudText Typo="Typo.overline">Consultas hoje</MudText>
-                            <MudText Typo="Typo.h5">@KpiConsultasHoje</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Agenda @AgendaOcupacao% ocupada</MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="12" sm="6" md="3">
-                    <MudCard Class="kpi-card" Elevation="0">
-                        <MudCardContent>
-                            <MudText Typo="Typo.overline">Absenteismo</MudText>
-                            <MudText Typo="Typo.h5">@NoShowRate%</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Error">Meta &lt; 5%</MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="12" sm="6" md="3">
-                    <MudCard Class="kpi-card" Elevation="0">
-                        <MudCardContent>
-                            <MudText Typo="Typo.overline">Receita do mes</MudText>
-                            <MudText Typo="Typo.h5">@ReceitaMes.ToString("C0", _pt)</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Success">+@ReceitaDelta% vs. mes passado</MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-            </MudGrid>
-
-            <MudGrid Class="dashboard-sections">
-                <MudItem xs="12" lg="8" id="metricas">
-                    <MudPaper Class="surface-card surface-card--chart" Elevation="0">
-                        <MudText Typo="Typo.h6" Class="mb-1">Consultas por semana</MudText>
-                        <MudText Typo="Typo.body2" Class="mb-3" Color="Color.Secondary">
-                            Tendencia consolidada para leitura rapida da operacao.
+            }
+            else
+            {
+                <section class="dashboard-hero">
+                    <div class="dashboard-hero__copy">
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">@tenantName</MudChip>
+                        <MudText Typo="Typo.h2" Class="dashboard-hero__title">Bem-vindo, @nome</MudText>
+                        <MudText Typo="Typo.subtitle1" Class="dashboard-hero__subtitle">
+                            @DateTimeOffset.Now.ToLocalTime().ToString("dddd, dd 'de' MMMM 'de' yyyy", _pt)
                         </MudText>
-                        <MudChart ChartType="ChartType.Line"
-                                  ChartSeries="@ChartSeries"
-                                  XAxisLabels="@ChartLabels" />
-                    </MudPaper>
-                </MudItem>
-                <MudItem xs="12" lg="4">
-                    <MudPaper Class="surface-card surface-card--list" Elevation="0">
-                        <MudText Typo="Typo.h6" Class="mb-3">Alertas acionaveis</MudText>
-                        <div class="insight-list">
-                            <div class="insight-list__item">
-                                <strong>Retornos pendentes</strong>
-                                <span>12 pacientes sem reagendamento nos ultimos 30 dias.</span>
-                            </div>
-                            <div class="insight-list__item">
-                                <strong>Fila de espera</strong>
-                                <span>3 encaixes possiveis para preencher lacunas de hoje.</span>
-                            </div>
-                            <div class="insight-list__item">
-                                <strong>Financeiro</strong>
-                                <span>2 repasses aguardando conciliacao ate o fim do turno.</span>
-                            </div>
-                        </div>
-                    </MudPaper>
-                </MudItem>
-            </MudGrid>
+                        <MudText Typo="Typo.body1" Class="dashboard-hero__body">
+                            Acesse os fluxos operacionais conectados ao BFF: pacientes, consultas, profissionais, prontuario e financeiro.
+                        </MudText>
 
-            <MudGrid Class="dashboard-sections" id="operacoes">
-                <MudItem xs="12" md="4">
-                    <MudPaper Class="surface-card module-card" Elevation="0">
-                        <MudIcon Icon="@Icons.Material.Filled.Group" Color="Color.Primary" />
-                        <MudText Typo="Typo.h6">Pacientes</MudText>
-                        <MudText Typo="Typo.body2">Historico clinico, anexos e proximas acoes com leitura objetiva.</MudText>
-                    </MudPaper>
-                </MudItem>
-                <MudItem xs="12" md="4">
-                    <MudPaper Class="surface-card module-card" Elevation="0">
-                        <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Color="Color.Primary" />
-                        <MudText Typo="Typo.h6">Agenda</MudText>
-                        <MudText Typo="Typo.body2">Blocos claros para equipe, encaixes e confirmacoes automaticas.</MudText>
-                    </MudPaper>
-                </MudItem>
-                <MudItem xs="12" md="4" id="planos">
-                    <MudPaper Class="surface-card module-card" Elevation="0">
-                        <MudIcon Icon="@Icons.Material.Filled.Payments" Color="Color.Primary" />
-                        <MudText Typo="Typo.h6">Receita</MudText>
-                        <MudText Typo="Typo.body2">Indicadores financeiros com menos ruido visual e mais prioridade real.</MudText>
-                    </MudPaper>
-                </MudItem>
-            </MudGrid>
+                        <MudStack Row="true" Spacing="2" Class="dashboard-hero__actions">
+                            <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="/consultas" StartIcon="@Icons.Material.Filled.CalendarMonth">
+                                Abrir agenda
+                            </MudButton>
+                            <MudButton Color="Color.Default" Variant="Variant.Outlined" Href="/pacientes" StartIcon="@Icons.Material.Filled.Groups">
+                                Ver pacientes
+                            </MudButton>
+                        </MudStack>
+                    </div>
+                </section>
+
+                <MudGrid Class="dashboard-sections" id="operacoes">
+                    @foreach (var module in WorkspaceModules)
+                    {
+                        <MudItem xs="12" sm="6" lg="4">
+                            <MudPaper Class="surface-card module-card" Elevation="0">
+                                <MudIcon Icon="@module.Icon" Color="Color.Primary" />
+                                <MudText Typo="Typo.h6">@module.Title</MudText>
+                                <MudText Typo="Typo.body2">@module.Description</MudText>
+                                <MudButton Href="@module.Href" Variant="Variant.Text" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward">
+                                    Abrir
+                                </MudButton>
+                            </MudPaper>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
         </Authorized>
 
         <NotAuthorized>
@@ -267,19 +197,38 @@
 
 @code {
     private readonly CultureInfo _pt = new("pt-BR");
+    private bool selectingTenant;
 
-    private const int KpiPacientes = 1280;
-    private const int PacientesDelta = 3;
-    private const int PacientesPct = 72;
-    private const int KpiConsultasHoje = 42;
-    private const int AgendaOcupacao = 85;
-    private const int NoShowRate = 7;
-    private const decimal ReceitaMes = 183450m;
-    private const int ReceitaDelta = 12;
-
-    private readonly string[] ChartLabels = ["Semana 1", "Semana 2", "Semana 3", "Semana 4"];
-    private readonly List<ChartSeries> ChartSeries =
+    private readonly WorkspaceModule[] WorkspaceModules =
     [
-        new() { Name = "Consultas", Data = [120, 160, 140, 190] }
+        new("Pacientes", "Cadastro, planos e historico de relacionamento.", "/pacientes", Icons.Material.Filled.Groups),
+        new("Consultas", "Agenda, slots disponiveis, remarcacao e status.", "/consultas", Icons.Material.Filled.CalendarMonth),
+        new("Profissionais", "Equipe, especialidades e locais de atendimento.", "/profissionais", Icons.Material.Filled.Badge),
+        new("Prontuario", "Evolucoes e contexto clinico por paciente.", "/prontuario", Icons.Material.Filled.Description),
+        new("Financeiro", "Cobrancas, lotes e acompanhamento de receita.", "/financeiro", Icons.Material.Filled.Payments),
+        new("Relatorios", "Leituras consolidadas da operacao.", "/relatorios", Icons.Material.Filled.QueryStats)
     ];
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (Auth.RequiresOnboarding)
+        {
+            Nav.NavigateTo("/onboarding");
+        }
+    }
+
+    private async Task SelectTenant(Guid tenantId)
+    {
+        selectingTenant = true;
+        try
+        {
+            await Auth.SelectTenantAsync(tenantId);
+        }
+        finally
+        {
+            selectingTenant = false;
+        }
+    }
+
+    private sealed record WorkspaceModule(string Title, string Description, string Href, string Icon);
 }

@@ -1,0 +1,116 @@
+@page "/onboarding"
+@attribute [Authorize]
+@using System.ComponentModel.DataAnnotations
+@using HealthTech.AppShell.Services
+@inject NavigationManager Nav
+@inject HealthTech.AppShell.Services.BffAuthService Auth
+
+<PageTitle>Configuracao inicial</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="home-shell">
+    <section class="onboarding-shell">
+        <MudPaper Class="surface-card onboarding-card" Elevation="0">
+            <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">Primeiro acesso</MudChip>
+            <MudText Typo="Typo.h3" Class="onboarding-title">Configure sua clinica antes de abrir o cockpit.</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-5">
+                Esses dados criam o workspace, liberam o tenant e deixam agenda, pacientes e financeiro prontos para uso.
+            </MudText>
+
+            @if (!string.IsNullOrWhiteSpace(error))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-4">@error</MudAlert>
+            }
+
+            <EditForm Model="@model" OnValidSubmit="@Submit">
+                <DataAnnotationsValidator />
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="model.ClinicName" Label="Nome da clinica" For="@(() => model.ClinicName)" Required="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="model.ResponsibleName" Label="Responsavel" For="@(() => model.ResponsibleName)" Required="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="model.Phone" Label="Telefone/WhatsApp" For="@(() => model.Phone)" Required="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="model.SpecialtyName" Label="Especialidade inicial" For="@(() => model.SpecialtyName)" Required="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="model.LocationName" Label="Unidade inicial" For="@(() => model.LocationName)" Required="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="model.Timezone" Label="Timezone" For="@(() => model.Timezone)" Required="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-5">
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="@saving" Size="Size.Large">
+                        @(saving ? "Configurando..." : "Concluir configuracao")
+                    </MudButton>
+                </MudStack>
+            </EditForm>
+        </MudPaper>
+    </section>
+</MudContainer>
+
+@code {
+    private readonly OnboardingModel model = new()
+    {
+        ResponsibleName = "",
+        Phone = "",
+        SpecialtyName = "Clinica geral",
+        LocationName = "Unidade principal",
+        Timezone = "America/Sao_Paulo"
+    };
+    private bool saving;
+    private string? error;
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.RequiresOnboarding && Auth.ActiveTenant is not null)
+        {
+            Nav.NavigateTo("/");
+        }
+
+        if (string.IsNullOrWhiteSpace(model.ResponsibleName))
+        {
+            model.ResponsibleName = Auth.DisplayName ?? "";
+        }
+    }
+
+    private async Task Submit()
+    {
+        error = null;
+        saving = true;
+        try
+        {
+            await Auth.CompleteOnboardingAsync(new BffCompleteOnboardingRequest(
+                model.ClinicName,
+                model.ResponsibleName,
+                model.Phone,
+                model.SpecialtyName,
+                model.LocationName,
+                model.Timezone));
+            Nav.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private sealed class OnboardingModel
+    {
+        [Required, MaxLength(160)] public string ClinicName { get; set; } = "";
+        [Required, MaxLength(160)] public string ResponsibleName { get; set; } = "";
+        [Required, MaxLength(32)] public string Phone { get; set; } = "";
+        [Required, MaxLength(120)] public string SpecialtyName { get; set; } = "";
+        [Required, MaxLength(120)] public string LocationName { get; set; } = "";
+        [Required, MaxLength(64)] public string Timezone { get; set; } = "America/Sao_Paulo";
+    }
+}

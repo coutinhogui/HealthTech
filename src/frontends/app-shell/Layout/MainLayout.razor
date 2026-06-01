@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Authorization
+@inject HealthTech.AppShell.Services.BffAuthService Auth
 
 <MudThemeProvider Theme="@_theme" />
 <MudPopoverProvider />
@@ -10,7 +11,11 @@
     <AuthorizeView Context="authState">
         <Authorized>
             <MudAppBar Elevation="0" Dense="true" Class="app-topbar">
-                <MudIconButton Icon="@Icons.Material.Filled.MenuOpen" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+                <MudIconButton Icon="@DrawerButtonIcon"
+                               Color="Color.Inherit"
+                               Edge="Edge.Start"
+                               aria-label="@DrawerButtonLabel"
+                               OnClick="@((e) => DrawerToggle())" />
                 <MudLink Href="/" Underline="Underline.None" Class="brand-lockup">
                     <span class="brand-mark">HT</span>
                     <span class="brand-copy">
@@ -20,12 +25,12 @@
                 </MudLink>
                 <MudSpacer />
                 <MudChip T="string" Color="Color.Success" Variant="Variant.Text" Class="topbar-chip">
-                    Clinica em tempo real
+                    @(Auth.ActiveTenant?.TenantName ?? "Selecionar clinica")
                 </MudChip>
                 <HealthTech.AppShell.Component.AccountMenu />
             </MudAppBar>
 
-            <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="0" Class="app-drawer">
+            <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" Variant="DrawerVariant.Temporary" ClipMode="DrawerClipMode.Always" Elevation="0" Class="app-drawer">
                 <NavMenu />
             </MudDrawer>
         </Authorized>
@@ -56,6 +61,8 @@
 @code {
     private bool _drawerOpen = false;
     private MudTheme? _theme;
+    private string DrawerButtonIcon => _drawerOpen ? Icons.Material.Filled.Close : Icons.Material.Filled.Menu;
+    private string DrawerButtonLabel => _drawerOpen ? "Fechar menu" : "Abrir menu";
 
     protected override void OnInitialized()
     {

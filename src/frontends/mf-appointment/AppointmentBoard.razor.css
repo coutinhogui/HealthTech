@@ -1,6 +1,7 @@
 .mf-shell {
     display: grid;
     gap: 1rem;
+    min-width: 0;
 }
 
 .mf-header,
@@ -9,6 +10,15 @@
     justify-content: space-between;
     align-items: center;
     gap: 0.8rem;
+    min-width: 0;
+}
+
+.mf-header {
+    flex-wrap: wrap;
+}
+
+.mf-header > div {
+    min-width: min(100%, 260px);
 }
 
 .mf-header h2 {
@@ -19,6 +29,8 @@
 .mf-header p {
     margin: 0.3rem 0 0;
     color: #60716b;
+    max-width: 68ch;
+    overflow-wrap: anywhere;
 }
 
 .mf-header button,
@@ -56,14 +68,14 @@
 .mf-form input,
 .mf-form select,
 .mf-form button,
-.mf-filters button {
+.mf-filters > button {
     border: 1px solid #d5dfd8;
     border-radius: 10px;
     padding: 0.58rem 0.72rem;
 }
 
 .mf-form button,
-.mf-filters button {
+.mf-filters > button {
     background: #167c80;
     color: white;
     font-weight: 700;
@@ -101,17 +113,21 @@
     border: 0;
     border-radius: 999px;
     background: transparent;
+    color: #29413a;
+    min-width: 76px;
     padding: 0.45rem 0.8rem;
     font-weight: 700;
 }
 
 .mf-tabs .is-active {
     background: white;
+    color: #167c80;
+    box-shadow: 0 1px 4px rgba(16, 33, 29, 0.08);
 }
 
 .mf-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
     gap: 0.8rem;
 }
 
@@ -140,7 +156,7 @@
 
 .mf-timeline__item {
     display: grid;
-    grid-template-columns: 72px minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(56px, 72px) minmax(0, 1fr) auto auto;
     gap: 0.75rem;
     padding: 0.85rem 1rem;
     border-top: 1px solid #edf3ef;
@@ -159,6 +175,7 @@
 .mf-timeline p {
     margin: 0.2rem 0 0;
     color: #60716b;
+    overflow-wrap: anywhere;
 }
 
 .mf-timeline__actions {
