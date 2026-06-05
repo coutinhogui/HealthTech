@@ -17,7 +17,7 @@ var gateway = builder.AddProject<Projects.HealthTech_Gateway>("gateway")
     .WithReference(identityApi)
     .WithReference(appointmentsApi);
 
-builder.AddProject<Projects.HealthTech_AppShell>("app-shell")
+builder.AddProject<Projects.HealthTech_Front>("front")
     .WithReference(gateway)
     .WithExternalHttpEndpoints();
 

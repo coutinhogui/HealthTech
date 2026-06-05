@@ -110,6 +110,99 @@ public sealed class MigrationContractTests
         Assert.Contains("create policy tenant_isolation on appointments.charge", sql, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void Tenant_user_professional_link_migration_preserves_tenant_boundary()
+    {
+        var path = Path.Combine(GetRepoRoot(), "supabase", "migrations", "202606010001_clinic_roles_rbac.sql");
+
+        var sql = File.ReadAllText(path);
+
+        Assert.Contains("alter table core.tenant_user", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("professional_id uuid null", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("foreign key (tenant_id, professional_id) references scheduling.professional(tenant_id, id)", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("drop function if exists core.resolve_tenant_memberships(text, text)", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("create or replace function core.resolve_tenant_memberships", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("professional_id", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Saas_admin_migration_creates_global_admins_and_patient_identity()
+    {
+        var path = Path.Combine(GetRepoRoot(), "supabase", "migrations", "202606040001_saas_system_admin_and_patient_identity.sql");
+
+        var sql = File.ReadAllText(path);
+
+        Assert.Contains("create table if not exists core.system_admin_user", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("create table if not exists patients.patient_identity", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("role in ('admin', 'professional', 'reception', 'billing', 'patient')", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("foreign key (tenant_id, patient_id) references patients.patient(tenant_id, id)", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("alter table patients.patient_identity force row level security;", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("create or replace function core.is_system_admin", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("create or replace function patients.resolve_patient_identity", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Seed_bootstraps_first_system_admin_from_compose_variable()
+    {
+        var path = Path.Combine(GetRepoRoot(), "supabase", "seed.sql");
+
+        var sql = File.ReadAllText(path);
+
+        Assert.Contains("insert into core.system_admin_user", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(":'system_admin_email'", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("on conflict (subject_id) do update", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Discovery_search_migration_adds_public_location_metadata_and_safe_functions()
+    {
+        var path = Path.Combine(GetRepoRoot(), "supabase", "migrations", "202606040004_discovery_search_locations.sql");
+
+        var sql = File.ReadAllText(path);
+
+        Assert.Contains("add column if not exists city", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("add column if not exists public_region", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("create or replace function scheduling.discovery_search", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("security definer", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("t.active = true", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("p.active = true", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("s.active = true", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("p_location_id is not null and not exists", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("raise exception 'location_not_found'", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("grant execute on function scheduling.discovery_search", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Discovery_geolocation_migration_extends_search_without_exposing_private_data()
+    {
+        var path = Path.Combine(GetRepoRoot(), "supabase", "migrations", "202606040005_discovery_search_geolocation.sql");
+
+        var sql = File.ReadAllText(path);
+
+        Assert.Contains("p_latitude numeric default null", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("p_longitude numeric default null", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("distance_score", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("t.active = true", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("p.active = true", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("s.active = true", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("grant execute on function scheduling.discovery_search", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Seed_contains_multiple_public_clinics_regions_specialties_and_professionals()
+    {
+        var path = Path.Combine(GetRepoRoot(), "supabase", "seed.sql");
+
+        var sql = File.ReadAllText(path);
+
+        Assert.Contains("Cardio Prime", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Derma Center Paulista", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Jardins", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Barra da Tijuca", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Dra. Laura Martins", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Dra. Beatriz Nogueira", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static string GetRepoRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

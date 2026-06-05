@@ -14,6 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\gateway\HealthTech.Gateway.csproj" />
+    <ProjectReference Include="..\..\src\bff\HealthTech.Gateway.csproj" />
   </ItemGroup>
 </Project>

@@ -440,6 +440,49 @@ public sealed class RlsIntegrationTests(PostgresIntegrationFixture database) : I
     }
 
     [Fact]
+    public async Task Patient_identity_is_isolated_by_tenant()
+    {
+        if (!database.Enabled)
+        {
+            return;
+        }
+
+        var tenantA = Guid.NewGuid();
+        var tenantB = Guid.NewGuid();
+        var patientA = Guid.NewGuid();
+        var patientB = Guid.NewGuid();
+
+        await using var admin = new NpgsqlConnection(database.AdminConnectionString);
+        await admin.OpenAsync();
+        await SeedTenantAsync(admin, tenantA, "Tenant A");
+        await SeedTenantAsync(admin, tenantB, "Tenant B");
+        await SeedPatientAsync(admin, tenantA, patientA, "Alice", "DOC-IDENTITY-A");
+        await SeedPatientAsync(admin, tenantB, patientB, "Bob", "DOC-IDENTITY-B");
+
+        await using var app = new NpgsqlConnection(database.AppConnectionString);
+        await app.OpenAsync();
+        await SetTenantAsync(app, tenantA);
+
+        await PostgresIntegrationFixture.ExecuteAsync(app, $"""
+            insert into patients.patient_identity (
+              tenant_id, patient_id, subject_id, email
+            ) values (
+              '{tenantA:D}', '{patientA:D}', 'patient-subject-a', 'patient-a@example.local'
+            );
+            """);
+
+        var forbidden = await Assert.ThrowsAsync<PostgresException>(() => PostgresIntegrationFixture.ExecuteAsync(app, $"""
+            insert into patients.patient_identity (
+              tenant_id, patient_id, subject_id, email
+            ) values (
+              '{tenantB:D}', '{patientB:D}', 'patient-subject-b', 'patient-b@example.local'
+            );
+            """));
+
+        Assert.Equal("42501", forbidden.SqlState);
+    }
+
+    [Fact]
     public async Task Billing_charge_and_batch_are_isolated_by_tenant()
     {
         if (!database.Enabled)

@@ -62,6 +62,15 @@ public sealed class RegisterPatientHandlerTests
         public Task<IReadOnlyCollection<Patient>> ListAsync(Guid tenantId, int skip, int take, CancellationToken ct)
             => Task.FromResult<IReadOnlyCollection<Patient>>([]);
 
+        public Task<IReadOnlyCollection<Patient>> ListForProfessionalAsync(Guid tenantId, Guid professionalId, int skip, int take, CancellationToken ct)
+            => Task.FromResult<IReadOnlyCollection<Patient>>([]);
+
+        public Task<bool> PatientHasAppointmentWithProfessionalAsync(Guid tenantId, Guid patientId, Guid professionalId, CancellationToken ct)
+            => Task.FromResult(false);
+
+        public Task<Guid?> GetPatientIdForSubjectAsync(Guid tenantId, string subjectId, CancellationToken ct)
+            => Task.FromResult<Guid?>(null);
+
         public Task<Guid> AddInsurancePlanAsync(Guid tenantId, string payerName, string planName, CancellationToken ct)
             => Task.FromResult(Guid.NewGuid());
 

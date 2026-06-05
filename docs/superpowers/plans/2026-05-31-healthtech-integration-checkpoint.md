@@ -37,10 +37,10 @@ Use these buckets:
 ```text
 Platform: global.json, Directory.Build.props, solution, package/project files
 Docker/CI: compose.yml, docker/, .github/, .dockerignore, scripts/
-Gateway/Auth: src/gateway/, src/building-blocks/Abstractions/
+Gateway/Auth: src/bff/, src/shared/Abstractions/
 Database: supabase/
-Backend: src/services/Patients/, src/services/Appointments/, src/services/Identity/
-Frontend: src/frontends/
+Backend: src/apis/Patients/, src/apis/Appointments/, src/apis/Identity/
+Frontend: src/front/
 Tests: tests/
 Docs: README.md, docs/
 Removed scaffolding: Component1, ExampleJsInterop, project-dump artifacts
@@ -90,7 +90,7 @@ Run:
 rg -n "docker compose|healthtech-docker|down -v|pause|stop|localhost:5191|localhost:5026" README.md docs .env.example
 ```
 
-Expected: normal start, reset, stop/pause/down/down -v, AppShell URL, Gateway URL, and dev auth behavior are documented.
+Expected: normal start, reset, stop/pause/down/down -v, Front URL, Gateway URL, and dev auth behavior are documented.
 
 - [ ] **Step 2: Verify sensitive examples use placeholders**
 
@@ -127,7 +127,7 @@ Run:
 docker compose ps
 ```
 
-Expected: `app-shell`, `gateway`, `patients-api`, `appointments-api`, `identity-api`, and `postgres` are healthy; `db-migrate` exited 0.
+Expected: `front`, `gateway`, `patients-api`, `appointments-api`, `identity-api`, and `postgres` are healthy; `db-migrate` exited 0.
 
 - [ ] **Step 3: Re-run real Gateway smoke**
 

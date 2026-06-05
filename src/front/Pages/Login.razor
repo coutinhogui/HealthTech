@@ -1,0 +1,21 @@
+@page "/login"
+@using Microsoft.AspNetCore.Components
+
+<PageTitle>Login</PageTitle>
+
+<MudTabs Elevation="0" Rounded="true" PanelClass="pt-4" Class="login-tabs" ActivePanelIndex="@ActivePanelIndex">
+    <MudTabPanel Text="Clinica">
+        <HealthTech.Front.Component.LoginGoogle Mode="login" AccessArea="@FrontAccessAreas.Clinic" />
+    </MudTabPanel>
+    <MudTabPanel Text="Admin do Ambiente">
+        <HealthTech.Front.Component.LoginGoogle Mode="login" AccessArea="@FrontAccessAreas.Environment" />
+    </MudTabPanel>
+</MudTabs>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "accessArea")]
+    public string? AccessArea { get; set; }
+
+    private int ActivePanelIndex => string.Equals(AccessArea, FrontAccessAreas.Environment, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+}

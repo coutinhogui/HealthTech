@@ -85,6 +85,7 @@ public sealed class SchedulingManagementHandlerTests
 
         public Task AddAsync(Appointment appointment, CancellationToken cancellationToken) => Task.CompletedTask;
         public Task<bool> PatientExistsAsync(Guid tenantId, Guid patientId, CancellationToken cancellationToken) => Task.FromResult(true);
+        public Task<Guid?> GetPatientIdForSubjectAsync(Guid tenantId, string subjectId, CancellationToken cancellationToken) => Task.FromResult<Guid?>(null);
         public Task<bool> ProfessionalExistsAsync(Guid tenantId, Guid professionalId, CancellationToken cancellationToken) => Task.FromResult(true);
         public Task<bool> HasProfessionalConflictAsync(Guid tenantId, Guid professionalId, DateTimeOffset startsAtUtc, DateTimeOffset endsAtUtc, CancellationToken cancellationToken) => Task.FromResult(false);
         public Task<bool> HasProfessionalConflictAsync(Guid tenantId, Guid professionalId, DateTimeOffset startsAtUtc, DateTimeOffset endsAtUtc, Guid? excludingAppointmentId, CancellationToken cancellationToken) => Task.FromResult(false);
@@ -92,6 +93,8 @@ public sealed class SchedulingManagementHandlerTests
         public Task<bool> CancelAsync(Guid tenantId, Guid appointmentId, CancellationToken cancellationToken) => Task.FromResult(true);
         public Task<bool> RescheduleAsync(Guid tenantId, Guid appointmentId, Guid professionalId, Guid? locationId, DateTimeOffset startsAtUtc, DateTimeOffset endsAtUtc, string? notes, CancellationToken cancellationToken) => Task.FromResult(true);
         public Task<IReadOnlyCollection<Appointment>> ListAsync(Guid tenantId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<Appointment>>([]);
+        public Task<IReadOnlyCollection<Appointment>> ListForProfessionalAsync(Guid tenantId, Guid professionalId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<Appointment>>([]);
+        public Task<IReadOnlyCollection<Appointment>> ListForPatientAsync(Guid tenantId, Guid patientId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<Appointment>>([]);
         public Task<IReadOnlyCollection<BusyWindowReadModel>> ListBusyWindowsAsync(Guid tenantId, Guid professionalId, Guid? locationId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<BusyWindowReadModel>>([]);
         public Task<IReadOnlyCollection<ProfessionalReadModel>> ListProfessionalsAsync(Guid tenantId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<ProfessionalReadModel>>([]);
         public Task<IReadOnlyCollection<SpecialtyReadModel>> ListSpecialtiesAsync(Guid tenantId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<SpecialtyReadModel>>([]);

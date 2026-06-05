@@ -1,0 +1,164 @@
+@page "/admin/clinicas/administradores"
+@attribute [Authorize]
+@using System.ComponentModel.DataAnnotations
+@using HealthTech.Front.Services
+@inject HealthTech.Front.Services.BffAuthService Auth
+
+<PageTitle>Admins de clinica</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="home-shell">
+    <MudPaper Elevation="0" Class="surface-card">
+        @if (!Auth.HasGlobalPermission("ManageClinics"))
+        {
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h5">Sem acesso</MudText>
+                <MudText Typo="Typo.body2">Seu usuario nao possui permissao global para atribuir admins de clinica.</MudText>
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Spacing="3">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <div>
+                        <MudText Typo="Typo.h5">Admins de clinica</MudText>
+                        <MudText Typo="Typo.body2">Adicione um usuario como admin de uma clinica existente.</MudText>
+                    </div>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LoadClinicsAsync" Disabled="Loading">Atualizar clinicas</MudButton>
+                </MudStack>
+
+                @if (!string.IsNullOrWhiteSpace(StatusMessage))
+                {
+                    <MudAlert Severity="@StatusSeverity">@StatusMessage</MudAlert>
+                }
+
+                @if (Loading)
+                {
+                    <MudProgressLinear Indeterminate="true" />
+                }
+
+                <EditForm Model="@Assignment" OnValidSubmit="AssignClinicAdminAsync">
+                    <DataAnnotationsValidator />
+                    <MudGrid>
+                        <MudItem xs="12" md="4">
+                            <MudSelect T="Guid" @bind-Value="Assignment.TenantId" Label="Clinica" Required="true" Variant="Variant.Outlined">
+                                <MudSelectItem Value="@Guid.Empty">Selecione</MudSelectItem>
+                                @foreach (var clinic in Clinics)
+                                {
+                                    <MudSelectItem Value="@clinic.Id">@clinic.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudTextField @bind-Value="Assignment.SubjectId" Label="Subject do admin" For="@(() => Assignment.SubjectId)" Required="true" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudTextField @bind-Value="Assignment.Email" Label="E-mail do admin" For="@(() => Assignment.Email)" Required="true" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="Assignment.FullName" Label="Nome" For="@(() => Assignment.FullName)" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="Assignment.Phone" Label="Telefone" For="@(() => Assignment.Phone)" Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="Saving || Assignment.TenantId == Guid.Empty">
+                            @(Saving ? "Atribuindo..." : "Atribuir admin")
+                        </MudButton>
+                    </MudStack>
+                </EditForm>
+            </MudStack>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private bool Loading { get; set; }
+    private bool Saving { get; set; }
+    private string? StatusMessage { get; set; }
+    private Severity StatusSeverity { get; set; } = Severity.Info;
+    private List<BffAdminClinicResponse> Clinics { get; set; } = [];
+    private ClinicAdminAssignmentModel Assignment { get; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Auth.HasGlobalPermission("ManageClinics"))
+        {
+            await LoadClinicsAsync();
+        }
+    }
+
+    private async Task LoadClinicsAsync()
+    {
+        Loading = true;
+        StatusMessage = null;
+        try
+        {
+            Clinics = (await Auth.ListAdminClinicsAsync(CancellationToken.None)).ToList();
+        }
+        catch
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = "Nao foi possivel carregar as clinicas.";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private async Task AssignClinicAdminAsync()
+    {
+        if (Assignment.TenantId == Guid.Empty)
+        {
+            StatusSeverity = Severity.Warning;
+            StatusMessage = "Selecione uma clinica.";
+            return;
+        }
+
+        Saving = true;
+        StatusMessage = null;
+        try
+        {
+            await Auth.CreateClinicAdminAsync(
+                Assignment.TenantId,
+                new BffCreateClinicAdminRequest(
+                    Assignment.SubjectId,
+                    Assignment.Email,
+                    string.IsNullOrWhiteSpace(Assignment.FullName) ? null : Assignment.FullName,
+                    string.IsNullOrWhiteSpace(Assignment.Phone) ? null : Assignment.Phone),
+                CancellationToken.None);
+
+            Assignment.Reset();
+            StatusSeverity = Severity.Success;
+            StatusMessage = "Admin de clinica atribuido.";
+        }
+        catch
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = "Nao foi possivel atribuir o admin da clinica.";
+        }
+        finally
+        {
+            Saving = false;
+        }
+    }
+
+    private sealed class ClinicAdminAssignmentModel
+    {
+        [Required] public Guid TenantId { get; set; }
+        [Required, MaxLength(160)] public string SubjectId { get; set; } = "";
+        [Required, EmailAddress, MaxLength(160)] public string Email { get; set; } = "";
+        [MaxLength(160)] public string? FullName { get; set; }
+        [MaxLength(32)] public string? Phone { get; set; }
+
+        public void Reset()
+        {
+            TenantId = Guid.Empty;
+            SubjectId = "";
+            Email = "";
+            FullName = null;
+            Phone = null;
+        }
+    }
+}

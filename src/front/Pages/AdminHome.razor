@@ -1,0 +1,76 @@
+@page "/admin"
+@attribute [Authorize]
+@inject HealthTech.Front.Services.BffAuthService Auth
+
+<PageTitle>Administracao</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="home-shell">
+    <MudStack Spacing="3">
+        <div>
+            <MudText Typo="Typo.h4">Administracao</MudText>
+            <MudText Typo="Typo.body2">Acoes separadas por responsabilidade e nivel de permissao.</MudText>
+        </div>
+
+        @if (!CanManageClinic && !CanManageEnvironment)
+        {
+            <MudAlert Severity="Severity.Warning">Seu usuario nao possui permissoes administrativas nesta sessao.</MudAlert>
+        }
+        else
+        {
+            <MudGrid>
+                @if (CanManageClinic)
+                {
+                    <MudItem xs="12" md="6">
+                        <MudPaper Elevation="0" Class="surface-card">
+                            <MudStack Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Primary" Size="Size.Large" />
+                                <MudText Typo="Typo.h6">Acessos da clinica</MudText>
+                                <MudText Typo="Typo.body2">Gerencie papeis, status e vinculo profissional dos usuarios da clinica ativa.</MudText>
+                                <MudButton Href="/admin/acessos" Variant="Variant.Filled" Color="Color.Primary">Abrir acessos</MudButton>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+                }
+
+                @if (CanManageEnvironment)
+                {
+                    <MudItem xs="12" md="4">
+                        <MudPaper Elevation="0" Class="surface-card">
+                            <MudStack Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Filled.Domain" Color="Color.Primary" Size="Size.Large" />
+                                <MudText Typo="Typo.h6">Clinicas</MudText>
+                                <MudText Typo="Typo.body2">Cadastre tenants e acompanhe o status das clinicas provisionadas.</MudText>
+                                <MudButton Href="/admin/clinicas" Variant="Variant.Filled" Color="Color.Primary">Abrir clinicas</MudButton>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudPaper Elevation="0" Class="surface-card">
+                            <MudStack Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Filled.SupervisorAccount" Color="Color.Primary" Size="Size.Large" />
+                                <MudText Typo="Typo.h6">Admins de clinica</MudText>
+                                <MudText Typo="Typo.body2">Adicione administradores em clinicas ja existentes.</MudText>
+                                <MudButton Href="/admin/clinicas/administradores" Variant="Variant.Filled" Color="Color.Primary">Abrir atribuicoes</MudButton>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudPaper Elevation="0" Class="surface-card">
+                            <MudStack Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Filled.ManageAccounts" Color="Color.Primary" Size="Size.Large" />
+                                <MudText Typo="Typo.h6">Admins do ambiente</MudText>
+                                <MudText Typo="Typo.body2">Ative, desative e revise usuarios com permissao global SaaS.</MudText>
+                                <MudButton Href="/admin/sistema/usuarios" Variant="Variant.Filled" Color="Color.Primary">Abrir usuarios</MudButton>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </MudStack>
+</MudContainer>
+
+@code {
+    private bool CanManageClinic => Auth.HasPermission("ManageAccess");
+    private bool CanManageEnvironment => Auth.HasGlobalPermission("ManageClinics") || Auth.HasGlobalPermission("ManageSystemAdmins");
+}

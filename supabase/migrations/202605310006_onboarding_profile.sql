@@ -10,7 +10,9 @@ set full_name = coalesce(full_name, 'Administrador Demo'),
 where subject_id = 'bootstrap-admin'
   and email = 'admin@healthtech.local';
 
-create or replace function core.resolve_tenant_memberships(
+drop function if exists core.resolve_tenant_memberships(text, text) cascade;
+
+create function core.resolve_tenant_memberships(
   p_subject_id text,
   p_email text
 )

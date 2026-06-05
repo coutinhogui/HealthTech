@@ -1,0 +1,104 @@
+@implements IDisposable
+@inject HealthTech.Front.Services.BffAuthService Auth
+
+<div class="nav-shell">
+    <MudNavMenu Class="nav-shell__menu">
+        <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.SpaceDashboard">Visao geral</MudNavLink>
+        @if (Auth.Memberships.Count > 0)
+        {
+            <MudNavLink Href="/minhas-clinicas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Business">Minhas clinicas</MudNavLink>
+        }
+        @if (Can("ReadPatients") || Can("ManagePatients"))
+        {
+            <MudNavLink Href="/pacientes" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Groups">Pacientes</MudNavLink>
+        }
+        @if (Can("ManageSchedule") || Can("ReadOwnClinicalSchedule"))
+        {
+            <MudNavLink Href="/consultas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CalendarMonth">Consultas</MudNavLink>
+        }
+        @if (Can("ManageProfessionals"))
+        {
+            <MudNavLink Href="/profissionais" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Badge">Profissionais</MudNavLink>
+        }
+        @if (Can("ReadClinicalRecord"))
+        {
+            <MudNavLink Href="/prontuario" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Description">Prontuario</MudNavLink>
+        }
+        @if (Can("ManageBilling"))
+        {
+            <MudNavLink Href="/financeiro" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Payments">Financeiro</MudNavLink>
+        }
+        @if (HasAdminArea)
+        {
+            <MudNavGroup Title="Administracao" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                <MudNavLink Href="/admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Tune">Painel admin</MudNavLink>
+                @if (Can("ManageAccess"))
+                {
+                    <MudNavLink Href="/admin/acessos" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.GroupAdd">Acessos da clinica</MudNavLink>
+                    <MudNavLink Href="/relatorios" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.QueryStats">Relatorios</MudNavLink>
+                }
+                @if (CanGlobal("ManageClinics"))
+                {
+                    <MudNavLink Href="/admin/clinicas" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Domain">Clinicas</MudNavLink>
+                    <MudNavLink Href="/admin/clinicas/administradores" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SupervisorAccount">Admins de clinica</MudNavLink>
+                }
+                @if (CanGlobal("ManageSystemAdmins"))
+                {
+                    <MudNavLink Href="/admin/sistema/usuarios" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ManageAccounts">Admins do ambiente</MudNavLink>
+                }
+            </MudNavGroup>
+        }
+    </MudNavMenu>
+
+    <MudPaper Elevation="0" Class="nav-shell__panel">
+        <MudText Typo="Typo.overline">Sessao</MudText>
+        <MudText Typo="Typo.subtitle2">@(Auth.ActiveTenant?.TenantName ?? "Sem clinica ativa")</MudText>
+        <MudText Typo="Typo.body2">@SessionStatusText</MudText>
+    </MudPaper>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Auth.AuthStateChanged += OnAuthStateChanged;
+    }
+
+    private string SessionStatusText
+    {
+        get
+        {
+            if (!Auth.IsAuthenticated)
+            {
+                return "Sessao BFF nao autenticada.";
+            }
+
+            if (Auth.ActiveTenant is null)
+            {
+                return "Selecione uma clinica para liberar os fluxos operacionais.";
+            }
+
+            var membershipCount = Auth.Memberships.Count;
+            var suffix = membershipCount == 1 ? "1 vinculo ativo" : $"{membershipCount} vinculos ativos";
+            return $"{Auth.ActiveTenant.Role} - {suffix}";
+        }
+    }
+
+    private void OnAuthStateChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private bool Can(string permission)
+        => Auth.HasPermission(permission);
+
+    private bool CanGlobal(string permission)
+        => Auth.HasGlobalPermission(permission);
+
+    private bool HasAdminArea
+        => Can("ManageAccess") || CanGlobal("ManageClinics") || CanGlobal("ManageSystemAdmins");
+
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnAuthStateChanged;
+    }
+}

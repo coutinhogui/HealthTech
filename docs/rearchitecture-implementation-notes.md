@@ -67,12 +67,12 @@ Para desenvolvimento local, configure:
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:PatientsDb" "<connection-string>" --project src/apphost/HealthTech.AppHost.csproj
-dotnet user-secrets set "Bff:SupabaseUrl" "https://<project>.supabase.co" --project src/gateway/HealthTech.Gateway.csproj
-dotnet user-secrets set "Bff:SupabaseAnonKey" "<anon-key>" --project src/gateway/HealthTech.Gateway.csproj
-dotnet user-secrets set "Bff:PublicBaseUrl" "http://localhost:5026" --project src/gateway/HealthTech.Gateway.csproj
+dotnet user-secrets set "Bff:SupabaseUrl" "https://<project>.supabase.co" --project src/bff/HealthTech.Gateway.csproj
+dotnet user-secrets set "Bff:SupabaseAnonKey" "<anon-key>" --project src/bff/HealthTech.Gateway.csproj
+dotnet user-secrets set "Bff:PublicBaseUrl" "http://localhost:5026" --project src/bff/HealthTech.Gateway.csproj
 ```
 
-Para OAuth local com AppShell separado, mantenha `http://localhost:5191` em `Cors:AllowedOrigins`; o AppShell usa `/auth/callback` e o BFF troca o codigo com Supabase sem expor tokens ao browser.
+Para OAuth local com Front separado, mantenha `http://localhost:5191` em `Cors:AllowedOrigins`; o Front usa `/auth/callback` e o BFF troca o codigo com Supabase sem expor tokens ao browser.
 
 ## Validacao local
 

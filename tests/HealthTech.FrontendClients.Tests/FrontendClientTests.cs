@@ -1,30 +1,33 @@
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using AppointmentBffClient = HealthTech.Frontends.MfAppointment.AppointmentBffClient;
-using AvailableSlotDto = HealthTech.Frontends.MfAppointment.AvailableSlotDto;
-using AppointmentDto = HealthTech.Frontends.MfAppointment.AppointmentDto;
-using AppointmentPatientOptionDto = HealthTech.Frontends.MfAppointment.AppointmentPatientOptionDto;
-using AppointmentPatientOptionsClient = HealthTech.Frontends.MfAppointment.AppointmentPatientOptionsClient;
-using AppointmentProfessionalOptionDto = HealthTech.Frontends.MfAppointment.AppointmentProfessionalOptionDto;
-using AppointmentProfessionalOptionsClient = HealthTech.Frontends.MfAppointment.AppointmentProfessionalOptionsClient;
-using CreateProfessionalDto = HealthTech.Frontends.MfAppointment.CreateProfessionalDto;
-using RegisterWhatsappIntentDto = HealthTech.Frontends.MfAppointment.RegisterWhatsappIntentDto;
-using MarkWhatsappSentDto = HealthTech.Frontends.MfAppointment.MarkWhatsappSentDto;
-using ManualWhatsappMessageDto = HealthTech.Frontends.MfAppointment.ManualWhatsappMessageDto;
-using ProfessionalManagementBffClient = HealthTech.Frontends.MfAppointment.ProfessionalManagementBffClient;
-using RescheduleAppointmentDto = HealthTech.Frontends.MfAppointment.RescheduleAppointmentDto;
-using CreatePatientDto = HealthTech.Frontends.MfPatient.CreatePatientDto;
-using PatientApiErrorDto = HealthTech.Frontends.MfPatient.ApiErrorDto;
-using PatientBffClient = HealthTech.Frontends.MfPatient.PatientBffClient;
-using PatientDto = HealthTech.Frontends.MfPatient.PatientDto;
-using CreateEhrEvolutionDto = HealthTech.Frontends.MfEhr.CreateEhrEvolutionDto;
-using EhrBffClient = HealthTech.Frontends.MfEhr.EhrBffClient;
-using EhrPatientDto = HealthTech.Frontends.MfEhr.EhrPatientDto;
-using EhrEvolutionDto = HealthTech.Frontends.MfEhr.EhrEvolutionDto;
-using BillingBffClient = HealthTech.Frontends.MfBilling.BillingBffClient;
-using BillingChargeDto = HealthTech.Frontends.MfBilling.BillingChargeDto;
-using CreateBillingChargeDto = HealthTech.Frontends.MfBilling.CreateBillingChargeDto;
+using AppointmentBffClient = HealthTech.Front.Features.Appointment.AppointmentBffClient;
+using AvailableSlotDto = HealthTech.Front.Features.Appointment.AvailableSlotDto;
+using AppointmentDto = HealthTech.Front.Features.Appointment.AppointmentDto;
+using AppointmentPatientOptionDto = HealthTech.Front.Features.Appointment.AppointmentPatientOptionDto;
+using AppointmentPatientOptionsClient = HealthTech.Front.Features.Appointment.AppointmentPatientOptionsClient;
+using AppointmentProfessionalOptionDto = HealthTech.Front.Features.Appointment.AppointmentProfessionalOptionDto;
+using AppointmentProfessionalOptionsClient = HealthTech.Front.Features.Appointment.AppointmentProfessionalOptionsClient;
+using CreateProfessionalDto = HealthTech.Front.Features.Appointment.CreateProfessionalDto;
+using RegisterWhatsappIntentDto = HealthTech.Front.Features.Appointment.RegisterWhatsappIntentDto;
+using MarkWhatsappSentDto = HealthTech.Front.Features.Appointment.MarkWhatsappSentDto;
+using ManualWhatsappMessageDto = HealthTech.Front.Features.Appointment.ManualWhatsappMessageDto;
+using ProfessionalManagementBffClient = HealthTech.Front.Features.Appointment.ProfessionalManagementBffClient;
+using RescheduleAppointmentDto = HealthTech.Front.Features.Appointment.RescheduleAppointmentDto;
+using CreatePatientDto = HealthTech.Front.Features.Patient.CreatePatientDto;
+using PatientApiErrorDto = HealthTech.Front.Features.Patient.ApiErrorDto;
+using PatientBffClient = HealthTech.Front.Features.Patient.PatientBffClient;
+using PatientDto = HealthTech.Front.Features.Patient.PatientDto;
+using CreateEhrEvolutionDto = HealthTech.Front.Features.Ehr.CreateEhrEvolutionDto;
+using EhrBffClient = HealthTech.Front.Features.Ehr.EhrBffClient;
+using EhrPatientDto = HealthTech.Front.Features.Ehr.EhrPatientDto;
+using EhrEvolutionDto = HealthTech.Front.Features.Ehr.EhrEvolutionDto;
+using BillingBffClient = HealthTech.Front.Features.Billing.BillingBffClient;
+using BillingChargeDto = HealthTech.Front.Features.Billing.BillingChargeDto;
+using CreateBillingChargeDto = HealthTech.Front.Features.Billing.CreateBillingChargeDto;
+using DiscoveryBffClient = HealthTech.Front.Features.Discovery.DiscoveryBffClient;
+using DiscoverySearchResultDto = HealthTech.Front.Features.Discovery.DiscoverySearchResultDto;
+using DiscoverySlotDto = HealthTech.Front.Features.Discovery.DiscoverySlotDto;
 
 namespace HealthTech.FrontendClients.Tests;
 
@@ -388,6 +391,73 @@ public sealed class FrontendClientTests
         Assert.True(result.Success);
         Assert.Equal(HttpMethod.Post, handler.LastMethod);
         Assert.Equal("https://bff.local/api/appointments/charges", handler.LastRequestUri?.ToString());
+    }
+
+    [Fact]
+    public async Task Discovery_client_searches_with_mode_query_region_and_take()
+    {
+        var professionalId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var handler = new CapturingHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = JsonContent.Create(new[]
+            {
+                new DiscoverySearchResultDto(
+                    Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    professionalId,
+                    Guid.Parse("33333333-3333-3333-3333-333333333333"),
+                    "Dra. Ana Cardoso",
+                    "Cardiologia",
+                    "Demo Clinic A",
+                    "Unidade Centro",
+                    "Sao Paulo",
+                    "SP",
+                    "Centro, Sao Paulo - SP",
+                    [new DiscoverySlotDto(professionalId, DateTimeOffset.Parse("2026-06-05T12:00:00Z"), DateTimeOffset.Parse("2026-06-05T12:30:00Z"))])
+            })
+        });
+        var client = new DiscoveryBffClient(new HttpClient(handler) { BaseAddress = new Uri("https://bff.local/") });
+
+        var results = await client.SearchAsync(
+            "professional",
+            "cardio",
+            clinic: null,
+            specialty: "Cardiologia",
+            region: "Centro",
+            latitude: null,
+            longitude: null,
+            take: 8,
+            cancellationToken: CancellationToken.None);
+
+        Assert.Single(results);
+        Assert.Equal("Dra. Ana Cardoso", results[0].ProfessionalName);
+        Assert.Equal(
+            "https://bff.local/api/discovery/search?mode=professional&query=cardio&specialty=Cardiologia&region=Centro&take=8",
+            handler.LastRequestUri?.ToString());
+    }
+
+    [Fact]
+    public async Task Discovery_client_sends_coordinates_when_patient_uses_current_location()
+    {
+        var handler = new CapturingHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = JsonContent.Create(Array.Empty<DiscoverySearchResultDto>())
+        });
+        var client = new DiscoveryBffClient(new HttpClient(handler) { BaseAddress = new Uri("https://bff.local/") });
+
+        await client.SearchAsync(
+            "professional",
+            "cardio",
+            clinic: null,
+            specialty: "Cardiologia",
+            region: null,
+            latitude: -23.561414,
+            longitude: -46.655881,
+            take: 8,
+            cancellationToken: CancellationToken.None);
+
+        Assert.Equal(
+            "https://bff.local/api/discovery/search?mode=professional&query=cardio&specialty=Cardiologia&latitude=-23.561414&longitude=-46.655881&take=8",
+            handler.LastRequestUri?.ToString());
     }
 
     private sealed class CapturingHandler(Func<HttpRequestMessage, HttpResponseMessage> responder) : HttpMessageHandler

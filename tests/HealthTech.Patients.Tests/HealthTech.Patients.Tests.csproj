@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\services\Patients\Patients.Application\HealthTech.Patients.Application.csproj" />
-    <ProjectReference Include="..\..\src\services\Patients\Patients.Domain\HealthTech.Patients.Domain.csproj" />
-    <ProjectReference Include="..\..\src\building-blocks\Abstractions\HealthTech.BuildingBlocks.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\apis\Patients\Patients.Application\HealthTech.Patients.Application.csproj" />
+    <ProjectReference Include="..\..\src\apis\Patients\Patients.Domain\HealthTech.Patients.Domain.csproj" />
+    <ProjectReference Include="..\..\src\shared\Abstractions\HealthTech.BuildingBlocks.Abstractions.csproj" />
   </ItemGroup>
 </Project>

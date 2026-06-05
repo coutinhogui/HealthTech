@@ -4,15 +4,21 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 
 > Stack combinando **.NET 10 LTS** (backend), **Blazor** (frontend) e **Supabase Postgres** (DB + RLS + Auth server-side via BFF). Objetivo: lançar MVP rápido, escalável e com custo inicial baixo sem expor tokens sensíveis no browser.
 
+## Documentacao principal
+
+- [Documentacao detalhada do projeto](docs/project-documentation.md): arquitetura, SaaS multi-tenant, BFF, RBAC, endpoints, banco, frontend, operacao local e testes.
+- [Notas de rearquitetura](docs/rearchitecture-implementation-notes.md): decisoes de seguranca, Supabase, Docker e validacao.
+- [Wireframes](doc/healthtech-wireframes.md): referencia visual das telas.
+
 ---
 
 ## Objetivos do MVP (primeira versão)
 
 1. **Agenda unificada** (profissional/clinica): criação, cancelamento e remarcação; bloqueios; visualização diária/semanal.
 2. **Cadastro simples**: pacientes, profissionais, convênios/planos, especialidades, locais de atendimento.
-3. **Descoberta**: paciente informa plano e especialidade e vê profissionais disponíveis (com filtros básicos).
+3. **Descoberta e marcação pública**: paciente busca por especialidade, profissional, clínica ou região, escolhe um card de profissional e reserva um horário disponível sem entrar no painel operacional.
 4. **Comunicação**: disparo de confirmação/lembrete de consulta (WhatsApp) + status (confirmado, reagendado, faltou).
-5. **Autenticação e autorização**: login (e-mail/senha, opcionalmente OAuth) e RBAC básico (admin, prof, recepção).
+5. **Autenticação e autorização**: login BFF com cookie HttpOnly, OAuth server-side opcional e RBAC multi-tenant (`admin`, `professional`, `reception`, `billing`, `patient`) com `system_admin` global para operacao SaaS.
 
 ---
 
@@ -56,23 +62,26 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 * **Plan**(id, payer, name, externalCode?)
 * **PatientPlan**(patientId, planId, status)
 * **Appointment**(id, patientId, professionalId, locationId, startsAt, endsAt, status, notes)
-* **User**(id, email, role, professionalId?, clinicId?) — provisionado a partir do BFF/Supabase Auth server-side
+* **User/Membership**(subjectId, email, role, professionalId?, tenantId) — provisionado a partir do BFF/Supabase Auth server-side via `core.tenant_user`
+* **SystemAdminUser**(subjectId, email, active) — administrador global em `core.system_admin_user`
+* **PatientIdentity**(tenantId, patientId, subjectId, email, active) — vinculo seguro entre login global e paciente da clinica
 
-> Multi‑tenant simples por **clinicId** em tabelas principais; enforcement por claim + filtros em todas as queries.
+> Multi-tenant por **tenant_id** nas tabelas principais; enforcement por sessao resolvida no BFF, contexto interno nas APIs e RLS no Postgres.
 
 ---
 
 ## Fluxos Principais
 
-1. **Descoberta e marcação**
+1. **Descoberta e marcação pública**
 
-   * Paciente informa **plano** + **especialidade** → lista de **profissionais disponíveis** (slots livres) → cria Appointment.
+   * Paciente busca **especialidade/profissional/clínica** + **cidade ou região** → vê cards públicos com profissionais, clínicas, unidades e horários → informa dados mínimos → o BFF cria a consulta por funções públicas controladas no Postgres.
 2. **Lembrete via WhatsApp**
 
    * Job busca consultas de D-1 / H-3 → dispara mensagem → recebe webhook de resposta → atualiza status.
 3. **Login e sessão**
 
    * BFF troca credenciais/callback com Supabase → emite cookie seguro → adiciona claims de domínio → autoriza rotas.
+   * A tela de login separa **Clinica** de **Admin do Ambiente**. O acesso de clinica exige membership em `core.tenant_user`; o acesso de ambiente exige `core.system_admin_user` e entra sem tenant ativo obrigatorio.
 
 ---
 
@@ -81,6 +90,8 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 * O browser usa apenas cookie BFF `HttpOnly`; tokens Supabase não ficam em `localStorage` ou `sessionStorage`.
 * Gateway resolve usuário/tenant/role pela sessão, rejeita `X-Tenant-Id` forjado e injeta headers internos server-side.
 * **Row-Level Security** (RLS) no Postgres reforça isolamento multi-tenant.
+* `system_admin` gerencia clinicas e administradores globais, mas nao acessa dados clinicos operacionais por padrao.
+* Pacientes autenticados acessam o proprio contexto por `patients.patient_identity`, nao por IDs sensiveis enviados pelo browser.
 * Rate limit no gateway p/ endpoints sensíveis.
 
 ---
@@ -96,14 +107,27 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 ## Endpoints atuais pelo Gateway/BFF
 
 * **GET /api/session** -> sessão BFF atual.
+* **POST /api/session/tenant** -> troca a clinica ativa entre memberships do usuario.
 * **POST /api/auth/login** -> login BFF; em desenvolvimento usa bootstrap local quando habilitado.
 * **POST /api/auth/logout** -> encerra cookie BFF.
+* **GET /api/discovery/clinics** -> lista publica de clinicas ativas para pacientes.
+* **GET /api/discovery/search** -> busca publica por especialidade/profissional/clinica/regiao ou latitude/longitude, com cards e proximos horarios.
+* **GET /api/discovery/specialties** -> especialidades publicas por clinica.
+* **GET /api/discovery/professionals** -> profissionais publicos por clinica/especialidade.
+* **GET /api/discovery/slots** -> horarios livres publicos por profissional e, opcionalmente, unidade.
+* **POST /api/discovery/appointments** -> solicitacao publica de consulta com dados minimos do paciente e unidade opcional.
+* **GET/POST /api/admin/clinics** -> gestao SaaS global de clinicas por `system_admin`.
+* **POST /api/admin/clinics/{tenantId}/admins** -> atribui primeiro/admins de uma clinica por `system_admin`.
+* **GET/PUT /api/admin/system-users** -> gestao de `system_admin`.
+* **GET/PUT /api/access/users** -> gestao de acessos da clinica ativa por `admin`.
 * **GET/POST /api/patients** -> pacientes.
 * **GET/POST /api/patients/plans** -> convênios/planos.
 * **GET/POST /api/appointments** -> consultas.
 * **GET /api/appointments/slots** -> slots disponíveis.
 * **GET/POST /api/professionals**, **/api/specialties**, **/api/locations** -> base de agenda.
 * **/api/appointments/{id}/whatsapp** e **/api/appointments/charges** -> WhatsApp manual e financeiro básico.
+
+Detalhes do Discovery publico e comparativo com Doctoralia: [docs/discovery-doctoralia-spec.md](docs/discovery-doctoralia-spec.md).
 
 ---
 
@@ -139,20 +163,16 @@ sequenceDiagram
   participant S as Appointments API
   participant DB as Supabase Postgres
 
-  U->>F: Buscar disponibilidade (plano + especialidade)
-  F->>G: GET /api/appointments/slots com cookie
-  G->>S: Proxy com tenant server-side
-  S->>DB: Query slots por filtros
-  DB-->>S: Slots
-  S-->>G: Slots disponíveis
-  G-->>F: Slots disponíveis
-  F-->>U: Exibe opções
+  U->>F: Buscar por especialidade, clinica ou regiao
+  F->>G: GET /api/discovery/search
+  G->>DB: Funcoes security definer de discovery
+  DB-->>G: Profissionais, clinicas, unidades e disponibilidade publica
+  G-->>F: Cards de discovery
+  F-->>U: Exibe profissionais e horarios
   U->>F: Confirmar horário
-  F->>G: POST /api/appointments com cookie
-  G->>S: Criar agendamento
-  S->>DB: INSERT Appointment
-  DB-->>S: OK
-  S-->>G: Confirmação
+  F->>G: POST /api/discovery/appointments
+  G->>DB: Valida profissional/tenant/unidade/conflito e insere consulta
+  DB-->>G: Confirmação
   G-->>F: Confirmação
   F-->>U: Detalhes da consulta
 ```
@@ -262,7 +282,7 @@ docker compose up -d --build
 
 URLs locais:
 
-- AppShell: http://localhost:5191
+- Front: http://localhost:5191
 - Gateway/BFF: http://localhost:5026
 - Postgres: `localhost:55433`, database `healthtech`, usuario `postgres`, senha `postgres`
 
@@ -273,9 +293,11 @@ Para ativar Google real no ambiente local, preencha tambem no `.env`:
 - `HEALTHTECH_SUPABASE_AUTHORITY`
 - `HEALTHTECH_SUPABASE_ISSUER`
 - `HEALTHTECH_TENANT_ADMIN_EMAIL`
+- `HEALTHTECH_SYSTEM_ADMIN_EMAIL`
+- `HEALTHTECH_SYSTEM_ADMIN_SUBJECT_ID`
 - `HEALTHTECH_OAUTH_PROVIDER_1=apple` se quiser expor Apple alem do Google
 
-Use o mesmo e-mail Google em `HEALTHTECH_TENANT_ADMIN_EMAIL`, porque o BFF resolve o tenant da sessao por e-mail quando o usuario volta do Supabase OAuth.
+Use `HEALTHTECH_TENANT_ADMIN_EMAIL` para o admin da clinica demo e `HEALTHTECH_SYSTEM_ADMIN_EMAIL` para o primeiro Admin do Ambiente. O `db-migrate` grava esse primeiro admin em `core.system_admin_user`; depois disso a fonte de verdade continua sendo a tabela e a tela SaaS Admin. Quando estiver usando Google real, preencha esses valores com os e-mails que voltam do Supabase OAuth. `HEALTHTECH_SYSTEM_ADMIN_SUBJECT_ID` e opcional; se vazio, o seed usa o e-mail como identificador de bootstrap e a validacao tambem confere por e-mail.
 
 Observacoes:
 
@@ -344,7 +366,7 @@ Os containers, rede e volume usam nomes `healthtech-*`, e o `compose.yml` define
 
 ## Autenticação BFF — Estado Atual
 
-O frontend não persiste tokens Supabase no browser. O AppShell chama o Gateway/BFF com cookies incluídos, e o Gateway emite um cookie `HealthTech.Bff` com `HttpOnly`, `Secure` e `SameSite=Strict`.
+O frontend não persiste tokens Supabase no browser. O Front chama o Gateway/BFF com cookies incluídos, e o Gateway emite um cookie `HealthTech.Bff` com `HttpOnly`, `Secure` e `SameSite=Strict`.
 
 Endpoints principais:
 
@@ -384,6 +406,6 @@ Checklist de Google OAuth real no Supabase:
 
 1. Ative o provider Google no projeto Supabase.
 2. Cadastre `http://localhost:5191/auth/callback` como redirect URL permitida.
-3. Preencha no `.env` o `HEALTHTECH_SUPABASE_URL`, `HEALTHTECH_SUPABASE_ANON_KEY`, `HEALTHTECH_SUPABASE_AUTHORITY`, `HEALTHTECH_SUPABASE_ISSUER` e o `HEALTHTECH_TENANT_ADMIN_EMAIL`.
+3. Preencha no `.env` o `HEALTHTECH_SUPABASE_URL`, `HEALTHTECH_SUPABASE_ANON_KEY`, `HEALTHTECH_SUPABASE_AUTHORITY`, `HEALTHTECH_SUPABASE_ISSUER`, `HEALTHTECH_TENANT_ADMIN_EMAIL` e `HEALTHTECH_SYSTEM_ADMIN_EMAIL`.
 4. Se quiser Apple tambem, configure o provider Apple no Supabase e adicione `HEALTHTECH_OAUTH_PROVIDER_1=apple`.
 5. Se quiser forcar apenas login real, troque `HEALTHTECH_BFF_ENABLE_DEV_AUTH` para `false`.

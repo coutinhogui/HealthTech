@@ -112,7 +112,7 @@ jobs:
             healthtech-appointments-api
             healthtech-identity-api
             healthtech-gateway
-            healthtech-app-shell
+            healthtech-front
           )
           for service in "${services[@]}"; do
             echo "Waiting for $service to be healthy..."

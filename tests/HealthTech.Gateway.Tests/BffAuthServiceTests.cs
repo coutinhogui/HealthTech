@@ -47,6 +47,7 @@ public sealed class BffAuthServiceTests
         Assert.Equal(Guid.Parse("11111111-1111-1111-1111-111111111111"), membership.TenantId);
         Assert.Equal("Demo Clinic", membership.TenantName);
         Assert.Equal("admin", membership.Role);
+        Assert.Equal(Guid.Parse("22222222-2222-2222-2222-222222222222"), membership.ProfessionalId);
     }
 
     [Fact]
@@ -124,6 +125,7 @@ public sealed class BffAuthServiceTests
                             TenantId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
                             TenantName = "Demo Clinic",
                             Role = "admin",
+                            ProfessionalId = Guid.Parse("22222222-2222-2222-2222-222222222222"),
                             Enabled = true
                         }
                     ]

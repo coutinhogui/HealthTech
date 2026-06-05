@@ -189,6 +189,214 @@ public sealed class GatewaySecurityIntegrationTests
     }
 
     [Fact]
+    public async Task Discovery_clinics_are_public_without_bff_cookie()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            discoveryService: new FakeDiscoveryService());
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var response = await client.GetAsync("/api/discovery/clinics");
+        var clinics = await response.Content.ReadFromJsonAsync<IReadOnlyList<DiscoveryClinicResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(clinics);
+        Assert.Contains(clinics, clinic => clinic.Name == "Demo Clinic A");
+    }
+
+    [Fact]
+    public async Task Discovery_booking_rejects_invalid_public_request()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            discoveryService: new FakeDiscoveryService());
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var response = await client.PostAsJsonAsync("/api/discovery/appointments", new
+        {
+            TenantId = TenantA,
+            ProfessionalId = Guid.Empty,
+            StartsAtUtc = DateTimeOffset.UtcNow.AddDays(1),
+            PatientName = "",
+            PatientDocument = "",
+            PatientBirthDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-30)),
+            PatientEmail = "patient@example.com",
+            PatientPhone = "11999990000"
+        });
+        var payload = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("discovery_booking_invalid", payload?.Error);
+    }
+
+    [Fact]
+    public async Task Discovery_search_is_public_and_filters_by_specialty_region_and_mode()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        var discovery = new FakeDiscoveryService();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            discoveryService: discovery);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var response = await client.GetAsync("/api/discovery/search?mode=professional&query=cardio&specialty=Cardiologia&region=Centro&take=8");
+        var results = await response.Content.ReadFromJsonAsync<IReadOnlyList<DiscoverySearchResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(results);
+        Assert.Single(results);
+        Assert.Equal("Dra. Ana Cardoso", results[0].ProfessionalName);
+        Assert.Equal("Cardiologia", results[0].SpecialtyName);
+        Assert.Equal("Demo Clinic A", results[0].ClinicName);
+        Assert.Equal("Centro, Sao Paulo - SP", results[0].RegionLabel);
+        Assert.Equal("professional", discovery.LastSearchRequest?.Mode);
+        Assert.Equal("cardio", discovery.LastSearchRequest?.Query);
+        Assert.Equal("Cardiologia", discovery.LastSearchRequest?.Specialty);
+        Assert.Equal("Centro", discovery.LastSearchRequest?.Region);
+        Assert.Equal(8, discovery.LastSearchRequest?.Take);
+    }
+
+    [Fact]
+    public async Task Discovery_search_accepts_browser_coordinates_for_nearby_results()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        var discovery = new FakeDiscoveryService();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            discoveryService: discovery);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var response = await client.GetAsync("/api/discovery/search?mode=professional&query=cardio&latitude=-23.561414&longitude=-46.655881&take=8");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(-23.561414, discovery.LastSearchRequest?.Latitude);
+        Assert.Equal(-46.655881, discovery.LastSearchRequest?.Longitude);
+    }
+
+    [Fact]
+    public async Task Discovery_slots_accept_location_id_filter()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        var discovery = new FakeDiscoveryService();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            discoveryService: discovery);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var professionalId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var locationId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        var from = Uri.EscapeDataString(DateTimeOffset.UtcNow.AddDays(1).ToString("O"));
+        var to = Uri.EscapeDataString(DateTimeOffset.UtcNow.AddDays(2).ToString("O"));
+
+        var response = await client.GetAsync($"/api/discovery/slots?tenantId={TenantA:D}&professionalId={professionalId:D}&locationId={locationId:D}&fromUtc={from}&toUtc={to}&slotMinutes=30");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(locationId, discovery.LastSlotLocationId);
+    }
+
+    [Fact]
+    public async Task Discovery_booking_returns_not_found_when_location_does_not_belong_to_clinic()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        var discovery = new FakeDiscoveryService { ForceBookingFailure = "location_not_found" };
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            discoveryService: discovery);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var response = await client.PostAsJsonAsync("/api/discovery/appointments", new
+        {
+            TenantId = TenantA,
+            ProfessionalId = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            LocationId = Guid.Parse("99999999-9999-9999-9999-999999999999"),
+            StartsAtUtc = DateTimeOffset.UtcNow.AddDays(1),
+            EndsAtUtc = DateTimeOffset.UtcNow.AddDays(1).AddMinutes(30),
+            PatientName = "Paciente Teste",
+            PatientDocument = "12345678900",
+            PatientBirthDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-30)),
+            PatientEmail = "patient@example.com",
+            PatientPhone = "11999990000"
+        });
+        var payload = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("location_not_found", payload?.Error);
+    }
+
+    [Fact]
+    public async Task Session_returns_active_tenant_professional_id_and_permissions()
+    {
+        var professionalId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        await using var backend = await BackendEchoServer.StartAsync();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: false,
+            allowTenantB: true,
+            role: "professional",
+            professionalId: professionalId);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var response = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            Email = "admin@healthtech.local",
+            Password = "devpass"
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var session = await response.Content.ReadFromJsonAsync<SessionResponse>();
+        Assert.NotNull(session?.ActiveTenant);
+        Assert.Equal("professional", session.ActiveTenant.Role);
+        Assert.Equal(professionalId, session.ActiveTenant.ProfessionalId);
+        Assert.Contains("ReadOwnClinicalSchedule", session.ActiveTenant.Permissions);
+        Assert.DoesNotContain("ManageBilling", session.ActiveTenant.Permissions);
+    }
+
+    [Fact]
+    public async Task Session_returns_system_admin_global_permissions_without_active_tenant_requirement()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            systemAdmin: true,
+            includeDevelopmentMemberships: false,
+            authService: new NoMembershipAuthService());
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var response = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            Email = "sysadmin@healthtech.local",
+            Password = "devpass",
+            AccessArea = "environment"
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var session = await response.Content.ReadFromJsonAsync<SessionResponse>();
+        Assert.NotNull(session);
+        Assert.True(session.IsSystemAdmin);
+        Assert.Null(session.ActiveTenant);
+        Assert.Empty(session.Memberships);
+        Assert.Contains("ManageClinics", session.GlobalPermissions);
+        Assert.Contains("ManageSystemAdmins", session.GlobalPermissions);
+        Assert.False(session.RequiresOnboarding);
+    }
+
+    [Fact]
     public async Task Select_tenant_updates_active_tenant_cookie_for_existing_membership()
     {
         await using var backend = await BackendEchoServer.StartAsync();
@@ -232,7 +440,7 @@ public sealed class GatewaySecurityIntegrationTests
     }
 
     [Fact]
-    public async Task Complete_onboarding_returns_session_with_created_active_tenant()
+    public async Task Complete_onboarding_is_forbidden_when_public_onboarding_is_disabled()
     {
         await using var backend = await BackendEchoServer.StartAsync();
         var onboarding = new FakeOnboardingService();
@@ -260,15 +468,102 @@ public sealed class GatewaySecurityIntegrationTests
 
         var response = await client.SendAsync(request);
 
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Null(onboarding.LastRequest);
+    }
+
+    [Fact]
+    public async Task System_admin_can_create_clinic_and_first_admin()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            systemAdmin: true,
+            includeDevelopmentMemberships: false,
+            authService: new NoMembershipAuthService());
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var cookie = await LoginAsync(client, "sysadmin@healthtech.local", "environment");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/admin/clinics")
+        {
+            Content = JsonContent.Create(new
+            {
+                Name = "Clinica SaaS",
+                AdminSubjectId = "clinic-admin-sub",
+                AdminEmail = "admin@clinic.local"
+            })
+        };
+        request.Headers.TryAddWithoutValidation("Cookie", cookie);
+
+        var response = await client.SendAsync(request);
+
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var session = await response.Content.ReadFromJsonAsync<SessionResponse>();
-        Assert.NotNull(session);
-        Assert.True(session.Authenticated);
-        Assert.False(session.RequiresOnboarding);
-        Assert.NotNull(session.ActiveTenant);
-        Assert.Equal(FakeOnboardingService.CreatedTenantId, session.ActiveTenant.TenantId);
-        Assert.Equal("Clinica Coutinho", onboarding.LastRequest?.ClinicName);
-        Assert.Contains(response.Headers.GetValues("Set-Cookie"), value => value.StartsWith("HealthTech.Bff=", StringComparison.Ordinal));
+        var clinic = await response.Content.ReadFromJsonAsync<AdminClinicResponse>();
+        Assert.NotNull(clinic);
+        Assert.Equal("Clinica SaaS", clinic.Name);
+        Assert.True(clinic.Active);
+    }
+
+    [Fact]
+    public async Task Clinic_admin_cannot_call_global_admin_endpoints()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        await using var factory = new GatewayTestFactory(backend.BaseAddress, withoutActiveTenant: false, allowTenantB: true);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var cookie = await LoginAsync(client);
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/admin/clinics");
+        request.Headers.TryAddWithoutValidation("Cookie", cookie);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Clinic_admin_cannot_login_through_environment_access()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        await using var factory = new GatewayTestFactory(backend.BaseAddress, withoutActiveTenant: false, allowTenantB: true);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var response = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            Email = "admin@healthtech.local",
+            Password = "devpass",
+            AccessArea = "environment"
+        });
+        var payload = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal("system_admin_required", payload?.Error);
+    }
+
+    [Fact]
+    public async Task System_admin_without_clinic_membership_cannot_login_through_clinic_access()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            systemAdmin: true,
+            includeDevelopmentMemberships: false,
+            authService: new NoMembershipAuthService());
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var response = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            Email = "sysadmin@healthtech.local",
+            Password = "devpass",
+            AccessArea = "clinic"
+        });
+        var payload = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal("clinic_membership_required", payload?.Error);
     }
 
     private static string BuildCookieHeader(HttpResponseMessage response)
@@ -276,12 +571,19 @@ public sealed class GatewaySecurityIntegrationTests
             .Where(value => value.StartsWith("HealthTech.Bff", StringComparison.Ordinal))
             .Select(value => value.Split(';', 2, StringSplitOptions.TrimEntries)[0]));
 
-    private static async Task<string> LoginAsync(HttpClient client)
+    private static Task<string> LoginAsync(HttpClient client)
+        => LoginAsync(client, "admin@healthtech.local");
+
+    private static async Task<string> LoginAsync(HttpClient client, string email)
+        => await LoginAsync(client, email, "clinic");
+
+    private static async Task<string> LoginAsync(HttpClient client, string email, string accessArea)
     {
         var response = await client.PostAsJsonAsync("/api/auth/login", new
         {
-            Email = "admin@healthtech.local",
-            Password = "devpass"
+            Email = email,
+            Password = "devpass",
+            AccessArea = accessArea
         });
 
         response.EnsureSuccessStatusCode();
@@ -298,9 +600,31 @@ public sealed class GatewaySecurityIntegrationTests
         string? Email,
         TenantResponse? ActiveTenant,
         IReadOnlyCollection<TenantResponse> Memberships,
-        bool RequiresOnboarding);
+        bool RequiresOnboarding,
+        bool IsSystemAdmin,
+        IReadOnlyCollection<string> GlobalPermissions);
 
-    private sealed record TenantResponse(Guid TenantId, string TenantName, string Role);
+    private sealed record TenantResponse(
+        Guid TenantId,
+        string TenantName,
+        string Role,
+        Guid? ProfessionalId,
+        IReadOnlyCollection<string> Permissions);
+
+    private sealed record AdminClinicResponse(Guid Id, string Name, bool Active);
+    private sealed record DiscoveryClinicResponse(Guid Id, string Name, bool Active);
+    private sealed record DiscoverySearchResponse(
+        Guid TenantId,
+        Guid ProfessionalId,
+        Guid? LocationId,
+        string ProfessionalName,
+        string SpecialtyName,
+        string ClinicName,
+        string? LocationName,
+        string? City,
+        string? State,
+        string RegionLabel,
+        IReadOnlyCollection<BffDiscoverySlotResponse> NextSlots);
 
     private sealed record ForwardedRequestEcho(string Path, Dictionary<string, string> Headers);
 
@@ -309,7 +633,12 @@ public sealed class GatewaySecurityIntegrationTests
         bool withoutActiveTenant,
         bool allowTenantB,
         IBffOnboardingService? onboardingService = null,
-        IBffAuthService? authService = null)
+        IBffAuthService? authService = null,
+        IBffDiscoveryService? discoveryService = null,
+        string role = "admin",
+        Guid? professionalId = null,
+        bool systemAdmin = false,
+        bool includeDevelopmentMemberships = true)
         : WebApplicationFactory<Program>
     {
         public const string InternalSecret = "integration-internal-gateway-secret";
@@ -332,25 +661,52 @@ public sealed class GatewaySecurityIntegrationTests
                     ["TenantAccess:Users:0:Email"] = "admin@healthtech.local",
                     ["TenantAccess:Users:0:Memberships:0:TenantId"] = TenantA.ToString("D"),
                     ["TenantAccess:Users:0:Memberships:0:TenantName"] = "Demo Clinic A",
-                    ["TenantAccess:Users:0:Memberships:0:Role"] = "admin",
+                    ["TenantAccess:Users:0:Memberships:0:Role"] = role,
                     ["TenantAccess:Users:0:Memberships:0:Enabled"] = "true",
-                    ["Bff:DevelopmentMemberships:0:TenantId"] = TenantA.ToString("D"),
-                    ["Bff:DevelopmentMemberships:0:TenantName"] = "Demo Clinic A",
-                    ["Bff:DevelopmentMemberships:0:Role"] = "admin"
                 };
+
+                if (includeDevelopmentMemberships)
+                {
+                    settings["Bff:DevelopmentMemberships:0:TenantId"] = TenantA.ToString("D");
+                    settings["Bff:DevelopmentMemberships:0:TenantName"] = "Demo Clinic A";
+                    settings["Bff:DevelopmentMemberships:0:Role"] = role;
+                }
+                else
+                {
+                    settings["Bff:EnableDefaultDevelopmentMembership"] = "false";
+                }
+
+                if (systemAdmin)
+                {
+                    settings["SystemAdmin:Users:0:SubjectId"] = "bootstrap-admin";
+                    settings["SystemAdmin:Users:0:Email"] = "sysadmin@healthtech.local";
+                    settings["SystemAdmin:Users:0:Active"] = "true";
+                }
+
+                if (professionalId is not null)
+                {
+                    settings["TenantAccess:Users:0:Memberships:0:ProfessionalId"] = professionalId.Value.ToString("D");
+                    if (includeDevelopmentMemberships)
+                    {
+                        settings["Bff:DevelopmentMemberships:0:ProfessionalId"] = professionalId.Value.ToString("D");
+                    }
+                }
 
                 if (withoutActiveTenant)
                 {
-                    settings["Bff:DevelopmentMemberships:1:TenantId"] = TenantB.ToString("D");
-                    settings["Bff:DevelopmentMemberships:1:TenantName"] = "Demo Clinic B";
-                    settings["Bff:DevelopmentMemberships:1:Role"] = "admin";
+                    if (includeDevelopmentMemberships)
+                    {
+                        settings["Bff:DevelopmentMemberships:1:TenantId"] = TenantB.ToString("D");
+                        settings["Bff:DevelopmentMemberships:1:TenantName"] = "Demo Clinic B";
+                        settings["Bff:DevelopmentMemberships:1:Role"] = role;
+                    }
                 }
 
                 if (allowTenantB)
                 {
                     settings["TenantAccess:Users:0:Memberships:1:TenantId"] = TenantB.ToString("D");
                     settings["TenantAccess:Users:0:Memberships:1:TenantName"] = "Demo Clinic B";
-                    settings["TenantAccess:Users:0:Memberships:1:Role"] = "admin";
+                    settings["TenantAccess:Users:0:Memberships:1:Role"] = role;
                     settings["TenantAccess:Users:0:Memberships:1:Enabled"] = "true";
                 }
 
@@ -374,6 +730,15 @@ public sealed class GatewaySecurityIntegrationTests
                     services.AddSingleton(authService);
                 });
             }
+
+            if (discoveryService is not null)
+            {
+                builder.ConfigureServices(services =>
+                {
+                    services.RemoveAll<IBffDiscoveryService>();
+                    services.AddSingleton(discoveryService);
+                });
+            }
         }
     }
 
@@ -387,7 +752,7 @@ public sealed class GatewaySecurityIntegrationTests
                 request.Email,
                 "supabase-access-token",
                 "supabase-refresh-token",
-                [new BffTenantResponse(TenantA, "Demo Clinic A", "admin")]));
+                [new BffTenantResponse(TenantA, "Demo Clinic A", "admin", null, [])]));
 
         public Task<BffSignInResult> RegisterWithPasswordAsync(BffRegisterRequest request, CancellationToken cancellationToken)
             => SignInWithPasswordAsync(new BffLoginRequest(request.Email, request.Password, request.TenantId), cancellationToken);
@@ -403,7 +768,91 @@ public sealed class GatewaySecurityIntegrationTests
                 "owner@clinic.local",
                 "supabase-access-token",
                 "supabase-refresh-token",
-                [new BffTenantResponse(TenantA, "Demo Clinic A", "admin")]));
+                [new BffTenantResponse(TenantA, "Demo Clinic A", "admin", null, [])]));
+    }
+
+    private sealed class NoMembershipAuthService : IBffAuthService
+    {
+        public Task<BffSignInResult> SignInWithPasswordAsync(BffLoginRequest request, CancellationToken cancellationToken)
+            => Task.FromResult(new BffSignInResult(
+                true,
+                null,
+                "bootstrap-admin",
+                request.Email,
+                null,
+                null,
+                []));
+
+        public Task<BffSignInResult> RegisterWithPasswordAsync(BffRegisterRequest request, CancellationToken cancellationToken)
+            => SignInWithPasswordAsync(new BffLoginRequest(request.Email, request.Password, request.TenantId), cancellationToken);
+
+        public Task<BffAuthOperationResult> RequestPasswordRecoveryAsync(string email, string? redirectTo, CancellationToken cancellationToken)
+            => Task.FromResult(BffAuthOperationResult.Ok());
+
+        public Task<BffSignInResult> ExchangeOAuthCodeAsync(string code, string codeVerifier, CancellationToken cancellationToken)
+            => Task.FromResult(new BffSignInResult(true, null, "bootstrap-admin", "sysadmin@healthtech.local", null, null, []));
+    }
+
+    private sealed class FakeDiscoveryService : IBffDiscoveryService
+    {
+        public BffDiscoverySearchRequest? LastSearchRequest { get; private set; }
+        public Guid? LastSlotLocationId { get; private set; }
+        public string? ForceBookingFailure { get; init; }
+
+        public Task<IReadOnlyCollection<BffDiscoverySearchResponse>> SearchAsync(
+            BffDiscoverySearchRequest request,
+            CancellationToken cancellationToken)
+        {
+            LastSearchRequest = request;
+            return Task.FromResult<IReadOnlyCollection<BffDiscoverySearchResponse>>(
+            [
+                new BffDiscoverySearchResponse(
+                    TenantA,
+                    Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                    Guid.Parse("33333333-3333-3333-3333-333333333333"),
+                    "Dra. Ana Cardoso",
+                    "Cardiologia",
+                    "Demo Clinic A",
+                    "Unidade Centro",
+                    "Sao Paulo",
+                    "SP",
+                    "Centro, Sao Paulo - SP",
+                    [new BffDiscoverySlotResponse(
+                        Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                        DateTimeOffset.UtcNow.AddDays(1),
+                        DateTimeOffset.UtcNow.AddDays(1).AddMinutes(30))])
+            ]);
+        }
+
+        public Task<IReadOnlyCollection<BffDiscoveryClinicResponse>> ListClinicsAsync(CancellationToken cancellationToken)
+            => Task.FromResult<IReadOnlyCollection<BffDiscoveryClinicResponse>>(
+            [
+                new BffDiscoveryClinicResponse(TenantA, "Demo Clinic A", true)
+            ]);
+
+        public Task<IReadOnlyCollection<BffDiscoverySpecialtyResponse>> ListSpecialtiesAsync(Guid tenantId, CancellationToken cancellationToken)
+            => Task.FromResult<IReadOnlyCollection<BffDiscoverySpecialtyResponse>>([]);
+
+        public Task<IReadOnlyCollection<BffDiscoveryProfessionalResponse>> ListProfessionalsAsync(Guid tenantId, Guid? specialtyId, CancellationToken cancellationToken)
+            => Task.FromResult<IReadOnlyCollection<BffDiscoveryProfessionalResponse>>([]);
+
+        public Task<IReadOnlyCollection<BffDiscoverySlotResponse>> ListSlotsAsync(
+            Guid tenantId,
+            Guid professionalId,
+            Guid? locationId,
+            DateTimeOffset fromUtc,
+            DateTimeOffset toUtc,
+            int slotMinutes,
+            CancellationToken cancellationToken)
+        {
+            LastSlotLocationId = locationId;
+            return Task.FromResult<IReadOnlyCollection<BffDiscoverySlotResponse>>([]);
+        }
+
+        public Task<BffDiscoveryBookingResult> BookAsync(BffDiscoveryBookingRequest request, CancellationToken cancellationToken)
+            => Task.FromResult(ForceBookingFailure is null
+                ? BffDiscoveryBookingResult.Ok(Guid.NewGuid())
+                : BffDiscoveryBookingResult.Fail(ForceBookingFailure, "Location not found."));
     }
 
     private sealed class FakeOnboardingService : IBffOnboardingService
@@ -426,7 +875,7 @@ public sealed class GatewaySecurityIntegrationTests
             CancellationToken cancellationToken)
         {
             LastRequest = request;
-            var tenant = new BffTenantResponse(CreatedTenantId, request.ClinicName, "admin");
+            var tenant = new BffTenantResponse(CreatedTenantId, request.ClinicName, "admin", null, []);
             return Task.FromResult(new BffOnboardingCompletion(tenant, [tenant]));
         }
     }

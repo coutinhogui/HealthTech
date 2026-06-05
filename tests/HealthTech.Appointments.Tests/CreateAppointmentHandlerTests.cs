@@ -76,6 +76,59 @@ public sealed class CreateAppointmentHandlerTests
     }
 
     [Fact]
+    public async Task Patient_role_creates_appointment_for_own_identity_even_when_request_uses_other_patient_id()
+    {
+        var ownPatientId = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+        var forgedPatientId = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff");
+        var repository = new RecordingAppointmentRepository
+        {
+            PatientExists = true,
+            ProfessionalExists = true,
+            PatientIdForSubject = ownPatientId
+        };
+        var handler = new CreateAppointmentHandler(repository, new NoopUnitOfWork(), new FixedRequestContextAccessor(TenantId, "patient"));
+        var startsAt = DateTimeOffset.UtcNow.AddDays(1);
+
+        var result = await handler.Handle(
+            new CreateAppointmentCommand(forgedPatientId, ProfessionalId, null, startsAt, startsAt.AddMinutes(30), "Consulta paciente"),
+            CancellationToken.None);
+
+        Assert.True(result.Success);
+        var added = Assert.Single(repository.Added);
+        Assert.Equal(ownPatientId, added.PatientId);
+    }
+
+    [Fact]
+    public async Task Patient_role_lists_only_own_appointments()
+    {
+        var ownPatientId = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+        var repository = new RecordingAppointmentRepository
+        {
+            PatientIdForSubject = ownPatientId,
+            PatientAppointments =
+            [
+                new Appointment(
+                    new AppointmentId(Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd")),
+                    TenantId,
+                    ownPatientId,
+                    ProfessionalId,
+                    null,
+                    DateTimeOffset.UtcNow.AddDays(1),
+                    DateTimeOffset.UtcNow.AddDays(1).AddMinutes(30),
+                    "scheduled",
+                    null)
+            ]
+        };
+        var handler = new ListAppointmentsHandler(repository, new FixedRequestContextAccessor(TenantId, "patient"));
+
+        var result = await handler.Handle(new ListAppointmentsQuery(), CancellationToken.None);
+
+        Assert.True(result.Success);
+        Assert.Equal(ownPatientId, repository.LastPatientAppointmentId);
+        Assert.Single(result.Value!);
+    }
+
+    [Fact]
     public async Task Cancel_marks_tenant_appointment_as_cancelled()
     {
         var repository = new RecordingAppointmentRepository { CancelResult = true };
@@ -169,6 +222,44 @@ public sealed class CreateAppointmentHandlerTests
         Assert.Equal("professional_not_found", result.Error?.Code);
     }
 
+    [Fact]
+    public async Task Professional_role_cannot_list_slots_for_another_professional()
+    {
+        var otherProfessionalId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
+        var handler = new ListAvailableSlotsHandler(
+            new RecordingAppointmentRepository { ProfessionalExists = true },
+            new FixedRequestContextAccessor(TenantId, "professional", ProfessionalId));
+
+        var result = await handler.Handle(
+            new ListAvailableSlotsQuery(otherProfessionalId, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(2), 30, null),
+            CancellationToken.None);
+
+        Assert.False(result.Success);
+        Assert.Equal("role_forbidden", result.Error?.Code);
+    }
+
+    [Fact]
+    public async Task Reception_role_cannot_create_billing_charges()
+    {
+        var handler = new CreateChargeHandler(
+            new RecordingAppointmentRepository { PatientExists = true },
+            new NoopUnitOfWork(),
+            new FixedRequestContextAccessor(TenantId, "reception"));
+
+        var result = await handler.Handle(
+            new CreateChargeCommand(
+                Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
+                PatientId,
+                "private",
+                "Consulta",
+                180m,
+                DateOnly.FromDateTime(DateTime.UtcNow.AddDays(15))),
+            CancellationToken.None);
+
+        Assert.False(result.Success);
+        Assert.Equal("role_forbidden", result.Error?.Code);
+    }
+
     private static CreateAppointmentCommand ValidCommand()
     {
         var startsAt = DateTimeOffset.UtcNow.AddDays(1);
@@ -182,11 +273,14 @@ public sealed class CreateAppointmentHandlerTests
         public bool LocationExists { get; init; } = true;
         public bool HasConflict { get; init; }
         public bool CancelResult { get; init; }
+        public Guid? PatientIdForSubject { get; init; }
+        public Guid? LastPatientAppointmentId { get; private set; }
         public Guid? CancelledAppointmentId { get; private set; }
         public Guid? RescheduledAppointmentId { get; private set; }
         public List<Appointment> Added { get; } = [];
         public IReadOnlyCollection<ProfessionalReadModel> Professionals { get; init; } = [];
         public IReadOnlyCollection<BusyWindowReadModel> BusyWindows { get; init; } = [];
+        public IReadOnlyCollection<Appointment> PatientAppointments { get; init; } = [];
 
         public Task AddAsync(Appointment appointment, CancellationToken cancellationToken)
         {
@@ -196,6 +290,9 @@ public sealed class CreateAppointmentHandlerTests
 
         public Task<bool> PatientExistsAsync(Guid tenantId, Guid patientId, CancellationToken cancellationToken)
             => Task.FromResult(PatientExists);
+
+        public Task<Guid?> GetPatientIdForSubjectAsync(Guid tenantId, string subjectId, CancellationToken cancellationToken)
+            => Task.FromResult(PatientIdForSubject);
 
         public Task<bool> ProfessionalExistsAsync(Guid tenantId, Guid professionalId, CancellationToken cancellationToken)
             => Task.FromResult(ProfessionalExists);
@@ -234,6 +331,25 @@ public sealed class CreateAppointmentHandlerTests
 
         public Task<IReadOnlyCollection<Appointment>> ListAsync(Guid tenantId, DateTimeOffset fromUtc, DateTimeOffset toUtc, CancellationToken cancellationToken)
             => Task.FromResult<IReadOnlyCollection<Appointment>>([]);
+
+        public Task<IReadOnlyCollection<Appointment>> ListForProfessionalAsync(
+            Guid tenantId,
+            Guid professionalId,
+            DateTimeOffset fromUtc,
+            DateTimeOffset toUtc,
+            CancellationToken cancellationToken)
+            => Task.FromResult<IReadOnlyCollection<Appointment>>([]);
+
+        public Task<IReadOnlyCollection<Appointment>> ListForPatientAsync(
+            Guid tenantId,
+            Guid patientId,
+            DateTimeOffset fromUtc,
+            DateTimeOffset toUtc,
+            CancellationToken cancellationToken)
+        {
+            LastPatientAppointmentId = patientId;
+            return Task.FromResult(PatientAppointments);
+        }
 
         public Task<IReadOnlyCollection<BusyWindowReadModel>> ListBusyWindowsAsync(
             Guid tenantId,
@@ -323,12 +439,15 @@ public sealed class CreateAppointmentHandlerTests
         public Task<int> SaveChangesAsync(CancellationToken ct = default) => Task.FromResult(0);
     }
 
-    private sealed class FixedRequestContextAccessor(Guid tenantId) : IRequestContextAccessor
+    private sealed class FixedRequestContextAccessor(
+        Guid tenantId,
+        string role = "admin",
+        Guid? professionalId = null) : IRequestContextAccessor
     {
         public ResolvedRequestContext Current { get; } = new(
             "user-1",
             "user@example.com",
-            [new TenantMembership(tenantId, "Demo Clinic", "admin")],
-            new TenantMembership(tenantId, "Demo Clinic", "admin"));
+            [new TenantMembership(tenantId, "Demo Clinic", role, professionalId)],
+            new TenantMembership(tenantId, "Demo Clinic", role, professionalId));
     }
 }

@@ -1,0 +1,374 @@
+@namespace HealthTech.Front.Features.Patient
+@inject PatientBffClient PatientsClient
+
+<section class="feature-shell">
+    <header class="feature-header">
+        <div>
+            <h2>Pacientes</h2>
+            <p>Cadastro real ligado ao BFF com pacientes e convenios por tenant.</p>
+        </div>
+        <div class="feature-side__actions">
+            <button type="button" @onclick="() => ShowForm = !ShowForm">Novo paciente</button>
+            <button type="button" @onclick="() => ShowPlanForm = !ShowPlanForm">Novo convenio</button>
+        </div>
+    </header>
+
+    @if (ShowForm)
+    {
+        <form class="feature-form" @onsubmit="CreatePatientAsync" @onsubmit:preventDefault>
+            <label>
+                Nome completo
+                <input @bind="NewPatient.FullName" placeholder="Ex.: Maria Araujo" />
+            </label>
+            <label>
+                Documento
+                <input @bind="NewPatient.Document" placeholder="CPF, RG ou identificador interno" />
+            </label>
+            <label>
+                Data de nascimento
+                <input type="date" value="@NewPatient.BirthDate" @onchange="UpdateBirthDate" />
+            </label>
+            <button type="submit" disabled="@Saving">@(Saving ? "Salvando..." : "Salvar paciente")</button>
+        </form>
+    }
+
+    @if (ShowPlanForm)
+    {
+        <form class="feature-form feature-form--compact" @onsubmit="CreatePlanAsync" @onsubmit:preventDefault>
+            <label>
+                Operadora
+                <input @bind="NewPlan.PayerName" placeholder="Ex.: Unimed" />
+            </label>
+            <label>
+                Nome do plano
+                <input @bind="NewPlan.PlanName" placeholder="Ex.: Basico" />
+            </label>
+            <button type="submit" disabled="@SavingPlan">@(SavingPlan ? "Salvando..." : "Salvar convenio")</button>
+        </form>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(StatusMessage))
+    {
+        <div class="feature-alert @StatusClass">@StatusMessage</div>
+    }
+
+    <div class="feature-controls">
+        <input @bind="SearchTerm" placeholder="Buscar paciente..." />
+        <button type="button" @onclick="LoadPatientsAsync" disabled="@Loading">Atualizar</button>
+    </div>
+
+    <div class="feature-kpis">
+        <article>
+            <strong>@FilteredPatients.Count()</strong>
+            <span>Pacientes no filtro atual</span>
+        </article>
+        <article>
+            <strong>@Patients.Count</strong>
+            <span>Pacientes carregados do BFF</span>
+        </article>
+        <article>
+            <strong>@Plans.Count</strong>
+            <span>Convenios ativos no tenant</span>
+        </article>
+        <article>
+            <strong>@SelectedPatientPlans.Count</strong>
+            <span>Convenios do paciente selecionado</span>
+        </article>
+    </div>
+
+    @if (Loading)
+    {
+        <div class="feature-empty">Carregando pacientes...</div>
+    }
+    else if (!Patients.Any())
+    {
+        <div class="feature-empty">Nenhum paciente encontrado para o tenant ativo.</div>
+    }
+    else
+    {
+        <div class="feature-layout">
+            <div class="feature-table">
+                <div class="feature-table__head">
+                    <span>Paciente</span>
+                    <span>Documento</span>
+                    <span>Nascimento</span>
+                </div>
+                @foreach (var patient in FilteredPatients)
+                {
+                    <button type="button" class="feature-table__row @(patient.Id == SelectedId ? "is-selected" : "")" @onclick="() => SelectAsync(patient.Id)">
+                        <span>@patient.FullName</span>
+                        <span>@patient.Document</span>
+                        <span>@patient.BirthDate.ToString("dd/MM/yyyy")</span>
+                    </button>
+                }
+            </div>
+
+            @if (SelectedPatient is not null)
+            {
+                <aside class="feature-side">
+                    <h3>@SelectedPatient.FullName</h3>
+                    <p>Registro carregado da API de pacientes.</p>
+                    <dl>
+                        <dt>Documento</dt>
+                        <dd>@SelectedPatient.Document</dd>
+                        <dt>Tenant</dt>
+                        <dd>@SelectedPatient.TenantId</dd>
+                        <dt>Nascimento</dt>
+                        <dd>@SelectedPatient.BirthDate.ToString("dd/MM/yyyy")</dd>
+                    </dl>
+
+                    @if (Plans.Any())
+                    {
+                        <div class="feature-inline">
+                            <label for="plan-select">Convenio ativo</label>
+                            <select id="plan-select" @bind="SelectedPlanId">
+                                <option value="">Selecione...</option>
+                                @foreach (var plan in Plans)
+                                {
+                                    <option value="@plan.Id">@plan.PayerName - @plan.PlanName</option>
+                                }
+                            </select>
+                            <button type="button" @onclick="AssignSelectedPlanAsync" disabled="@AssigningPlan">
+                                @(AssigningPlan ? "Vinculando..." : "Vincular")
+                            </button>
+                        </div>
+                    }
+
+                    @if (SelectedPatientPlans.Any())
+                    {
+                        <div class="feature-plan-links">
+                            @foreach (var link in SelectedPatientPlans)
+                            {
+                                <article>
+                                    <strong>@link.PayerName - @link.PlanName</strong>
+                                    <span>Vinculado em @link.LinkedAtUtc.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</span>
+                                </article>
+                            }
+                        </div>
+                    }
+                </aside>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private string SearchTerm { get; set; } = "";
+    private Guid? SelectedId { get; set; }
+    private bool Loading { get; set; }
+    private bool Saving { get; set; }
+    private bool SavingPlan { get; set; }
+    private bool AssigningPlan { get; set; }
+    private bool ShowForm { get; set; }
+    private bool ShowPlanForm { get; set; }
+    private Guid? SelectedPlanId { get; set; }
+    private string? StatusMessage { get; set; }
+    private string StatusClass { get; set; } = "feature-alert--info";
+    private NewPatientForm NewPatient { get; } = new();
+    private NewPlanForm NewPlan { get; } = new();
+    private List<PatientDto> Patients { get; set; } = [];
+    private List<InsurancePlanDto> Plans { get; set; } = [];
+    private List<PatientPlanDto> SelectedPatientPlans { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPatientsAsync();
+        await LoadPlansAsync();
+        await LoadSelectedPatientPlansAsync();
+    }
+
+    private IEnumerable<PatientDto> FilteredPatients =>
+        Patients
+            .Where(p => string.IsNullOrWhiteSpace(SearchTerm) || p.FullName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(p => p.FullName)
+            .ToList();
+
+    private PatientDto? SelectedPatient => Patients.FirstOrDefault(p => p.Id == SelectedId);
+
+    private async Task SelectAsync(Guid id)
+    {
+        SelectedId = id;
+        await LoadSelectedPatientPlansAsync();
+    }
+
+    private void UpdateBirthDate(ChangeEventArgs args)
+        => NewPatient.BirthDate = args.Value?.ToString() ?? "";
+
+    private async Task LoadPatientsAsync()
+    {
+        Loading = true;
+        StatusMessage = null;
+        try
+        {
+            Patients = (await PatientsClient.ListAsync(CancellationToken.None)).ToList();
+            if (SelectedId is null || Patients.All(p => p.Id != SelectedId))
+            {
+                SelectedId = Patients.FirstOrDefault()?.Id;
+            }
+        }
+        catch
+        {
+            StatusClass = "feature-alert--error";
+            StatusMessage = "Nao foi possivel carregar pacientes. Verifique sessao, tenant e disponibilidade da API.";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private async Task LoadPlansAsync()
+    {
+        try
+        {
+            Plans = (await PatientsClient.ListPlansAsync(CancellationToken.None)).ToList();
+            if (SelectedPlanId is null || Plans.All(p => p.Id != SelectedPlanId))
+            {
+                SelectedPlanId = Plans.FirstOrDefault()?.Id;
+            }
+        }
+        catch
+        {
+            StatusClass = "feature-alert--error";
+            StatusMessage = "Nao foi possivel carregar convenios.";
+        }
+    }
+
+    private async Task LoadSelectedPatientPlansAsync()
+    {
+        if (SelectedId is null)
+        {
+            SelectedPatientPlans = [];
+            return;
+        }
+
+        try
+        {
+            SelectedPatientPlans = (await PatientsClient.ListPatientPlansAsync(SelectedId.Value, CancellationToken.None)).ToList();
+        }
+        catch
+        {
+            StatusClass = "feature-alert--error";
+            StatusMessage = "Nao foi possivel carregar os convenios do paciente selecionado.";
+        }
+    }
+
+    private async Task CreatePatientAsync()
+    {
+        Saving = true;
+        StatusMessage = null;
+        try
+        {
+            var birthDate = DateOnly.TryParse(NewPatient.BirthDate, out var parsed)
+                ? parsed
+                : DateOnly.FromDateTime(DateTime.UtcNow.Date);
+            var result = await PatientsClient.CreateAsync(
+                new CreatePatientDto(NewPatient.FullName, NewPatient.Document, birthDate),
+                CancellationToken.None);
+
+            if (!result.Success)
+            {
+                StatusClass = "feature-alert--error";
+                StatusMessage = result.Message ?? "Nao foi possivel salvar o paciente.";
+                return;
+            }
+
+            StatusClass = "feature-alert--success";
+            StatusMessage = "Paciente salvo.";
+            NewPatient.Reset();
+            ShowForm = false;
+            await LoadPatientsAsync();
+            await LoadSelectedPatientPlansAsync();
+        }
+        finally
+        {
+            Saving = false;
+        }
+    }
+
+    private async Task CreatePlanAsync()
+    {
+        SavingPlan = true;
+        StatusMessage = null;
+        try
+        {
+            var result = await PatientsClient.CreatePlanAsync(
+                new CreateInsurancePlanDto(NewPlan.PayerName, NewPlan.PlanName),
+                CancellationToken.None);
+
+            if (!result.Success)
+            {
+                StatusClass = "feature-alert--error";
+                StatusMessage = result.Message ?? "Nao foi possivel salvar o convenio.";
+                return;
+            }
+
+            StatusClass = "feature-alert--success";
+            StatusMessage = "Convenio salvo.";
+            NewPlan.Reset();
+            ShowPlanForm = false;
+            await LoadPlansAsync();
+        }
+        finally
+        {
+            SavingPlan = false;
+        }
+    }
+
+    private async Task AssignSelectedPlanAsync()
+    {
+        if (SelectedId is null || SelectedPlanId is null)
+        {
+            StatusClass = "feature-alert--error";
+            StatusMessage = "Selecione um paciente e um convenio para vincular.";
+            return;
+        }
+
+        AssigningPlan = true;
+        StatusMessage = null;
+        try
+        {
+            var result = await PatientsClient.AssignPlanAsync(SelectedId.Value, SelectedPlanId.Value, CancellationToken.None);
+            if (!result.Success)
+            {
+                StatusClass = "feature-alert--error";
+                StatusMessage = result.Message ?? "Nao foi possivel vincular convenio.";
+                return;
+            }
+
+            StatusClass = "feature-alert--success";
+            StatusMessage = "Convenio vinculado ao paciente.";
+            await LoadSelectedPatientPlansAsync();
+        }
+        finally
+        {
+            AssigningPlan = false;
+        }
+    }
+
+    private sealed class NewPatientForm
+    {
+        public string FullName { get; set; } = "";
+        public string Document { get; set; } = "";
+        public string BirthDate { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddYears(-30)).ToString("yyyy-MM-dd");
+
+        public void Reset()
+        {
+            FullName = "";
+            Document = "";
+            BirthDate = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddYears(-30)).ToString("yyyy-MM-dd");
+        }
+    }
+
+    private sealed class NewPlanForm
+    {
+        public string PayerName { get; set; } = "";
+        public string PlanName { get; set; } = "";
+
+        public void Reset()
+        {
+            PayerName = "";
+            PlanName = "";
+        }
+    }
+}
