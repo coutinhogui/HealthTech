@@ -8,6 +8,8 @@
 [Ll]og/
 [Aa]rtifacts/
 [Tt]est[Rr]esults/
+project-dump.*
+scripts/project-dump.*
 *.tmp
 *.log
 
@@ -39,10 +41,12 @@ build/
 *.br
 
 ## Supabase / Secrets / Local configs
+appsettings.Local.json
 appsettings.*.json.local
 secrets.json
 *.env
 .env.*
+.superpowers/
 
 ## OS-specific
 .DS_Store

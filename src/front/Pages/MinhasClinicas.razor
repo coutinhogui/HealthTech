@@ -1,0 +1,78 @@
+@page "/minhas-clinicas"
+@attribute [Authorize]
+@inject HealthTech.Front.Services.BffAuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Minhas clínicas</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="home-shell">
+    <MudPaper Class="surface-card" Elevation="0">
+        <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">Área da clínica</MudChip>
+        <MudText Typo="Typo.h3" Class="mt-3">Minhas clínicas</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
+            Escolha em qual clínica deseja trabalhar. O BFF aplica as permissões da clínica ativa.
+        </MudText>
+
+        @if (!string.IsNullOrWhiteSpace(StatusMessage))
+        {
+            <MudAlert Severity="@StatusSeverity" Class="mb-3">@StatusMessage</MudAlert>
+        }
+
+        @if (Auth.Memberships.Count == 0)
+        {
+            <MudAlert Severity="Severity.Warning">
+                Este usuário ainda não possui vínculo ativo com uma clínica.
+            </MudAlert>
+        }
+        else
+        {
+            <MudGrid Spacing="2">
+                @foreach (var clinic in Auth.Memberships)
+                {
+                    var active = Auth.ActiveTenant?.TenantId == clinic.TenantId;
+                    var cardClass = active ? "clinic-switch-card is-active" : "clinic-switch-card";
+                    <MudItem xs="12" sm="6">
+                        <MudPaper Class="@cardClass" Elevation="0">
+                            <MudIcon Icon="@Icons.Material.Filled.Business" Color="@(active ? Color.Success : Color.Primary)" />
+                            <MudText Typo="Typo.h6">@clinic.TenantName</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@clinic.Role</MudText>
+                            <MudButton Color="@(active ? Color.Success : Color.Primary)"
+                                       Variant="@(active ? Variant.Outlined : Variant.Filled)"
+                                       Disabled="@(active || Selecting)"
+                                       StartIcon="@Icons.Material.Filled.Login"
+                                       OnClick="@(() => SelectClinicAsync(clinic.TenantId))">
+                                @(active ? "Clínica ativa" : "Entrar nesta clínica")
+                            </MudButton>
+                        </MudPaper>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private bool Selecting { get; set; }
+    private string? StatusMessage { get; set; }
+    private Severity StatusSeverity { get; set; } = Severity.Info;
+
+    private async Task SelectClinicAsync(Guid tenantId)
+    {
+        Selecting = true;
+        StatusMessage = null;
+        try
+        {
+            await Auth.SelectTenantAsync(tenantId);
+            Nav.NavigateTo("/");
+        }
+        catch
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = "Nao foi possivel entrar nessa clinica.";
+        }
+        finally
+        {
+            Selecting = false;
+        }
+    }
+}

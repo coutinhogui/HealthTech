@@ -1,0 +1,419 @@
+﻿@inject NavigationManager Nav
+
+<!--
+  CloudSyncLanding.razor
+  Conversão do HTML fornecido para componentes MudBlazor.
+  Use este componente em páginas públicas (ex.: dentro de <NotAuthorized> na Home).
+-->
+
+<MudContainer MaxWidth="MaxWidth.False" Class="px-0">
+
+    <!-- NAVBAR (fixa) -->
+    <MudAppBar Elevation="2" Fixed="true" Class="cloudsync-appbar">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="d-flex align-center justify-space-between">
+            <MudText Typo="Typo.h6" Class="cloudsync-logo">CloudSync</MudText>
+
+            <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center">
+                    <MudLink Href="#features">Recursos</MudLink>
+                    <MudLink Href="#pricing">Planos</MudLink>
+                    <MudLink Href="#about">Sobre</MudLink>
+                    <MudLink Href="#contact">Contato</MudLink>
+                </MudStack>
+            </MudHidden>
+
+            <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="#pricing">Teste Grátis</MudButton>
+            </MudHidden>
+        </MudContainer>
+    </MudAppBar>
+
+    <!-- HERO -->
+    <section id="home" class="cloudsync-hero">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="text-center">
+            <MudText Typo="Typo.h3" Class="mb-2" Style="font-weight:800;">Armazenamento em Nuvem que Escala com Sua Equipe</MudText>
+            <MudText Typo="Typo.subtitle1" Class="mb-6 cloudsync-muted">
+                Seguro, rápido e inteligente para equipes modernas. Colabore sem esforço e sincronize seus arquivos de qualquer lugar.
+            </MudText>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" OnClick="@(()=>ScrollTo("pricing"))">
+                Começar Agora
+            </MudButton>
+        </MudContainer>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features" class="cloudsync-section">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-2">Recursos Essenciais</MudText>
+            <MudText Typo="Typo.subtitle2" Align="Align.Center" Class="mb-8 cloudsync-muted">
+                Ferramentas poderosas projetadas para aprimorar seu fluxo de trabalho e aumentar a produtividade.
+            </MudText>
+
+            <MudGrid Spacing="3">
+                <MudItem xs="12" sm="6" md="4">
+                    <MudPaper Class="cloudsync-card h-100" Elevation="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Class="cloudsync-primary mb-2" />
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Segurança de Nível Empresarial</MudText>
+                        <MudList T="string"  Dense="true">
+                            <MudListItem>Criptografia AES-256</MudListItem>
+                            <MudListItem>Autenticação de dois fatores</MudListItem>
+                            <MudListItem>Auditorias de segurança regulares</MudListItem>
+                        </MudList>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudPaper Class="cloudsync-card h-100" Elevation="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Handshake" Size="Size.Large" Class="cloudsync-primary mb-2" />
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Colaboração em Tempo Real</MudText>
+                        <MudList T="string" Dense="true">
+                            <MudListItem>Edição de documentos ao vivo</MudListItem>
+                            <MudListItem>Controle de versão e histórico</MudListItem>
+                            <MudListItem>Notificações instantâneas</MudListItem>
+                        </MudList>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudPaper Class="cloudsync-card h-100" Elevation="1">
+                        <MudIcon Icon="@Icons.Material.Filled.RocketLaunch" Size="Size.Large" Class="cloudsync-primary mb-2" />
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Extremamente Rápido</MudText>
+                        <MudText Class="cloudsync-muted">Carregue e acesse arquivos instantaneamente através de nossa rede de CDN global.</MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudPaper Class="cloudsync-card h-100" Elevation="1">
+                        <MudIcon Icon="@Icons.Material.Filled.ShowChart" Size="Size.Large" Class="cloudsync-primary mb-2" />
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Análises Avançadas</MudText>
+                        <MudText Class="cloudsync-muted">Acompanhe padrões de uso e otimize seu fluxo de trabalho com insights detalhados.</MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudPaper Class="cloudsync-card h-100" Elevation="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Sync" Size="Size.Large" Class="cloudsync-primary mb-2" />
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Sincronização Inteligente</MudText>
+                        <MudText Class="cloudsync-muted">Sincronização automática entre todos os dispositivos com resolução de conflitos.</MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudPaper Class="cloudsync-card h-100" Elevation="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Public" Size="Size.Large" Class="cloudsync-primary mb-2" />
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Integração com API</MudText>
+                        <MudText Class="cloudsync-muted">Conecte-se a mais de 1.000 aplicativos através de nossa poderosa API REST.</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </section>
+
+    <!-- PRICING -->
+    <section id="pricing" class="cloudsync-section">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-2">Planos que Crescem com Você</MudText>
+            <MudText Typo="Typo.subtitle2" Align="Align.Center" Class="mb-8 cloudsync-muted">
+                Escolha o plano ideal de acordo com o tamanho da sua equipe e suas necessidades de armazenamento.
+            </MudText>
+
+            <MudGrid Spacing="3">
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="cloudsync-pricecard h-100" Elevation="1">
+                        <MudText Typo="Typo.subtitle1">Starter</MudText>
+                        <MudText Typo="Typo.h4" Class="my-2">R$29<span class="price-suffix">/mês</span></MudText>
+                        <MudList T="string" Dense="true" Class="cloudsync-muted">
+                            <MudListItem>Até 10 usuários</MudListItem>
+                            <MudListItem>100 GB de espaço</MudListItem>
+                            <MudListItem>Ferramentas básicas de colaboração</MudListItem>
+                            <MudListItem>Suporte por e‑mail</MudListItem>
+                        </MudList>
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" FullWidth>Escolher Starter</MudButton>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="cloudsync-pricecard highlight h-100" Elevation="2">
+                        <MudText Typo="Typo.subtitle1">Profissional</MudText>
+                        <MudText Typo="Typo.h4" Class="my-2">R$149<span class="price-suffix">/mês</span></MudText>
+                        <MudList T="string" Dense="true" Class="cloudsync-muted">
+                            <MudListItem>Até 50 usuários</MudListItem>
+                            <MudListItem>1 TB de espaço</MudListItem>
+                            <MudListItem>Ferramentas avançadas de colaboração</MudListItem>
+                            <MudListItem>Suporte prioritário</MudListItem>
+                        </MudList>
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" FullWidth>Escolher Profissional</MudButton>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="cloudsync-pricecard h-100" Elevation="1">
+                        <MudText Typo="Typo.subtitle1">Enterprise</MudText>
+                        <MudText Typo="Typo.h4" Class="my-2">R$299<span class="price-suffix">/mês</span></MudText>
+                        <MudList T="string" Dense="true" Class="cloudsync-muted">
+                            <MudListItem>Usuários ilimitados</MudListItem>
+                            <MudListItem>Armazenamento ilimitado</MudListItem>
+                            <MudListItem>Integrações personalizadas</MudListItem>
+                            <MudListItem>Suporte 24/7</MudListItem>
+                        </MudList>
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" FullWidth>Falar com Vendas</MudButton>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </section>
+
+    <!-- ABOUT / STATS -->
+    <section id="about" class="cloudsync-section">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-2">Confiado por mais de 10.000 equipes</MudText>
+            <MudText Typo="Typo.subtitle2" Align="Align.Center" Class="mb-8 cloudsync-muted">
+                Desde 2020, nossa missão é revolucionar a forma como as equipes colaboram e gerenciam seus ativos digitais.
+            </MudText>
+
+            <MudGrid Spacing="3" Class="mb-6">
+                <MudItem xs="6" md="3">
+                    <MudPaper Class="stat-box" Elevation="1">
+                        <MudText Typo="Typo.h4">99,9%</MudText>
+                        <MudText Typo="Typo.caption" Class="cloudsync-muted">Uptime SLA</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudPaper Class="stat-box" Elevation="1">
+                        <MudText Typo="Typo.h4">150+</MudText>
+                        <MudText Typo="Typo.caption" Class="cloudsync-muted">Países atendidos</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudPaper Class="stat-box" Elevation="1">
+                        <MudText Typo="Typo.h4">2M+</MudText>
+                        <MudText Typo="Typo.caption" Class="cloudsync-muted">Arquivos sincronizados diariamente</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudPaper Class="stat-box" Elevation="1">
+                        <MudText Typo="Typo.h4">24/7</MudText>
+                        <MudText Typo="Typo.caption" Class="cloudsync-muted">Suporte ao cliente</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudText Align="Align.Center" Class="cloudsync-muted mx-auto" Style="max-width:800px;">
+                CloudSync nasceu de uma simples frustração: as soluções de armazenamento em nuvem existentes eram complexas demais para equipes pequenas ou muito limitadas para negócios em crescimento. Criamos o CloudSync para ser o equilíbrio perfeito - poderoso o suficiente para empresas, simples o bastante para startups.
+            </MudText>
+        </MudContainer>
+    </section>
+
+    <!-- CONTATO -->
+    <section id="contact" class="cloudsync-section">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-2">Entre em Contato</MudText>
+            <MudText Typo="Typo.subtitle2" Align="Align.Center" Class="mb-8 cloudsync-muted">
+                Tem dúvidas? Adoraríamos ouvir você. Envie-nos uma mensagem e responderemos o mais rápido possível.
+            </MudText>
+
+            <MudGrid Spacing="3">
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="cloudsync-card" Elevation="1">
+                        <MudForm @ref="_form">
+                            <MudTextField @bind-Value="_name" Label="Nome completo" Placeholder="Seu nome" Required="true" />
+                            <MudTextField @bind-Value="_email" Label="Email" Placeholder="seuemail@exemplo.com" Required="true" InputType="InputType.Email" Class="mt-4" />
+                            <MudTextField @bind-Value="_company" Label="Empresa" Placeholder="Sua empresa (opcional)" Class="mt-4" />
+                            
+                            <MudTextField @bind-Value="_message" Label="Mensagem" Placeholder="Conte-nos mais sobre suas necessidades..." Lines="6" Class="mt-4" />
+                            <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4">Enviar Mensagem</MudButton>
+                        </MudForm>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="cloudsync-card" Elevation="1">
+                        <MudStack Spacing="3">
+                            <div class="info-block">
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Medium" Class="cloudsync-primary" />
+                                <div>
+                                    <strong>Email</strong><br />
+                                    <span class="cloudsync-muted">support@cloudsync.com</span>
+                                </div>
+                            </div>
+                            <div class="info-block">
+                                <MudIcon Icon="@Icons.Material.Filled.Chat" Size="Size.Medium" Class="cloudsync-primary" />
+                                <div>
+                                    <strong>Chat ao vivo</strong><br />
+                                    <span class="cloudsync-muted">Disponível das 9h às 18h (BRT)</span>
+                                </div>
+                            </div>
+                            <div class="info-block">
+                                <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Medium" Class="cloudsync-primary" />
+                                <div>
+                                    <strong>Ligue para nós</strong><br />
+                                    <span class="cloudsync-muted">+55 (41) 1234‑5678</span>
+                                </div>
+                            </div>
+
+                            <MudDivider Class="my-2" />
+
+                            <MudStack Spacing="2">
+                                <MudText Typo="Typo.subtitle2" Class="cloudsync-primary">Escritórios</MudText>
+                                <MudPaper Class="office-card" Elevation="0">
+                                    <MudText Typo="Typo.subtitle2">Curitiba</MudText>
+                                    <MudText Class="cloudsync-muted">Rua Exemplo, 123<br />Centro, Curitiba, PR</MudText>
+                                </MudPaper>
+                                <MudPaper Class="office-card" Elevation="0">
+                                    <MudText Typo="Typo.subtitle2">São Paulo</MudText>
+                                    <MudText Class="cloudsync-muted">Avenida Paulista, 456<br />São Paulo, SP</MudText>
+                                </MudPaper>
+                                <MudPaper Class="office-card" Elevation="0">
+                                    <MudText Typo="Typo.subtitle2">Lisboa</MudText>
+                                    <MudText Class="cloudsync-muted">Rua do Comércio, 789<br />Lisboa, Portugal</MudText>
+                                </MudPaper>
+                            </MudStack>
+                          </MudStack>
+                        </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="cloudsync-footer">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudGrid Spacing="3">
+                <MudItem xs="12" md="4">
+                    <MudText Typo="Typo.h6" Class="cloudsync-primary mb-2">CloudSync</MudText>
+                    <MudText Class="cloudsync-muted">Armazenamento seguro na nuvem para equipes modernas.</MudText>
+                </MudItem>
+                <MudItem xs="6" md="2">
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">Produto</MudText>
+                    <MudList T="string" Dense="true">
+                        <MudListItem><MudLink Href="#features">Recursos</MudLink></MudListItem>
+                        <MudListItem><MudLink Href="#pricing">Preços</MudLink></MudListItem>
+                        <MudListItem><MudLink Href="#about">Segurança</MudLink></MudListItem>
+                    </MudList>
+                </MudItem>
+                <MudItem xs="6" md="2">
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">Empresa</MudText>
+                    <MudList T="string" Dense="true">
+                        <MudListItem><MudLink Href="#about">Sobre Nós</MudLink></MudListItem>
+                        <MudListItem><MudLink Href="#contact">Carreiras</MudLink></MudListItem>
+                        <MudListItem><MudLink Href="#about">Imprensa</MudLink></MudListItem>
+                    </MudList>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">Recursos</MudText>
+                    <MudList T="string" Dense="true">
+                        <MudListItem><MudLink Href="#">Documentação</MudLink></MudListItem>
+                        <MudListItem><MudLink Href="#">Referência de API</MudLink></MudListItem>
+                        <MudListItem><MudLink Href="#">Blog</MudLink></MudListItem>
+                    </MudList>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </footer>
+</MudContainer>
+
+@code {
+    private MudForm _form = null!;
+    private string _name = string.Empty;
+    private string _email = string.Empty;
+    private string _company = string.Empty;
+    private string _topic = string.Empty;
+    private string _message = string.Empty;
+
+    private void ScrollTo(string id)
+    {
+        Nav.NavigateTo($"#{id}", forceLoad: false);
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            // TODO: integrar envio (Email, API, etc.)
+            Snackbar.Add("Mensagem enviada!", Severity.Success);
+            _name = _email = _company = _topic = _message = string.Empty;
+        }
+        else
+        {
+            Snackbar.Add("Por favor, preencha os campos obrigatórios.", Severity.Warning);
+        }
+    }
+
+    [Inject] ISnackbar Snackbar { get; set; } = null!;
+}
+
+<style>
+  :root {
+    --primary-color: #7359e0;
+    --secondary-color: #172a45;
+    --bg-dark: #0a1337;
+    --bg-darker: #040a23;
+    --text-light: #f5f7fa;
+    --text-muted: #a0aec0;
+  }
+
+  .cloudsync-appbar {
+    background-color: rgba(10,19,55,0.9);
+    backdrop-filter: blur(8px);
+  }
+
+  .cloudsync-logo { color: var(--primary-color); font-weight: 700; }
+  .cloudsync-primary { color: var(--primary-color); }
+  .cloudsync-muted { color: var(--text-muted); }
+
+  .cloudsync-hero {
+    padding-top: 112px; /* compensa AppBar fixa */
+    padding-bottom: 96px;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(115, 89, 224, 0.4), transparent 60%),
+      radial-gradient(circle at 80% 70%, rgba(115, 89, 224, 0.3), transparent 60%),
+      linear-gradient(180deg, rgba(10, 19, 55, 0.9), rgba(4, 10, 35, 0.9));
+    color: var(--text-light);
+  }
+
+  .cloudsync-section { padding: 64px 16px; }
+
+  .cloudsync-card {
+    background-color: rgba(23, 42, 69, 0.8);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .cloudsync-pricecard {
+    text-align: center;
+    background-color: rgba(23, 42, 69, 0.8);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .cloudsync-pricecard.highlight {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(115, 89, 224, 0.4);
+  }
+  .price-suffix { font-size: 14px; margin-left: 2px; }
+
+  .stat-box {
+    text-align: center;
+    background-color: rgba(23, 42, 69, 0.8);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .info-block { display: flex; align-items: center; gap: 12px; }
+
+  .office-card {
+    background-color: rgba(10, 19, 55, 0.8);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 12px;
+  }
+
+  .cloudsync-footer {
+    background-color: #07102b;
+    padding: 48px 16px;
+    margin-top: 32px;
+  }
+
+</style>

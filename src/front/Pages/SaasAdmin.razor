@@ -1,0 +1,12 @@
+@page "/saas-admin"
+@attribute [Authorize]
+@inject NavigationManager Nav
+
+<PageTitle>Administracao</PageTitle>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Nav.NavigateTo("/admin", replace: true);
+    }
+}

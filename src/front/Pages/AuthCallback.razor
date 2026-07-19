@@ -1,0 +1,24 @@
+@page "/auth/callback"
+@inject NavigationManager Nav
+@inject HealthTech.Front.Services.BffAuthService Auth
+
+<p>@message</p>
+
+@code {
+    private string message = "Conectando...";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            await Auth.HandleOAuthRedirectAsync(new Uri(Nav.Uri));
+            Nav.NavigateTo(Auth.GetPostLoginPath());
+        }
+        catch
+        {
+            message = "Nao foi possivel concluir o login.";
+            StateHasChanged();
+        }
+    }
+}

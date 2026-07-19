@@ -1,0 +1,233 @@
+@namespace HealthTech.Front.Features.Ehr
+@inject EhrBffClient EhrClient
+
+<section class="feature-shell">
+    <header class="feature-header">
+        <div>
+            <h2>Prontuario</h2>
+            <p>Evolucao clinica real, com historico por paciente no tenant ativo.</p>
+        </div>
+        <button type="button" @onclick="ToggleForm">@(ShowForm ? "Fechar evolucao" : "Nova evolucao")</button>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(StatusMessage))
+    {
+        <div class="feature-alert @StatusClass">@StatusMessage</div>
+    }
+
+    <div class="feature-layout">
+        <aside class="feature-patients">
+            <h3>Pacientes da sessao</h3>
+            @foreach (var patient in Patients)
+            {
+                <button type="button" class="@(patient.Id == SelectedId ? "is-active" : "")" @onclick="() => SelectPatientAsync(patient.Id)">
+                    <strong>@patient.FullName</strong>
+                    <span>@patient.Document</span>
+                </button>
+            }
+        </aside>
+
+        @if (CurrentPatient is not null)
+        {
+            <article class="feature-panel">
+                <h3>@CurrentPatient.FullName</h3>
+                <p>Documento @CurrentPatient.Document · nascimento @CurrentPatient.BirthDate.ToString("dd/MM/yyyy")</p>
+
+                @if (ShowForm)
+                {
+                    <form class="feature-form" @onsubmit="SaveEvolutionAsync" @onsubmit:preventDefault>
+                        <label>
+                            Data/hora da evolucao
+                            <input type="datetime-local" value="@EvolutionForm.EncounteredAtLocal" @onchange="UpdateEncounteredAt" />
+                        </label>
+                        <label>
+                            S (Subjetivo)
+                            <textarea rows="3" @bind="EvolutionForm.Subjective"></textarea>
+                        </label>
+                        <label>
+                            O (Objetivo)
+                            <textarea rows="3" @bind="EvolutionForm.Objective"></textarea>
+                        </label>
+                        <label>
+                            A (Avaliacao)
+                            <textarea rows="3" @bind="EvolutionForm.Assessment"></textarea>
+                        </label>
+                        <label>
+                            P (Plano)
+                            <textarea rows="3" @bind="EvolutionForm.Plan"></textarea>
+                        </label>
+                        <button type="submit" disabled="@Saving">@(Saving ? "Salvando..." : "Salvar evolucao")</button>
+                    </form>
+                }
+            </article>
+
+            <article class="feature-panel">
+                <h3>Linha do tempo</h3>
+                <div class="timeline">
+                    @if (Loading)
+                    {
+                        <div>Carregando evolucoes...</div>
+                    }
+                    else if (!Evolutions.Any())
+                    {
+                        <div>Nenhuma evolucao registrada para este paciente.</div>
+                    }
+                    else
+                    {
+                        @foreach (var note in Evolutions)
+                        {
+                            <div>
+                                <strong>@note.EncounteredAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</strong>
+                                <span><strong>S:</strong> @note.Subjective</span>
+                                <span><strong>O:</strong> @note.Objective</span>
+                                <span><strong>A:</strong> @note.Assessment</span>
+                                <span><strong>P:</strong> @note.Plan</span>
+                            </div>
+                        }
+                    }
+                </div>
+            </article>
+        }
+    </div>
+</section>
+
+@code {
+    private Guid? SelectedId { get; set; }
+    private bool ShowForm { get; set; }
+    private bool Saving { get; set; }
+    private bool Loading { get; set; }
+    private string? StatusMessage { get; set; }
+    private string StatusClass { get; set; } = "feature-alert--info";
+    private List<EhrPatientDto> Patients { get; set; } = [];
+    private List<EhrEvolutionDto> Evolutions { get; set; } = [];
+    private EvolutionFormState EvolutionForm { get; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPatientsAsync();
+        if (SelectedId is not null)
+        {
+            await LoadEvolutionsAsync(SelectedId.Value);
+        }
+    }
+
+    private EhrPatientDto? CurrentPatient => Patients.FirstOrDefault(patient => patient.Id == SelectedId);
+
+    private async Task LoadPatientsAsync()
+    {
+        try
+        {
+            Patients = (await EhrClient.ListPatientsAsync(CancellationToken.None)).ToList();
+            SelectedId ??= Patients.FirstOrDefault()?.Id;
+        }
+        catch
+        {
+            StatusClass = "feature-alert--error";
+            StatusMessage = "Nao foi possivel carregar pacientes.";
+        }
+    }
+
+    private async Task SelectPatientAsync(Guid patientId)
+    {
+        SelectedId = patientId;
+        ShowForm = false;
+        EvolutionForm.Reset();
+        await LoadEvolutionsAsync(patientId);
+    }
+
+    private async Task LoadEvolutionsAsync(Guid patientId)
+    {
+        Loading = true;
+        StatusMessage = null;
+        try
+        {
+            Evolutions = (await EhrClient.ListEvolutionsAsync(patientId, CancellationToken.None)).ToList();
+        }
+        catch
+        {
+            Evolutions = [];
+            StatusClass = "feature-alert--error";
+            StatusMessage = "Nao foi possivel carregar evolucoes do paciente.";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private void ToggleForm()
+    {
+        ShowForm = !ShowForm;
+        if (ShowForm)
+        {
+            EvolutionForm.Reset();
+        }
+    }
+
+    private void UpdateEncounteredAt(ChangeEventArgs args)
+        => EvolutionForm.EncounteredAtLocal = args.Value?.ToString() ?? "";
+
+    private async Task SaveEvolutionAsync()
+    {
+        if (SelectedId is null)
+        {
+            return;
+        }
+
+        Saving = true;
+        StatusMessage = null;
+        try
+        {
+            DateTimeOffset? encountered = null;
+            if (DateTime.TryParse(EvolutionForm.EncounteredAtLocal, out var localEncountered))
+            {
+                encountered = new DateTimeOffset(localEncountered, TimeZoneInfo.Local.GetUtcOffset(localEncountered)).ToUniversalTime();
+            }
+
+            var result = await EhrClient.CreateEvolutionAsync(
+                SelectedId.Value,
+                new CreateEhrEvolutionDto(
+                    encountered,
+                    EvolutionForm.Subjective,
+                    EvolutionForm.Objective,
+                    EvolutionForm.Assessment,
+                    EvolutionForm.Plan),
+                CancellationToken.None);
+
+            if (!result.Success)
+            {
+                StatusClass = "feature-alert--error";
+                StatusMessage = result.Message ?? "Nao foi possivel salvar evolucao.";
+                return;
+            }
+
+            StatusClass = "feature-alert--success";
+            StatusMessage = "Evolucao registrada.";
+            ShowForm = false;
+            EvolutionForm.Reset();
+            await LoadEvolutionsAsync(SelectedId.Value);
+        }
+        finally
+        {
+            Saving = false;
+        }
+    }
+
+    private sealed class EvolutionFormState
+    {
+        public string EncounteredAtLocal { get; set; } = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+        public string Subjective { get; set; } = "";
+        public string Objective { get; set; } = "";
+        public string Assessment { get; set; } = "";
+        public string Plan { get; set; } = "";
+
+        public void Reset()
+        {
+            EncounteredAtLocal = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+            Subjective = "";
+            Objective = "";
+            Assessment = "";
+            Plan = "";
+        }
+    }
+}

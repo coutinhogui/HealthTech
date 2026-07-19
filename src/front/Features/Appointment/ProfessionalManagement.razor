@@ -1,0 +1,230 @@
+@namespace HealthTech.Front.Features.Appointment
+@inject ProfessionalManagementBffClient Client
+
+<section class="feature-shell scheduling-shell">
+    <header class="feature-header">
+        <div>
+            <h2>Profissionais e locais</h2>
+            <p>Cadastro operacional usado pela agenda, com dados carregados pelo BFF.</p>
+        </div>
+        <button type="button" @onclick="LoadAsync" disabled="@Loading">Atualizar</button>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(StatusMessage))
+    {
+        <div class="feature-alert @StatusClass">@StatusMessage</div>
+    }
+
+    <div class="scheduling-grid">
+        <article class="scheduling-panel">
+            <header>
+                <div>
+                    <h3>Profissionais</h3>
+                    <span>@Professionals.Count ativos</span>
+                </div>
+            </header>
+
+            <form class="scheduling-form" @onsubmit="CreateProfessionalAsync" @onsubmit:preventDefault>
+                <label>
+                    Nome
+                    <input @bind="NewProfessional.FullName" placeholder="Ex.: Dra. Helena Costa" />
+                </label>
+                <label>
+                    Especialidade
+                    <select @bind="NewProfessional.SpecialtyId">
+                        <option value="">Selecione</option>
+                        @foreach (var specialty in Specialties)
+                        {
+                            <option value="@specialty.Id">@specialty.Name</option>
+                        }
+                    </select>
+                </label>
+                <button type="submit" disabled="@Saving">Adicionar profissional</button>
+            </form>
+
+            <div class="scheduling-list">
+                @foreach (var professional in Professionals)
+                {
+                    <div>
+                        <strong>@professional.FullName</strong>
+                        <span>@professional.SpecialtyName</span>
+                    </div>
+                }
+            </div>
+        </article>
+
+        <article class="scheduling-panel">
+            <header>
+                <div>
+                    <h3>Especialidades</h3>
+                    <span>@Specialties.Count ativas</span>
+                </div>
+            </header>
+
+            <form class="scheduling-form scheduling-form--inline" @onsubmit="CreateSpecialtyAsync" @onsubmit:preventDefault>
+                <label>
+                    Nome
+                    <input @bind="NewSpecialtyName" placeholder="Ex.: Cardiologia" />
+                </label>
+                <button type="submit" disabled="@Saving">Adicionar</button>
+            </form>
+
+            <div class="scheduling-list scheduling-list--compact">
+                @foreach (var specialty in Specialties)
+                {
+                    <div>
+                        <strong>@specialty.Name</strong>
+                        <span>Disponivel na agenda</span>
+                    </div>
+                }
+            </div>
+        </article>
+
+        <article class="scheduling-panel">
+            <header>
+                <div>
+                    <h3>Locais</h3>
+                    <span>@Locations.Count ativos</span>
+                </div>
+            </header>
+
+            <form class="scheduling-form" @onsubmit="CreateLocationAsync" @onsubmit:preventDefault>
+                <label>
+                    Nome
+                    <input @bind="NewLocation.Name" placeholder="Ex.: Unidade centro" />
+                </label>
+                <label>
+                    Fuso horario
+                    <input @bind="NewLocation.Timezone" />
+                </label>
+                <button type="submit" disabled="@Saving">Adicionar local</button>
+            </form>
+
+            <div class="scheduling-list">
+                @foreach (var location in Locations)
+                {
+                    <div>
+                        <strong>@location.Name</strong>
+                        <span>@location.Timezone</span>
+                    </div>
+                }
+            </div>
+        </article>
+    </div>
+</section>
+
+@code {
+    private bool Loading { get; set; }
+    private bool Saving { get; set; }
+    private string? StatusMessage { get; set; }
+    private string StatusClass { get; set; } = "feature-alert--info";
+    private List<AppointmentProfessionalOptionDto> Professionals { get; set; } = [];
+    private List<SpecialtyDto> Specialties { get; set; } = [];
+    private List<LocationDto> Locations { get; set; } = [];
+    private string NewSpecialtyName { get; set; } = "";
+    private ProfessionalForm NewProfessional { get; } = new();
+    private LocationForm NewLocation { get; } = new();
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        Loading = true;
+        StatusMessage = null;
+        try
+        {
+            Specialties = (await Client.ListSpecialtiesAsync(CancellationToken.None)).ToList();
+            Locations = (await Client.ListLocationsAsync(CancellationToken.None)).ToList();
+            Professionals = (await Client.ListProfessionalsAsync(CancellationToken.None)).ToList();
+            NewProfessional.SpecialtyId = Specialties.FirstOrDefault()?.Id.ToString("D") ?? "";
+        }
+        catch
+        {
+            StatusClass = "feature-alert--error";
+            StatusMessage = "Nao foi possivel carregar profissionais e locais.";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private async Task CreateSpecialtyAsync()
+    {
+        await SaveAsync(
+            () => Client.CreateSpecialtyAsync(new CreateSpecialtyDto(NewSpecialtyName), CancellationToken.None),
+            () => NewSpecialtyName = "",
+            "Especialidade adicionada.");
+    }
+
+    private async Task CreateLocationAsync()
+    {
+        await SaveAsync(
+            () => Client.CreateLocationAsync(new CreateLocationDto(NewLocation.Name, NewLocation.Timezone), CancellationToken.None),
+            NewLocation.Reset,
+            "Local adicionado.");
+    }
+
+    private async Task CreateProfessionalAsync()
+    {
+        if (!Guid.TryParse(NewProfessional.SpecialtyId, out var specialtyId))
+        {
+            StatusClass = "feature-alert--error";
+            StatusMessage = "Selecione uma especialidade.";
+            return;
+        }
+
+        await SaveAsync(
+            () => Client.CreateProfessionalAsync(new CreateProfessionalDto(NewProfessional.FullName, specialtyId), CancellationToken.None),
+            NewProfessional.Reset,
+            "Profissional adicionado.");
+    }
+
+    private async Task SaveAsync(Func<Task<ApiMutationResult>> action, Action reset, string successMessage)
+    {
+        Saving = true;
+        StatusMessage = null;
+        try
+        {
+            var result = await action();
+            if (!result.Success)
+            {
+                StatusClass = "feature-alert--error";
+                StatusMessage = result.Message ?? "Nao foi possivel salvar.";
+                return;
+            }
+
+            reset();
+            StatusClass = "feature-alert--success";
+            StatusMessage = successMessage;
+            await LoadAsync();
+        }
+        finally
+        {
+            Saving = false;
+        }
+    }
+
+    private sealed class ProfessionalForm
+    {
+        public string FullName { get; set; } = "";
+        public string SpecialtyId { get; set; } = "";
+
+        public void Reset()
+        {
+            FullName = "";
+        }
+    }
+
+    private sealed class LocationForm
+    {
+        public string Name { get; set; } = "";
+        public string Timezone { get; set; } = "America/Sao_Paulo";
+
+        public void Reset()
+        {
+            Name = "";
+            Timezone = "America/Sao_Paulo";
+        }
+    }
+}

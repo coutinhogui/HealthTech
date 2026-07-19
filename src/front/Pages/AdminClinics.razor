@@ -1,0 +1,221 @@
+@page "/admin/clinicas"
+@attribute [Authorize]
+@using System.ComponentModel.DataAnnotations
+@using HealthTech.Front.Services
+@inject HealthTech.Front.Services.BffAuthService Auth
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>Clinicas</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="home-shell">
+    <MudPaper Elevation="0" Class="surface-card">
+        @if (!Auth.HasGlobalPermission("ManageClinics"))
+        {
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h5">Sem acesso</MudText>
+                <MudText Typo="Typo.body2">Seu usuario nao possui permissao global para gerenciar clinicas.</MudText>
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Spacing="3">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <div>
+                        <MudText Typo="Typo.h5">Clinicas</MudText>
+                        <MudText Typo="Typo.body2">Cadastro global de tenants e primeiro administrador da clinica.</MudText>
+                    </div>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LoadAsync" Disabled="Loading">Atualizar</MudButton>
+                </MudStack>
+
+                @if (!string.IsNullOrWhiteSpace(StatusMessage))
+                {
+                    <MudAlert Severity="@StatusSeverity">@StatusMessage</MudAlert>
+                }
+
+                <EditForm Model="@NewClinic" OnValidSubmit="CreateClinicAsync">
+                    <DataAnnotationsValidator />
+                    <MudGrid>
+                        <MudItem xs="12" md="4">
+                            <MudTextField @bind-Value="NewClinic.Name" Label="Clinica" For="@(() => NewClinic.Name)" Required="true" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudTextField @bind-Value="NewClinic.AdminSubjectId" Label="Subject do primeiro admin" For="@(() => NewClinic.AdminSubjectId)" Required="true" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudTextField @bind-Value="NewClinic.AdminEmail" Label="E-mail do primeiro admin" For="@(() => NewClinic.AdminEmail)" Required="true" Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="Saving">
+                            @(Saving ? "Criando..." : "Criar clinica")
+                        </MudButton>
+                    </MudStack>
+                </EditForm>
+
+                @if (Loading)
+                {
+                    <MudProgressLinear Indeterminate="true" />
+                }
+                else
+                {
+                    <MudTable Items="Clinics" Dense="true" Hover="true">
+                        <HeaderContent>
+                            <MudTh>Clinica</MudTh>
+                            <MudTh>Status</MudTh>
+                            <MudTh>Tenant</MudTh>
+                            <MudTh></MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Clinica">@context.Name</MudTd>
+                            <MudTd DataLabel="Status">
+                                <MudChip T="string" Color="@(context.Active ? Color.Success : Color.Warning)" Variant="Variant.Text">
+                                    @(context.Active ? "Ativa" : "Inativa")
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Tenant">
+                                <MudText Typo="Typo.caption">@context.Id</MudText>
+                            </MudTd>
+                            <MudTd>
+                                <MudStack Row="true" Spacing="1" Justify="Justify.FlexEnd">
+                                    <MudButton Size="Size.Small"
+                                               Variant="Variant.Outlined"
+                                               Color="@(context.Active ? Color.Warning : Color.Success)"
+                                               Disabled="Saving || UpdatingClinicId.HasValue"
+                                               OnClick="() => ToggleClinicStatusAsync(context)">
+                                        @(UpdatingClinicId == context.Id ? "Atualizando..." : context.Active ? "Desativar" : "Ativar")
+                                    </MudButton>
+                                    <MudButton Size="Size.Small"
+                                               Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               OnClick="() => OpenAdminRegistration(context)">
+                                        Gerenciar admins
+                                    </MudButton>
+                                </MudStack>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudStack>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private bool Loading { get; set; }
+    private bool Saving { get; set; }
+    private Guid? UpdatingClinicId { get; set; }
+    private string? StatusMessage { get; set; }
+    private Severity StatusSeverity { get; set; } = Severity.Info;
+    private List<BffAdminClinicResponse> Clinics { get; set; } = [];
+    private NewClinicModel NewClinic { get; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Auth.HasGlobalPermission("ManageClinics"))
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        Loading = true;
+        StatusMessage = null;
+        try
+        {
+            Clinics = (await Auth.ListAdminClinicsAsync(CancellationToken.None)).ToList();
+        }
+        catch
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = "Nao foi possivel carregar as clinicas.";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private async Task CreateClinicAsync()
+    {
+        Saving = true;
+        StatusMessage = null;
+        try
+        {
+            await Auth.CreateAdminClinicAsync(new BffCreateClinicRequest(
+                NewClinic.Name,
+                NewClinic.AdminSubjectId,
+                NewClinic.AdminEmail),
+                CancellationToken.None);
+
+            NewClinic.Reset();
+            StatusSeverity = Severity.Success;
+            StatusMessage = "Clinica criada.";
+            await LoadAsync();
+        }
+        catch
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = "Nao foi possivel criar a clinica.";
+        }
+        finally
+        {
+            Saving = false;
+        }
+    }
+
+    private async Task ToggleClinicStatusAsync(BffAdminClinicResponse clinic)
+    {
+        var action = clinic.Active ? "desativar" : "ativar";
+        var confirmed = await JS.InvokeAsync<bool>(
+            "confirm",
+            $"Confirma {action} a clinica {clinic.Name}? A mudanca de acesso sera imediata.");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        UpdatingClinicId = clinic.Id;
+        StatusMessage = null;
+        try
+        {
+            await Auth.UpdateAdminClinicStatusAsync(
+                clinic.Id,
+                new BffUpdateClinicStatusRequest(!clinic.Active),
+                CancellationToken.None);
+
+            StatusSeverity = Severity.Success;
+            StatusMessage = clinic.Active ? "Clinica desativada." : "Clinica ativada.";
+            await LoadAsync();
+        }
+        catch
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = "Nao foi possivel atualizar o status da clinica.";
+        }
+        finally
+        {
+            UpdatingClinicId = null;
+        }
+    }
+
+    private void OpenAdminRegistration(BffAdminClinicResponse clinic)
+    {
+        Nav.NavigateTo($"/admin/clinicas/administradores?tenantId={clinic.Id:D}");
+    }
+
+    private sealed class NewClinicModel
+    {
+        [Required, MaxLength(160)] public string Name { get; set; } = "";
+        [Required, MaxLength(160)] public string AdminSubjectId { get; set; } = "";
+        [Required, EmailAddress, MaxLength(160)] public string AdminEmail { get; set; } = "";
+
+        public void Reset()
+        {
+            Name = "";
+            AdminSubjectId = "";
+            AdminEmail = "";
+        }
+    }
+}
