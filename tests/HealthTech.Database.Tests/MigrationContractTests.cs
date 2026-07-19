@@ -159,6 +159,24 @@ public sealed class MigrationContractTests
     }
 
     [Fact]
+    public void Supabase_hardening_migration_secures_global_admins_and_covers_advisor_findings()
+    {
+        var path = Path.Combine(GetRepoRoot(), "supabase", "migrations", "20260719023000_supabase_security_performance.sql");
+
+        var sql = File.ReadAllText(path);
+
+        Assert.Contains("alter table core.system_admin_user enable row level security", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("alter table core.system_admin_user force row level security", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("alter extension btree_gist set schema extensions", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("(select current_setting('app.tenant_id', true))", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ix_appointment_tenant_location", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ix_charge_appointment", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ix_whatsapp_manual_appointment", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ix_patient_plan_tenant_plan", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ix_professional_tenant_specialty", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Seed_bootstraps_first_system_admin_from_compose_variable()
     {
         var path = Path.Combine(GetRepoRoot(), "supabase", "seed.sql");
