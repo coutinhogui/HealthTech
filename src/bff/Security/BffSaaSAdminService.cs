@@ -26,6 +26,8 @@ public interface IBffSaaSAdminService
     Task<BffAdminClinicResponse> CreateClinicAsync(string subjectId, string? email, BffCreateClinicRequest request, CancellationToken cancellationToken);
     Task<BffAdminClinicResponse?> UpdateClinicStatusAsync(string subjectId, string? email, Guid tenantId, BffUpdateClinicStatusRequest request, CancellationToken cancellationToken);
     Task<bool> AddClinicAdminAsync(string subjectId, string? email, Guid tenantId, BffCreateClinicAdminRequest request, CancellationToken cancellationToken);
+    Task<IReadOnlyCollection<BffClinicAdminResponse>> ListClinicAdminsAsync(string subjectId, string? email, Guid tenantId, CancellationToken cancellationToken);
+    Task<bool> UpdateClinicAdminAsync(string subjectId, string? email, Guid tenantId, string targetSubjectId, BffUpdateClinicAdminRequest request, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<BffSystemAdminUserResponse>> ListSystemAdminsAsync(string subjectId, string? email, CancellationToken cancellationToken);
     Task<bool> UpdateSystemAdminAsync(string subjectId, string? email, string targetSubjectId, BffUpdateSystemAdminRequest request, CancellationToken cancellationToken);
 }
@@ -35,15 +37,17 @@ public sealed class PostgresBffSaaSAdminService(
     IConfiguration configuration) : IBffSaaSAdminService
 {
     private readonly ConcurrentDictionary<Guid, BffAdminClinicResponse> memoryClinics = [];
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, BffClinicAdminResponse>> memoryClinicAdmins = [];
     private readonly ConcurrentDictionary<string, BffSystemAdminUserResponse> memorySystemAdmins =
         new(StringComparer.OrdinalIgnoreCase);
+    private readonly object memorySystemAdminLock = new();
 
     public async Task<bool> IsSystemAdminAsync(string? subjectId, string? email, CancellationToken cancellationToken)
     {
         var connectionString = configuration.GetConnectionString("PatientsDb");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            return IsConfiguredSystemAdmin(subjectId, email);
+            return IsMemorySystemAdmin(subjectId, email);
         }
 
         await using var connection = new NpgsqlConnection(connectionString);
@@ -97,6 +101,14 @@ public sealed class PostgresBffSaaSAdminService(
         {
             var clinic = new BffAdminClinicResponse(tenantId, name, true);
             memoryClinics[tenantId] = clinic;
+            memoryClinicAdmins[tenantId] = new ConcurrentDictionary<string, BffClinicAdminResponse>(
+                new[]
+                {
+                    new KeyValuePair<string, BffClinicAdminResponse>(
+                        adminSubjectId,
+                        new BffClinicAdminResponse(adminSubjectId, adminEmail, null, null, true))
+                },
+                StringComparer.OrdinalIgnoreCase);
             return clinic;
         }
 
@@ -169,27 +181,128 @@ public sealed class PostgresBffSaaSAdminService(
         BffCreateClinicAdminRequest request,
         CancellationToken cancellationToken)
     {
-        var adminSubjectId = NormalizeRequired(request.SubjectId, nameof(request.SubjectId), 160);
-        var adminEmail = NormalizeRequired(request.Email, nameof(request.Email), 160);
+        return await UpdateClinicAdminAsync(
+            subjectId,
+            email,
+            tenantId,
+            request.SubjectId,
+            new BffUpdateClinicAdminRequest(request.Email, request.FullName, request.Phone, true),
+            cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<BffClinicAdminResponse>> ListClinicAdminsAsync(
+        string subjectId,
+        string? email,
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
         var connectionString = configuration.GetConnectionString("PatientsDb");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            return memoryClinics.ContainsKey(tenantId);
+            if (!memoryClinics.ContainsKey(tenantId))
+            {
+                return [];
+            }
+
+            return memoryClinicAdmins
+                .GetOrAdd(tenantId, _ => new ConcurrentDictionary<string, BffClinicAdminResponse>(StringComparer.OrdinalIgnoreCase))
+                .Values
+                .OrderByDescending(admin => admin.Active)
+                .ThenBy(admin => admin.Email)
+                .ToArray();
         }
 
         await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync(cancellationToken);
         await using var command = new NpgsqlCommand("""
-            select core.admin_upsert_tenant_admin(@subject_id, @email, @tenant_id, @admin_subject_id, @admin_email, @full_name, @phone);
+            select subject_id, email, full_name, phone, active
+            from core.admin_list_tenant_admins(@subject_id, @email, @tenant_id);
+            """, connection);
+        command.Parameters.AddWithValue("subject_id", subjectId);
+        command.Parameters.AddWithValue("email", (object?)email ?? string.Empty);
+        command.Parameters.AddWithValue("tenant_id", tenantId);
+
+        var admins = new List<BffClinicAdminResponse>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            admins.Add(new BffClinicAdminResponse(
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.IsDBNull(2) ? null : reader.GetString(2),
+                reader.IsDBNull(3) ? null : reader.GetString(3),
+                reader.GetBoolean(4)));
+        }
+
+        return admins;
+    }
+
+    public async Task<bool> UpdateClinicAdminAsync(
+        string subjectId,
+        string? email,
+        Guid tenantId,
+        string targetSubjectId,
+        BffUpdateClinicAdminRequest request,
+        CancellationToken cancellationToken)
+    {
+        var adminSubjectId = NormalizeRequired(targetSubjectId, nameof(targetSubjectId), 160);
+        var adminEmail = NormalizeRequired(request.Email, nameof(request.Email), 160);
+        var connectionString = configuration.GetConnectionString("PatientsDb");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            if (!memoryClinics.TryGetValue(tenantId, out var clinic))
+            {
+                return false;
+            }
+
+            var admins = memoryClinicAdmins.GetOrAdd(
+                tenantId,
+                _ => new ConcurrentDictionary<string, BffClinicAdminResponse>(StringComparer.OrdinalIgnoreCase));
+            var exists = admins.ContainsKey(adminSubjectId);
+            if (!clinic.Active && (request.Active || !exists))
+            {
+                throw new InvalidOperationException("inactive_clinic_admin_activation_forbidden");
+            }
+
+            admins[adminSubjectId] = new BffClinicAdminResponse(
+                adminSubjectId,
+                adminEmail,
+                NormalizeOptional(request.FullName, 160),
+                NormalizeOptional(request.Phone, 32),
+                request.Active);
+            return true;
+        }
+
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            select core.admin_update_tenant_admin(
+                @subject_id,
+                @email,
+                @tenant_id,
+                @admin_subject_id,
+                @admin_email,
+                @full_name,
+                @phone,
+                @active);
             """, connection);
         command.Parameters.AddWithValue("subject_id", subjectId);
         command.Parameters.AddWithValue("email", (object?)email ?? string.Empty);
         command.Parameters.AddWithValue("tenant_id", tenantId);
         command.Parameters.AddWithValue("admin_subject_id", adminSubjectId);
         command.Parameters.AddWithValue("admin_email", adminEmail);
-        command.Parameters.AddWithValue("full_name", (object?)request.FullName ?? DBNull.Value);
-        command.Parameters.AddWithValue("phone", (object?)request.Phone ?? DBNull.Value);
-        return await command.ExecuteScalarAsync(cancellationToken) is true;
+        command.Parameters.AddWithValue("full_name", (object?)NormalizeOptional(request.FullName, 160) ?? DBNull.Value);
+        command.Parameters.AddWithValue("phone", (object?)NormalizeOptional(request.Phone, 32) ?? DBNull.Value);
+        command.Parameters.AddWithValue("active", request.Active);
+
+        try
+        {
+            return await command.ExecuteScalarAsync(cancellationToken) is true;
+        }
+        catch (PostgresException exception) when (exception.MessageText == "inactive_clinic_admin_activation_forbidden")
+        {
+            throw new InvalidOperationException(exception.MessageText, exception);
+        }
     }
 
     public async Task<IReadOnlyCollection<BffSystemAdminUserResponse>> ListSystemAdminsAsync(
@@ -230,13 +343,25 @@ public sealed class PostgresBffSaaSAdminService(
         BffUpdateSystemAdminRequest request,
         CancellationToken cancellationToken)
     {
+        targetSubjectId = NormalizeRequired(targetSubjectId, nameof(targetSubjectId), 160);
         var targetEmail = NormalizeRequired(request.Email, nameof(request.Email), 160);
         var connectionString = configuration.GetConnectionString("PatientsDb");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            EnsureMemorySystemAdmins();
-            memorySystemAdmins[targetSubjectId] = new BffSystemAdminUserResponse(targetSubjectId, targetEmail, request.Active);
-            return true;
+            lock (memorySystemAdminLock)
+            {
+                EnsureMemorySystemAdmins();
+                if (memorySystemAdmins.TryGetValue(targetSubjectId, out var target) &&
+                    target.Active &&
+                    !request.Active &&
+                    memorySystemAdmins.Values.Count(user => user.Active) <= 1)
+                {
+                    throw new InvalidOperationException("last_system_admin_cannot_be_disabled");
+                }
+
+                memorySystemAdmins[targetSubjectId] = new BffSystemAdminUserResponse(targetSubjectId, targetEmail, request.Active);
+                return true;
+            }
         }
 
         await using var connection = new NpgsqlConnection(connectionString);
@@ -249,13 +374,20 @@ public sealed class PostgresBffSaaSAdminService(
         command.Parameters.AddWithValue("target_subject_id", targetSubjectId);
         command.Parameters.AddWithValue("target_email", targetEmail);
         command.Parameters.AddWithValue("active", request.Active);
-        return await command.ExecuteScalarAsync(cancellationToken) is true;
+        try
+        {
+            return await command.ExecuteScalarAsync(cancellationToken) is true;
+        }
+        catch (PostgresException exception) when (exception.MessageText == "last_system_admin_cannot_be_disabled")
+        {
+            throw new InvalidOperationException(exception.MessageText, exception);
+        }
     }
 
-    private bool IsConfiguredSystemAdmin(string? subjectId, string? email)
+    private bool IsMemorySystemAdmin(string? subjectId, string? email)
     {
         EnsureMemorySystemAdmins();
-        return options.Value.Users.Any(user =>
+        return memorySystemAdmins.Values.Any(user =>
             user.Active &&
             (!string.IsNullOrWhiteSpace(subjectId) &&
              string.Equals(user.SubjectId, subjectId, StringComparison.OrdinalIgnoreCase) ||
@@ -285,6 +417,22 @@ public sealed class PostgresBffSaaSAdminService(
         if (normalized.Length > maxLength)
         {
             throw new ArgumentException($"{name} exceeds {maxLength} characters.", name);
+        }
+
+        return normalized;
+    }
+
+    private static string? NormalizeOptional(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalized = value.Trim();
+        if (normalized.Length > maxLength)
+        {
+            throw new ArgumentException($"Value exceeds {maxLength} characters.", nameof(value));
         }
 
         return normalized;

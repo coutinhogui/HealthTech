@@ -253,7 +253,40 @@ public sealed class BffAuthService
         var response = await client.PostAsJsonAsync($"api/admin/clinics/{tenantId:D}/admins", request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            throw new InvalidOperationException("Nao foi possivel atribuir o admin da clinica.");
+            var error = await TryReadErrorCodeAsync(response);
+            throw new InvalidOperationException(error == "inactive_clinic_admin_activation_forbidden"
+                ? "Nao e permitido adicionar ou reativar admins enquanto a clinica estiver inativa."
+                : "Nao foi possivel atribuir o admin da clinica.");
+        }
+    }
+
+    public async Task<IReadOnlyList<BffClinicAdminResponse>> ListClinicAdminsAsync(
+        Guid tenantId,
+        CancellationToken cancellationToken = default)
+    {
+        var client = _httpClientFactory.CreateClient("Bff");
+        return await client.GetFromJsonAsync<IReadOnlyList<BffClinicAdminResponse>>(
+            $"api/admin/clinics/{tenantId:D}/admins",
+            cancellationToken) ?? [];
+    }
+
+    public async Task UpdateClinicAdminAsync(
+        Guid tenantId,
+        string subjectId,
+        BffUpdateClinicAdminRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var client = _httpClientFactory.CreateClient("Bff");
+        var response = await client.PutAsJsonAsync(
+            $"api/admin/clinics/{tenantId:D}/admins/{Uri.EscapeDataString(subjectId)}",
+            request,
+            cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await TryReadErrorCodeAsync(response);
+            throw new InvalidOperationException(error == "inactive_clinic_admin_activation_forbidden"
+                ? "Nao e permitido adicionar ou reativar admins enquanto a clinica estiver inativa."
+                : "Nao foi possivel atualizar o admin da clinica.");
         }
     }
 
@@ -269,7 +302,10 @@ public sealed class BffAuthService
         var response = await client.PutAsJsonAsync($"api/admin/system-users/{Uri.EscapeDataString(subjectId)}", request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            throw new InvalidOperationException("Nao foi possivel atualizar o administrador SaaS.");
+            var error = await TryReadErrorCodeAsync(response);
+            throw new InvalidOperationException(error == "last_system_admin_cannot_be_disabled"
+                ? "O ultimo administrador ativo do ambiente nao pode ser desativado."
+                : "Nao foi possivel atualizar o administrador SaaS.");
         }
     }
 
@@ -435,6 +471,8 @@ public sealed record BffAccessUserResponse(
 public sealed record BffUpdateAccessUserRequest(string Role, Guid? ProfessionalId, bool Active);
 public sealed record BffCreateClinicRequest(string Name, string AdminSubjectId, string AdminEmail);
 public sealed record BffCreateClinicAdminRequest(string SubjectId, string Email, string? FullName, string? Phone);
+public sealed record BffUpdateClinicAdminRequest(string Email, string? FullName, string? Phone, bool Active);
+public sealed record BffClinicAdminResponse(string SubjectId, string Email, string? FullName, string? Phone, bool Active);
 public sealed record BffUpdateClinicStatusRequest(bool Active);
 public sealed record BffAdminClinicResponse(Guid Id, string Name, bool Active);
 public sealed record BffSystemAdminUserResponse(string SubjectId, string Email, bool Active);

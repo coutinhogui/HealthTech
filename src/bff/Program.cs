@@ -707,8 +707,63 @@ app.MapPost("/api/admin/clinics/{tenantId:guid}/admins", async (
 
     var subject = GetRequiredSubject(user);
     var email = user.FindFirstValue("email") ?? user.FindFirstValue(ClaimTypes.Email);
-    var updated = await saasAdminService.AddClinicAdminAsync(subject, email, tenantId, request, cancellationToken);
-    return updated ? Results.NoContent() : Results.NotFound(new { error = "clinic_not_found" });
+    try
+    {
+        var updated = await saasAdminService.AddClinicAdminAsync(subject, email, tenantId, request, cancellationToken);
+        return updated ? Results.NoContent() : Results.NotFound(new { error = "clinic_not_found" });
+    }
+    catch (InvalidOperationException exception) when (exception.Message == "inactive_clinic_admin_activation_forbidden")
+    {
+        return Results.Conflict(new { error = exception.Message });
+    }
+}).RequireAuthorization();
+
+app.MapGet("/api/admin/clinics/{tenantId:guid}/admins", async (
+    Guid tenantId,
+    ClaimsPrincipal user,
+    IBffSaaSAdminService saasAdminService,
+    CancellationToken cancellationToken) =>
+{
+    if (!await RequireSystemAdminAsync(user, saasAdminService, cancellationToken))
+    {
+        return Results.Json(new { error = "system_admin_required" }, statusCode: StatusCodes.Status403Forbidden);
+    }
+
+    var subject = GetRequiredSubject(user);
+    var email = user.FindFirstValue("email") ?? user.FindFirstValue(ClaimTypes.Email);
+    return Results.Ok(await saasAdminService.ListClinicAdminsAsync(subject, email, tenantId, cancellationToken));
+}).RequireAuthorization();
+
+app.MapPut("/api/admin/clinics/{tenantId:guid}/admins/{subjectId}", async (
+    Guid tenantId,
+    string subjectId,
+    BffUpdateClinicAdminRequest request,
+    ClaimsPrincipal user,
+    IBffSaaSAdminService saasAdminService,
+    CancellationToken cancellationToken) =>
+{
+    if (!await RequireSystemAdminAsync(user, saasAdminService, cancellationToken))
+    {
+        return Results.Json(new { error = "system_admin_required" }, statusCode: StatusCodes.Status403Forbidden);
+    }
+
+    var actorSubject = GetRequiredSubject(user);
+    var email = user.FindFirstValue("email") ?? user.FindFirstValue(ClaimTypes.Email);
+    try
+    {
+        var updated = await saasAdminService.UpdateClinicAdminAsync(
+            actorSubject,
+            email,
+            tenantId,
+            subjectId,
+            request,
+            cancellationToken);
+        return updated ? Results.NoContent() : Results.NotFound(new { error = "clinic_or_admin_not_found" });
+    }
+    catch (InvalidOperationException exception) when (exception.Message == "inactive_clinic_admin_activation_forbidden")
+    {
+        return Results.Conflict(new { error = exception.Message });
+    }
 }).RequireAuthorization();
 
 app.MapGet("/api/admin/system-users", async (
@@ -740,8 +795,15 @@ app.MapPut("/api/admin/system-users/{subjectId}", async (
 
     var subject = GetRequiredSubject(user);
     var email = user.FindFirstValue("email") ?? user.FindFirstValue(ClaimTypes.Email);
-    var updated = await saasAdminService.UpdateSystemAdminAsync(subject, email, subjectId, request, cancellationToken);
-    return updated ? Results.NoContent() : Results.BadRequest(new { error = "system_admin_update_failed" });
+    try
+    {
+        var updated = await saasAdminService.UpdateSystemAdminAsync(subject, email, subjectId, request, cancellationToken);
+        return updated ? Results.NoContent() : Results.BadRequest(new { error = "system_admin_update_failed" });
+    }
+    catch (InvalidOperationException exception) when (exception.Message == "last_system_admin_cannot_be_disabled")
+    {
+        return Results.Conflict(new { error = exception.Message });
+    }
 }).RequireAuthorization();
 
 app.MapGet("/api/access/users", async (
@@ -904,14 +966,6 @@ static async Task<bool> IsSystemAdminSessionAsync(
     IBffSaaSAdminService saasAdminService,
     CancellationToken cancellationToken)
 {
-    if (string.Equals(
-            user.FindFirstValue(HealthTechClaimTypes.GlobalRole),
-            ClinicRoles.SystemAdmin,
-            StringComparison.OrdinalIgnoreCase))
-    {
-        return true;
-    }
-
     var subject = user.FindFirstValue("sub") ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
     var email = user.FindFirstValue("email") ?? user.FindFirstValue(ClaimTypes.Email);
     return await saasAdminService.IsSystemAdminAsync(subject, email, cancellationToken);

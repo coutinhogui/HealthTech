@@ -3,6 +3,8 @@
 @using System.ComponentModel.DataAnnotations
 @using HealthTech.Front.Services
 @inject HealthTech.Front.Services.BffAuthService Auth
+@inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <PageTitle>Clinicas</PageTitle>
 
@@ -62,12 +64,34 @@
                             <MudTh>Clinica</MudTh>
                             <MudTh>Status</MudTh>
                             <MudTh>Tenant</MudTh>
+                            <MudTh></MudTh>
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd DataLabel="Clinica">@context.Name</MudTd>
-                            <MudTd DataLabel="Status">@(context.Active ? "Ativa" : "Inativa")</MudTd>
+                            <MudTd DataLabel="Status">
+                                <MudChip T="string" Color="@(context.Active ? Color.Success : Color.Warning)" Variant="Variant.Text">
+                                    @(context.Active ? "Ativa" : "Inativa")
+                                </MudChip>
+                            </MudTd>
                             <MudTd DataLabel="Tenant">
                                 <MudText Typo="Typo.caption">@context.Id</MudText>
+                            </MudTd>
+                            <MudTd>
+                                <MudStack Row="true" Spacing="1" Justify="Justify.FlexEnd">
+                                    <MudButton Size="Size.Small"
+                                               Variant="Variant.Outlined"
+                                               Color="@(context.Active ? Color.Warning : Color.Success)"
+                                               Disabled="Saving || UpdatingClinicId.HasValue"
+                                               OnClick="() => ToggleClinicStatusAsync(context)">
+                                        @(UpdatingClinicId == context.Id ? "Atualizando..." : context.Active ? "Desativar" : "Ativar")
+                                    </MudButton>
+                                    <MudButton Size="Size.Small"
+                                               Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               OnClick="() => OpenAdminRegistration(context)">
+                                        Gerenciar admins
+                                    </MudButton>
+                                </MudStack>
                             </MudTd>
                         </RowTemplate>
                     </MudTable>
@@ -80,6 +104,7 @@
 @code {
     private bool Loading { get; set; }
     private bool Saving { get; set; }
+    private Guid? UpdatingClinicId { get; set; }
     private string? StatusMessage { get; set; }
     private Severity StatusSeverity { get; set; } = Severity.Info;
     private List<BffAdminClinicResponse> Clinics { get; set; } = [];
@@ -138,6 +163,46 @@
         {
             Saving = false;
         }
+    }
+
+    private async Task ToggleClinicStatusAsync(BffAdminClinicResponse clinic)
+    {
+        var action = clinic.Active ? "desativar" : "ativar";
+        var confirmed = await JS.InvokeAsync<bool>(
+            "confirm",
+            $"Confirma {action} a clinica {clinic.Name}? A mudanca de acesso sera imediata.");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        UpdatingClinicId = clinic.Id;
+        StatusMessage = null;
+        try
+        {
+            await Auth.UpdateAdminClinicStatusAsync(
+                clinic.Id,
+                new BffUpdateClinicStatusRequest(!clinic.Active),
+                CancellationToken.None);
+
+            StatusSeverity = Severity.Success;
+            StatusMessage = clinic.Active ? "Clinica desativada." : "Clinica ativada.";
+            await LoadAsync();
+        }
+        catch
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = "Nao foi possivel atualizar o status da clinica.";
+        }
+        finally
+        {
+            UpdatingClinicId = null;
+        }
+    }
+
+    private void OpenAdminRegistration(BffAdminClinicResponse clinic)
+    {
+        Nav.NavigateTo($"/admin/clinicas/administradores?tenantId={clinic.Id:D}");
     }
 
     private sealed class NewClinicModel
