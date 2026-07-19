@@ -4,7 +4,6 @@
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Nav
 
-@using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components
 
 <section class="auth-shell">
@@ -54,20 +53,17 @@
                 <MudDivider Class="flex-grow-1" />
             </div>
 
-            <EditForm Model="@model" OnValidSubmit="@OnSubmit">
-                <DataAnnotationsValidator />
-                <MudStack Spacing="1">
-                    <MudTextField @bind-Value="model.Email" Label="E-mail profissional" For="@(()=>model.Email)" Required="true" Variant="Variant.Outlined" />
-                    <MudTextField @bind-Value="model.Password" Label="Senha" For="@(()=>model.Password)" InputType="InputType.Password" Required="true" Variant="Variant.Outlined" />
-                    @if (!string.IsNullOrWhiteSpace(Error))
-                    {
-                        <MudAlert Severity="Severity.Error" Dense="true">@Error</MudAlert>
-                    }
-                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="w-100" Disabled="@loading">
-                        @(loading ? "Processando..." : PrimaryButtonLabel)
-                    </MudButton>
-                </MudStack>
-            </EditForm>
+            <MudStack Spacing="1">
+                <MudTextField @bind-Value="email" Label="E-mail profissional" Required="true" Immediate="true" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="password" Label="Senha" InputType="InputType.Password" Required="true" Immediate="true" Variant="Variant.Outlined" />
+                @if (!string.IsNullOrWhiteSpace(Error))
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true">@Error</MudAlert>
+                }
+                <MudButton ButtonType="ButtonType.Button" OnClick="OnSubmit" Variant="Variant.Filled" Color="Color.Primary" Class="w-100" Disabled="@loading">
+                    @(loading ? "Processando..." : PrimaryButtonLabel)
+                </MudButton>
+            </MudStack>
         }
         else if (!string.IsNullOrWhiteSpace(Error))
         {
@@ -96,7 +92,8 @@
     [Parameter] public string Mode { get; set; } = "login";
     [Parameter] public string AccessArea { get; set; } = FrontAccessAreas.Clinic;
 
-    private readonly LoginModel model = new();
+    private string email = "";
+    private string password = "";
     private bool loading;
     private string? Error;
 
@@ -141,16 +138,22 @@
     private async Task OnSubmit()
     {
         Error = null;
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            Error = "Informe e-mail e senha.";
+            return;
+        }
+
         loading = true;
         try
         {
             if (IsRegisterMode)
             {
-                await Auth.SignUpAsync(model.Email, model.Password, AccessArea);
+                await Auth.SignUpAsync(email, password, AccessArea);
             }
             else
             {
-                await Auth.SignInAsync(model.Email, model.Password, AccessArea);
+                await Auth.SignInAsync(email, password, AccessArea);
             }
 
             Nav.NavigateTo(Auth.GetPostLoginPath());
@@ -179,12 +182,6 @@
     public void Dispose()
     {
         Auth.AuthStateChanged -= OnAuthStateChanged;
-    }
-
-    private sealed class LoginModel
-    {
-        [Required, EmailAddress] public string Email { get; set; } = "";
-        [Required] public string Password { get; set; } = "";
     }
 
     private const string GoogleSvg = @"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='18' height='18'>
