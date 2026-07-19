@@ -24,6 +24,7 @@ builder.Services.AddScoped<SimpleAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<SimpleAuthStateProvider>());
 builder.Services.AddScoped<BffAuthService>();
 builder.Services.AddScoped<CookieCredentialsMessageHandler>();
+builder.Services.AddScoped<TenantAccessRevocationHandler>();
 builder.Services.AddScoped(sp => new PatientBffClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient("Bff")));
 builder.Services.AddScoped(sp => new AppointmentBffClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient("Bff")));
 builder.Services.AddScoped(sp => new DiscoveryBffClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient("Bff")));
@@ -41,7 +42,9 @@ builder.Services.AddMudServices();
 builder.Services.AddHttpClient("Bff", client =>
 {
     client.BaseAddress = new Uri(ResolveApiBaseUrl());
-}).AddHttpMessageHandler<CookieCredentialsMessageHandler>();
+})
+    .AddHttpMessageHandler<CookieCredentialsMessageHandler>()
+    .AddHttpMessageHandler<TenantAccessRevocationHandler>();
 
 builder.Services.AddHttpClient("IdentityApi", client =>
 {

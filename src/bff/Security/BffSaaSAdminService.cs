@@ -24,6 +24,7 @@ public interface IBffSaaSAdminService
     Task<bool> IsSystemAdminAsync(string? subjectId, string? email, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<BffAdminClinicResponse>> ListClinicsAsync(string subjectId, string? email, CancellationToken cancellationToken);
     Task<BffAdminClinicResponse> CreateClinicAsync(string subjectId, string? email, BffCreateClinicRequest request, CancellationToken cancellationToken);
+    Task<BffAdminClinicResponse?> UpdateClinicStatusAsync(string subjectId, string? email, Guid tenantId, BffUpdateClinicStatusRequest request, CancellationToken cancellationToken);
     Task<bool> AddClinicAdminAsync(string subjectId, string? email, Guid tenantId, BffCreateClinicAdminRequest request, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<BffSystemAdminUserResponse>> ListSystemAdminsAsync(string subjectId, string? email, CancellationToken cancellationToken);
     Task<bool> UpdateSystemAdminAsync(string subjectId, string? email, string targetSubjectId, BffUpdateSystemAdminRequest request, CancellationToken cancellationToken);
@@ -116,6 +117,46 @@ public sealed class PostgresBffSaaSAdminService(
         if (!await reader.ReadAsync(cancellationToken))
         {
             throw new InvalidOperationException("Tenant creation did not return a clinic.");
+        }
+
+        return new BffAdminClinicResponse(reader.GetGuid(0), reader.GetString(1), reader.GetBoolean(2));
+    }
+
+    public async Task<BffAdminClinicResponse?> UpdateClinicStatusAsync(
+        string subjectId,
+        string? email,
+        Guid tenantId,
+        BffUpdateClinicStatusRequest request,
+        CancellationToken cancellationToken)
+    {
+        var connectionString = configuration.GetConnectionString("PatientsDb");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            if (!memoryClinics.TryGetValue(tenantId, out var clinic))
+            {
+                return null;
+            }
+
+            var updated = clinic with { Active = request.Active };
+            memoryClinics[tenantId] = updated;
+            return updated;
+        }
+
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = new NpgsqlCommand("""
+            select id, name, active
+            from core.admin_set_tenant_active(@subject_id, @email, @tenant_id, @active);
+            """, connection);
+        command.Parameters.AddWithValue("subject_id", subjectId);
+        command.Parameters.AddWithValue("email", (object?)email ?? string.Empty);
+        command.Parameters.AddWithValue("tenant_id", tenantId);
+        command.Parameters.AddWithValue("active", request.Active);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
         }
 
         return new BffAdminClinicResponse(reader.GetGuid(0), reader.GetString(1), reader.GetBoolean(2));

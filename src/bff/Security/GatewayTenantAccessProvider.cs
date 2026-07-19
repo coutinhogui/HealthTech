@@ -17,24 +17,20 @@ public sealed class GatewayTenantAccessProvider(
                         ?? principal.FindFirstValue(ClaimTypes.NameIdentifier);
         var email = principal.FindFirstValue("email")
                     ?? principal.FindFirstValue(ClaimTypes.Email);
-        var memberships = new Dictionary<Guid, TenantMembership>();
-
-        foreach (var membership in GetConfiguredMemberships(subjectId, email))
-        {
-            memberships[membership.TenantId] = membership;
-        }
-
         var connectionString = configuration.GetConnectionString("PatientsDb");
         if (!string.IsNullOrWhiteSpace(connectionString) &&
             (!string.IsNullOrWhiteSpace(subjectId) || !string.IsNullOrWhiteSpace(email)))
         {
+            var databaseMemberships = new List<TenantMembership>();
             await foreach (var membership in GetDatabaseMembershipsAsync(connectionString, subjectId, email, cancellationToken))
             {
-                memberships[membership.TenantId] = membership;
+                databaseMemberships.Add(membership);
             }
+
+            return databaseMemberships;
         }
 
-        return memberships.Values.ToArray();
+        return GetConfiguredMemberships(subjectId, email).ToArray();
     }
 
     private IEnumerable<TenantMembership> GetConfiguredMemberships(string? subjectId, string? email)

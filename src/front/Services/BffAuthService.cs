@@ -115,6 +115,18 @@ public sealed class BffAuthService
         _navigation.NavigateTo("/", forceLoad: false);
     }
 
+    public async Task HandleTenantAccessRevokedAsync()
+    {
+        var session = await GetSessionAsync();
+        ApplySession(session);
+        AuthStateChanged?.Invoke();
+
+        var destination = session.Authenticated && session.Memberships.Count > 0
+            ? "/minhas-clinicas"
+            : "/login";
+        _navigation.NavigateTo(destination, forceLoad: false);
+    }
+
     public Task SignInWithGoogleAsync(string? redirectTo = null, string accessArea = FrontAccessAreas.Clinic)
         => SignInWithProviderAsync("google", redirectTo, accessArea);
 
@@ -216,6 +228,19 @@ public sealed class BffAuthService
         if (!response.IsSuccessStatusCode)
         {
             throw new InvalidOperationException("Nao foi possivel criar a clinica.");
+        }
+
+        return await response.Content.ReadFromJsonAsync<BffAdminClinicResponse>(cancellationToken)
+               ?? throw new InvalidOperationException("Resposta de clinica invalida.");
+    }
+
+    public async Task<BffAdminClinicResponse> UpdateAdminClinicStatusAsync(Guid tenantId, BffUpdateClinicStatusRequest request, CancellationToken cancellationToken = default)
+    {
+        var client = _httpClientFactory.CreateClient("Bff");
+        var response = await client.PutAsJsonAsync($"api/admin/clinics/{tenantId:D}/status", request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException("Nao foi possivel atualizar o status da clinica.");
         }
 
         return await response.Content.ReadFromJsonAsync<BffAdminClinicResponse>(cancellationToken)
@@ -410,6 +435,7 @@ public sealed record BffAccessUserResponse(
 public sealed record BffUpdateAccessUserRequest(string Role, Guid? ProfessionalId, bool Active);
 public sealed record BffCreateClinicRequest(string Name, string AdminSubjectId, string AdminEmail);
 public sealed record BffCreateClinicAdminRequest(string SubjectId, string Email, string? FullName, string? Phone);
+public sealed record BffUpdateClinicStatusRequest(bool Active);
 public sealed record BffAdminClinicResponse(Guid Id, string Name, bool Active);
 public sealed record BffSystemAdminUserResponse(string SubjectId, string Email, bool Active);
 public sealed record BffUpdateSystemAdminRequest(string Email, bool Active);

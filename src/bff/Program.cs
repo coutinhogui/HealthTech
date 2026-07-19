@@ -181,52 +181,60 @@ app.UseAuthorization();
 app.MapHealthChecks("/health").AllowAnonymous();
 
 app.MapGet("/api/session", async (
-    ClaimsPrincipal user,
+    HttpContext httpContext,
+    ITenantAccessProvider tenantAccessProvider,
     IBffOnboardingService onboardingService,
     IBffSaaSAdminService saasAdminService,
     CancellationToken cancellationToken) =>
 {
+    var user = httpContext.User;
     if (user.Identity?.IsAuthenticated != true)
     {
         return Results.Ok(new BffSessionResponse(false, null, null, null, []));
     }
 
-    var memberships = ReadMemberships(user);
-    var activeTenantId = user.FindFirstValue(HealthTechClaimTypes.TenantId);
-    var activeTenant = memberships.FirstOrDefault(membership =>
-        string.Equals(membership.TenantId.ToString("D"), activeTenantId, StringComparison.OrdinalIgnoreCase));
-
     var subject = user.FindFirstValue("sub") ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
     var email = user.FindFirstValue("email") ?? user.FindFirstValue(ClaimTypes.Email);
-    var isSystemAdmin = await IsSystemAdminSessionAsync(user, saasAdminService, cancellationToken);
-    var status = await onboardingService.GetStatusAsync(
-        subject ?? string.Empty,
-        email,
-        activeTenant,
-        memberships,
-        cancellationToken);
-    var decision = isSystemAdmin
-        ? new BffOnboardingDecision(false)
-        : BffOnboardingDecision.Create(true, memberships.Count > 0, status.IsComplete);
-
-    return Results.Ok(new BffSessionResponse(
+    var memberships = (await tenantAccessProvider.GetMembershipsAsync(user, cancellationToken))
+        .Select(ToBffTenantResponse)
+        .ToArray();
+    var activeTenantId = user.FindFirstValue(HealthTechClaimTypes.TenantId);
+    var requestedTenantId = Guid.TryParse(activeTenantId, out var parsedTenantId)
+        ? parsedTenantId
+        : (Guid?)null;
+    var accessArea = requestedTenantId is null &&
+                     string.Equals(user.FindFirstValue(HealthTechClaimTypes.GlobalRole), ClinicRoles.SystemAdmin, StringComparison.OrdinalIgnoreCase)
+        ? BffAccessAreas.Environment
+        : BffAccessAreas.Clinic;
+    var signIn = new BffSignInResult(
         true,
+        null,
         subject,
         email,
-        activeTenant,
-        memberships,
-        decision.RequiresOnboarding,
-        isSystemAdmin,
-        isSystemAdmin ? ClinicAuthorization.GlobalPermissionNamesForRole(ClinicRoles.SystemAdmin) : []));
+        await httpContext.GetTokenAsync("access_token"),
+        await httpContext.GetTokenAsync("refresh_token"),
+        memberships);
+
+    return Results.Ok(await SignInWithBffCookieAsync(
+        httpContext,
+        signIn,
+        requestedTenantId,
+        email ?? subject ?? "user",
+        onboardingService,
+        saasAdminService,
+        accessArea));
 }).AllowAnonymous();
 
 app.MapPost("/api/session/tenant", async (
     BffSelectTenantRequest request,
     HttpContext httpContext,
+    ITenantAccessProvider tenantAccessProvider,
     IBffOnboardingService onboardingService,
     IBffSaaSAdminService saasAdminService) =>
 {
-    var memberships = ReadMemberships(httpContext.User);
+    var memberships = (await tenantAccessProvider.GetMembershipsAsync(httpContext.User, httpContext.RequestAborted))
+        .Select(ToBffTenantResponse)
+        .ToArray();
     var selectedTenant = memberships.FirstOrDefault(membership => membership.TenantId == request.TenantId);
     if (selectedTenant is null)
     {
@@ -667,6 +675,24 @@ app.MapPost("/api/admin/clinics", async (
     return Results.Ok(clinic);
 }).RequireAuthorization();
 
+app.MapPut("/api/admin/clinics/{tenantId:guid}/status", async (
+    Guid tenantId,
+    BffUpdateClinicStatusRequest request,
+    ClaimsPrincipal user,
+    IBffSaaSAdminService saasAdminService,
+    CancellationToken cancellationToken) =>
+{
+    if (!await RequireSystemAdminAsync(user, saasAdminService, cancellationToken))
+    {
+        return Results.Json(new { error = "system_admin_required" }, statusCode: StatusCodes.Status403Forbidden);
+    }
+
+    var subject = GetRequiredSubject(user);
+    var email = user.FindFirstValue("email") ?? user.FindFirstValue(ClaimTypes.Email);
+    var clinic = await saasAdminService.UpdateClinicStatusAsync(subject, email, tenantId, request, cancellationToken);
+    return clinic is null ? Results.NotFound(new { error = "clinic_not_found" }) : Results.Ok(clinic);
+}).RequireAuthorization();
+
 app.MapPost("/api/admin/clinics/{tenantId:guid}/admins", async (
     Guid tenantId,
     BffCreateClinicAdminRequest request,
@@ -783,7 +809,8 @@ app.Use(async (context, next) =>
         context.Request.Path.StartsWithSegments("/api/appointments") ||
         context.Request.Path.StartsWithSegments("/api/professionals") ||
         context.Request.Path.StartsWithSegments("/api/specialties") ||
-        context.Request.Path.StartsWithSegments("/api/locations"))
+        context.Request.Path.StartsWithSegments("/api/locations") ||
+        context.Request.Path.StartsWithSegments("/api/access"))
     {
         var activeTenantId = context.User.FindFirstValue(HealthTechClaimTypes.TenantId);
         var requestedTenantId = context.Request.Headers["X-Tenant-Id"].FirstOrDefault();
@@ -818,7 +845,10 @@ app.Use(async (context, next) =>
         if (!allowed)
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            await context.Response.WriteAsJsonAsync(new { error = "tenant_forbidden" });
+            var error = string.IsNullOrWhiteSpace(activeTenantId) && !string.IsNullOrWhiteSpace(requestedTenantId)
+                ? "tenant_forbidden"
+                : "clinic_inactive_or_membership_revoked";
+            await context.Response.WriteAsJsonAsync(new { error });
             return;
         }
     }
@@ -855,6 +885,14 @@ static BffTenantResponse? ReadActiveTenant(ClaimsPrincipal user)
     return memberships.FirstOrDefault(membership =>
         string.Equals(membership.TenantId.ToString("D"), activeTenantId, StringComparison.OrdinalIgnoreCase));
 }
+
+static BffTenantResponse ToBffTenantResponse(TenantMembership membership)
+    => new(
+        membership.TenantId,
+        membership.TenantName,
+        membership.Role,
+        membership.ProfessionalId,
+        ClinicAuthorization.PermissionNamesForRole(membership.Role));
 
 static string GetRequiredSubject(ClaimsPrincipal user)
     => user.FindFirstValue("sub")

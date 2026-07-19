@@ -96,6 +96,8 @@ public sealed record BffCreateClinicRequest(string Name, string AdminSubjectId, 
 
 public sealed record BffCreateClinicAdminRequest(string SubjectId, string Email, string? FullName, string? Phone);
 
+public sealed record BffUpdateClinicStatusRequest(bool Active);
+
 public sealed record BffAdminClinicResponse(Guid Id, string Name, bool Active);
 
 public sealed record BffSystemAdminUserResponse(string SubjectId, string Email, bool Active);
