@@ -177,7 +177,7 @@ public sealed class MigrationContractTests
     }
 
     [Fact]
-    public void Seed_bootstraps_first_system_admin_from_compose_variable()
+    public void Seed_bootstraps_first_system_admin_without_duplicating_an_oauth_email()
     {
         var path = Path.Combine(GetRepoRoot(), "supabase", "seed.sql");
 
@@ -185,7 +185,8 @@ public sealed class MigrationContractTests
 
         Assert.Contains("insert into core.system_admin_user", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(":'system_admin_email'", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("on conflict (subject_id) do update", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("where existing.subject_id =", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("or existing.email =", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
