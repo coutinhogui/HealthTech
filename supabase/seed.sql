@@ -22,15 +22,34 @@ set email = excluded.email,
     role = excluded.role,
     active = true;
 
+update core.system_admin_user
+set active = true
+where nullif(:'system_admin_email', '') is not null
+  and email = :'system_admin_email';
+
+update core.system_admin_user
+set email = :'system_admin_email',
+    active = true
+where nullif(:'system_admin_email', '') is not null
+  and subject_id = coalesce(nullif(:'system_admin_subject_id', ''), :'system_admin_email')
+  and not exists (
+    select 1
+    from core.system_admin_user existing
+    where existing.email = :'system_admin_email'
+  );
+
 insert into core.system_admin_user (subject_id, email, active)
 select
   coalesce(nullif(:'system_admin_subject_id', ''), :'system_admin_email'),
   :'system_admin_email',
   true
 where nullif(:'system_admin_email', '') is not null
-on conflict (subject_id) do update
-set email = excluded.email,
-    active = true;
+  and not exists (
+    select 1
+    from core.system_admin_user existing
+    where existing.subject_id = coalesce(nullif(:'system_admin_subject_id', ''), :'system_admin_email')
+       or existing.email = :'system_admin_email'
+  );
 
 insert into scheduling.specialty (id, tenant_id, name)
 values (
