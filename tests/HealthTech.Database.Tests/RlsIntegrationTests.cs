@@ -559,6 +559,176 @@ public sealed class RlsIntegrationTests(PostgresIntegrationFixture database) : I
         Assert.Equal("42501", forbiddenChargeInsert.SqlState);
     }
 
+    [Fact]
+    public async Task Active_membership_requires_both_user_and_clinic_to_remain_active()
+    {
+        if (!database.Enabled)
+        {
+            return;
+        }
+
+        var tenantId = Guid.NewGuid();
+        const string subjectId = "live-membership-user";
+        const string email = "live-membership@healthtech.local";
+
+        await using var admin = new NpgsqlConnection(database.AdminConnectionString);
+        await admin.OpenAsync();
+        await PostgresIntegrationFixture.ExecuteAsync(admin, $"""
+            insert into core.tenant (id, name, active) values ('{tenantId:D}', 'Live membership clinic', true);
+            insert into core.tenant_user (tenant_id, subject_id, email, role, active)
+            values ('{tenantId:D}', '{subjectId}', '{email}', 'admin', true);
+            """);
+
+        await using var app = new NpgsqlConnection(database.AppConnectionString);
+        await app.OpenAsync();
+
+        Assert.True(await PostgresIntegrationFixture.ScalarAsync<bool>(app, $"""
+            select core.is_active_tenant_membership('{subjectId}', '{email}', '{tenantId:D}');
+            """));
+
+        await PostgresIntegrationFixture.ExecuteAsync(admin, $"""
+            update core.tenant_user set active = false where tenant_id = '{tenantId:D}' and subject_id = '{subjectId}';
+            """);
+        Assert.False(await PostgresIntegrationFixture.ScalarAsync<bool>(app, $"""
+            select core.is_active_tenant_membership('{subjectId}', '{email}', '{tenantId:D}');
+            """));
+
+        await PostgresIntegrationFixture.ExecuteAsync(admin, $"""
+            update core.tenant_user set active = true where tenant_id = '{tenantId:D}' and subject_id = '{subjectId}';
+            update core.tenant set active = false where id = '{tenantId:D}';
+            """);
+        Assert.False(await PostgresIntegrationFixture.ScalarAsync<bool>(app, $"""
+            select core.is_active_tenant_membership('{subjectId}', '{email}', '{tenantId:D}');
+            """));
+    }
+
+    [Fact]
+    public async Task Inactive_clinic_allows_listing_and_deactivation_but_rejects_admin_activation()
+    {
+        if (!database.Enabled)
+        {
+            return;
+        }
+
+        var tenantId = Guid.NewGuid();
+        const string actorSubject = "system-admin-lifecycle";
+        const string actorEmail = "system-admin-lifecycle@healthtech.local";
+        const string clinicAdminSubject = "clinic-admin-lifecycle";
+
+        await using var admin = new NpgsqlConnection(database.AdminConnectionString);
+        await admin.OpenAsync();
+        await PostgresIntegrationFixture.ExecuteAsync(admin, $"""
+            insert into core.system_admin_user (subject_id, email, active)
+            values ('{actorSubject}', '{actorEmail}', true);
+            insert into core.tenant (id, name, active)
+            values ('{tenantId:D}', 'Lifecycle clinic', true);
+            """);
+
+        await using var app = new NpgsqlConnection(database.AppConnectionString);
+        await app.OpenAsync();
+        Assert.True(await PostgresIntegrationFixture.ScalarAsync<bool>(app, $"""
+            select core.admin_update_tenant_admin(
+              '{actorSubject}', '{actorEmail}', '{tenantId:D}', '{clinicAdminSubject}',
+              'clinic-admin-lifecycle@healthtech.local', 'Clinic Admin', null, true);
+            """));
+
+        await PostgresIntegrationFixture.ExecuteAsync(app, $"""
+            select * from core.admin_set_tenant_active('{actorSubject}', '{actorEmail}', '{tenantId:D}', false);
+            """);
+
+        Assert.Equal(1L, await PostgresIntegrationFixture.ScalarAsync<long>(app, $"""
+            select count(*) from core.admin_list_tenant_admins('{actorSubject}', '{actorEmail}', '{tenantId:D}');
+            """));
+
+        Assert.True(await PostgresIntegrationFixture.ScalarAsync<bool>(app, $"""
+            select core.admin_update_tenant_admin(
+              '{actorSubject}', '{actorEmail}', '{tenantId:D}', '{clinicAdminSubject}',
+              'clinic-admin-lifecycle@healthtech.local', 'Clinic Admin', null, false);
+            """));
+
+        var forbidden = await Assert.ThrowsAsync<PostgresException>(() => PostgresIntegrationFixture.ExecuteAsync(app, $"""
+            select core.admin_update_tenant_admin(
+              '{actorSubject}', '{actorEmail}', '{tenantId:D}', '{clinicAdminSubject}',
+              'clinic-admin-lifecycle@healthtech.local', 'Clinic Admin', null, true);
+            """));
+        Assert.Equal("55000", forbidden.SqlState);
+        Assert.Equal("inactive_clinic_admin_activation_forbidden", forbidden.MessageText);
+    }
+
+    [Fact]
+    public async Task Concurrent_updates_cannot_disable_all_system_admins()
+    {
+        if (!database.Enabled)
+        {
+            return;
+        }
+
+        const string firstSubject = "system-admin-concurrent-a";
+        const string firstEmail = "system-admin-concurrent-a@healthtech.local";
+        const string secondSubject = "system-admin-concurrent-b";
+        const string secondEmail = "system-admin-concurrent-b@healthtech.local";
+
+        await using var admin = new NpgsqlConnection(database.AdminConnectionString);
+        await admin.OpenAsync();
+        await PostgresIntegrationFixture.ExecuteAsync(admin, $"""
+            delete from core.system_admin_user;
+            insert into core.system_admin_user (subject_id, email, active) values
+              ('{firstSubject}', '{firstEmail}', true),
+              ('{secondSubject}', '{secondEmail}', true);
+            """);
+
+        async Task<PostgresException?> TryDisableAsync(string subject, string email)
+        {
+            await using var connection = new NpgsqlConnection(database.AppConnectionString);
+            await connection.OpenAsync();
+            try
+            {
+                await PostgresIntegrationFixture.ExecuteAsync(connection, $"""
+                    select core.admin_upsert_system_admin('{subject}', '{email}', '{subject}', '{email}', false);
+                    """);
+                return null;
+            }
+            catch (PostgresException exception)
+            {
+                return exception;
+            }
+        }
+
+        var outcomes = await Task.WhenAll(
+            TryDisableAsync(firstSubject, firstEmail),
+            TryDisableAsync(secondSubject, secondEmail));
+
+        Assert.Single(outcomes, outcome => outcome is null);
+        var rejected = Assert.Single(outcomes, outcome => outcome is not null);
+        Assert.Equal("23514", rejected!.SqlState);
+        Assert.Equal("last_system_admin_cannot_be_disabled", rejected.MessageText);
+        Assert.Equal(1L, await PostgresIntegrationFixture.ScalarAsync<long>(admin,
+            "select count(*) from core.system_admin_user where active = true;"));
+    }
+
+    [Fact]
+    public async Task Privileged_functions_do_not_grant_execute_to_public()
+    {
+        if (!database.Enabled)
+        {
+            return;
+        }
+
+        await using var admin = new NpgsqlConnection(database.AdminConnectionString);
+        await admin.OpenAsync();
+        var publicExecuteGrants = await PostgresIntegrationFixture.ScalarAsync<long>(admin, """
+            select count(*)
+            from pg_proc p
+            join pg_namespace n on n.oid = p.pronamespace
+            cross join lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) privilege
+            where n.nspname in ('core', 'patients', 'scheduling', 'appointments')
+              and privilege.grantee = 0
+              and privilege.privilege_type = 'EXECUTE';
+            """);
+
+        Assert.Equal(0L, publicExecuteGrants);
+    }
+
     private static Task SetTenantAsync(NpgsqlConnection connection, Guid tenantId)
         => PostgresIntegrationFixture.ExecuteAsync(connection, $"select set_config('app.tenant_id', '{tenantId:D}', false);");
 

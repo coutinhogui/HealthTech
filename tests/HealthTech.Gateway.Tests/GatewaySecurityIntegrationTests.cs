@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HealthTech.Gateway.Security;
+using HealthTech.BuildingBlocks.Abstractions;
 using Xunit;
 
 namespace HealthTech.Gateway.Tests;
@@ -507,6 +508,184 @@ public sealed class GatewaySecurityIntegrationTests
     }
 
     [Fact]
+    public async Task System_admin_can_update_clinic_status()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            systemAdmin: true,
+            includeDevelopmentMemberships: false,
+            authService: new NoMembershipAuthService());
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var cookie = await LoginAsync(client, "sysadmin@healthtech.local", "environment");
+        using var createRequest = new HttpRequestMessage(HttpMethod.Post, "/api/admin/clinics")
+        {
+            Content = JsonContent.Create(new
+            {
+                Name = "Clinica Toggle",
+                AdminSubjectId = "clinic-toggle-admin",
+                AdminEmail = "toggle-admin@clinic.local"
+            })
+        };
+        createRequest.Headers.TryAddWithoutValidation("Cookie", cookie);
+        var createResponse = await client.SendAsync(createRequest);
+        var created = await createResponse.Content.ReadFromJsonAsync<AdminClinicResponse>();
+        Assert.NotNull(created);
+
+        using var statusRequest = new HttpRequestMessage(HttpMethod.Put, $"/api/admin/clinics/{created.Id:D}/status")
+        {
+            Content = JsonContent.Create(new { Active = false })
+        };
+        statusRequest.Headers.TryAddWithoutValidation("Cookie", cookie);
+
+        var response = await client.SendAsync(statusRequest);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = await response.Content.ReadFromJsonAsync<AdminClinicResponse>();
+        Assert.NotNull(updated);
+        Assert.Equal(created.Id, updated.Id);
+        Assert.False(updated.Active);
+    }
+
+    [Fact]
+    public async Task System_admin_can_manage_clinic_admins_and_inactive_clinic_blocks_activation()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            systemAdmin: true,
+            includeDevelopmentMemberships: false,
+            authService: new NoMembershipAuthService());
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var cookie = await LoginAsync(client, "sysadmin@healthtech.local", "environment");
+        using var createRequest = new HttpRequestMessage(HttpMethod.Post, "/api/admin/clinics")
+        {
+            Content = JsonContent.Create(new
+            {
+                Name = "Clinic admin lifecycle",
+                AdminSubjectId = "clinic-admin-first",
+                AdminEmail = "clinic-admin-first@healthtech.local"
+            })
+        };
+        createRequest.Headers.TryAddWithoutValidation("Cookie", cookie);
+        var createResponse = await client.SendAsync(createRequest);
+        createResponse.EnsureSuccessStatusCode();
+        var clinic = await createResponse.Content.ReadFromJsonAsync<AdminClinicResponse>();
+        Assert.NotNull(clinic);
+
+        using var listRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/admin/clinics/{clinic.Id:D}/admins");
+        listRequest.Headers.TryAddWithoutValidation("Cookie", cookie);
+        var listResponse = await client.SendAsync(listRequest);
+        var admins = await listResponse.Content.ReadFromJsonAsync<IReadOnlyCollection<ClinicAdminResponse>>();
+        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
+        Assert.Contains(admins!, admin => admin.SubjectId == "clinic-admin-first" && admin.Active);
+
+        using var statusRequest = new HttpRequestMessage(HttpMethod.Put, $"/api/admin/clinics/{clinic.Id:D}/status")
+        {
+            Content = JsonContent.Create(new { Active = false })
+        };
+        statusRequest.Headers.TryAddWithoutValidation("Cookie", cookie);
+        (await client.SendAsync(statusRequest)).EnsureSuccessStatusCode();
+
+        using var deactivateRequest = new HttpRequestMessage(
+            HttpMethod.Put,
+            $"/api/admin/clinics/{clinic.Id:D}/admins/clinic-admin-first")
+        {
+            Content = JsonContent.Create(new
+            {
+                Email = "clinic-admin-first@healthtech.local",
+                FullName = "First Admin",
+                Phone = "+5511999999999",
+                Active = false
+            })
+        };
+        deactivateRequest.Headers.TryAddWithoutValidation("Cookie", cookie);
+        Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(deactivateRequest)).StatusCode);
+
+        using var reactivateRequest = new HttpRequestMessage(
+            HttpMethod.Put,
+            $"/api/admin/clinics/{clinic.Id:D}/admins/clinic-admin-first")
+        {
+            Content = JsonContent.Create(new
+            {
+                Email = "clinic-admin-first@healthtech.local",
+                FullName = "First Admin",
+                Phone = "+5511999999999",
+                Active = true
+            })
+        };
+        reactivateRequest.Headers.TryAddWithoutValidation("Cookie", cookie);
+        var reactivateResponse = await client.SendAsync(reactivateRequest);
+        var error = await reactivateResponse.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(HttpStatusCode.Conflict, reactivateResponse.StatusCode);
+        Assert.Equal("inactive_clinic_admin_activation_forbidden", error?.Error);
+    }
+
+    [Fact]
+    public async Task Last_system_admin_cannot_be_disabled_through_api()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: true,
+            allowTenantB: false,
+            systemAdmin: true,
+            includeDevelopmentMemberships: false,
+            authService: new NoMembershipAuthService());
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var cookie = await LoginAsync(client, "sysadmin@healthtech.local", "environment");
+        using var request = new HttpRequestMessage(HttpMethod.Put, "/api/admin/system-users/bootstrap-admin")
+        {
+            Content = JsonContent.Create(new { Email = "sysadmin@healthtech.local", Active = false })
+        };
+        request.Headers.TryAddWithoutValidation("Cookie", cookie);
+
+        var response = await client.SendAsync(request);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("last_system_admin_cannot_be_disabled", error?.Error);
+    }
+
+    [Fact]
+    public async Task Revoked_membership_blocks_existing_cookie_and_session_removes_active_tenant()
+    {
+        await using var backend = await BackendEchoServer.StartAsync();
+        var tenantAccess = new MutableTenantAccessProvider();
+        await using var factory = new GatewayTestFactory(
+            backend.BaseAddress,
+            withoutActiveTenant: false,
+            allowTenantB: false,
+            tenantAccessProvider: tenantAccess);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var cookie = await LoginAsync(client);
+        tenantAccess.Active = false;
+
+        using var routeRequest = new HttpRequestMessage(HttpMethod.Get, "/api/patients");
+        routeRequest.Headers.TryAddWithoutValidation("Cookie", cookie);
+        var routeResponse = await client.SendAsync(routeRequest);
+        var error = await routeResponse.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(HttpStatusCode.Forbidden, routeResponse.StatusCode);
+        Assert.Equal("clinic_inactive_or_membership_revoked", error?.Error);
+
+        using var sessionRequest = new HttpRequestMessage(HttpMethod.Get, "/api/session");
+        sessionRequest.Headers.TryAddWithoutValidation("Cookie", cookie);
+        var sessionResponse = await client.SendAsync(sessionRequest);
+        var session = await sessionResponse.Content.ReadFromJsonAsync<SessionResponse>();
+        Assert.Equal(HttpStatusCode.OK, sessionResponse.StatusCode);
+        Assert.NotNull(session);
+        Assert.Null(session.ActiveTenant);
+        Assert.Empty(session.Memberships);
+    }
+
+    [Fact]
     public async Task Clinic_admin_cannot_call_global_admin_endpoints()
     {
         await using var backend = await BackendEchoServer.StartAsync();
@@ -612,6 +791,7 @@ public sealed class GatewaySecurityIntegrationTests
         IReadOnlyCollection<string> Permissions);
 
     private sealed record AdminClinicResponse(Guid Id, string Name, bool Active);
+    private sealed record ClinicAdminResponse(string SubjectId, string Email, string? FullName, string? Phone, bool Active);
     private sealed record DiscoveryClinicResponse(Guid Id, string Name, bool Active);
     private sealed record DiscoverySearchResponse(
         Guid TenantId,
@@ -638,7 +818,8 @@ public sealed class GatewaySecurityIntegrationTests
         string role = "admin",
         Guid? professionalId = null,
         bool systemAdmin = false,
-        bool includeDevelopmentMemberships = true)
+        bool includeDevelopmentMemberships = true,
+        ITenantAccessProvider? tenantAccessProvider = null)
         : WebApplicationFactory<Program>
     {
         public const string InternalSecret = "integration-internal-gateway-secret";
@@ -739,7 +920,28 @@ public sealed class GatewaySecurityIntegrationTests
                     services.AddSingleton(discoveryService);
                 });
             }
+
+            if (tenantAccessProvider is not null)
+            {
+                builder.ConfigureServices(services =>
+                {
+                    services.RemoveAll<ITenantAccessProvider>();
+                    services.AddSingleton(tenantAccessProvider);
+                });
+            }
         }
+    }
+
+    private sealed class MutableTenantAccessProvider : ITenantAccessProvider
+    {
+        public bool Active { get; set; } = true;
+
+        public Task<IReadOnlyCollection<TenantMembership>> GetMembershipsAsync(
+            System.Security.Claims.ClaimsPrincipal principal,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyCollection<TenantMembership>>(Active
+                ? [new TenantMembership(TenantA, "Demo Clinic A", "admin")]
+                : []);
     }
 
     private sealed class AccessTokenAuthService : IBffAuthService
