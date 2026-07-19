@@ -8,6 +8,7 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 
 - [Documentacao detalhada do projeto](docs/project-documentation.md): arquitetura, SaaS multi-tenant, BFF, RBAC, endpoints, banco, frontend, operacao local e testes.
 - [Notas de rearquitetura](docs/rearchitecture-implementation-notes.md): decisoes de seguranca, Supabase, Docker e validacao.
+- [Operacao Supabase e OAuth](docs/supabase-oauth-operations.md): migrations, reconciliacao remota, Google OAuth e checklist de validacao.
 - [Wireframes](doc/healthtech-wireframes.md): referencia visual das telas.
 
 ---
@@ -116,8 +117,8 @@ Este documento resume o **core** do HealthTech: uma plataforma B2B para clínica
 * **GET /api/discovery/professionals** -> profissionais publicos por clinica/especialidade.
 * **GET /api/discovery/slots** -> horarios livres publicos por profissional e, opcionalmente, unidade.
 * **POST /api/discovery/appointments** -> solicitacao publica de consulta com dados minimos do paciente e unidade opcional.
-* **GET/POST /api/admin/clinics** -> gestao SaaS global de clinicas por `system_admin`.
-* **POST /api/admin/clinics/{tenantId}/admins** -> atribui primeiro/admins de uma clinica por `system_admin`.
+* **GET/POST /api/admin/clinics** e **PUT /api/admin/clinics/{tenantId}/status** -> gestao SaaS global e ativacao/desativacao de clinicas por `system_admin`.
+* **GET/POST /api/admin/clinics/{tenantId}/admins** e **PUT /api/admin/clinics/{tenantId}/admins/{subjectId}** -> lista, cria e atualiza admins de clinica por `system_admin`.
 * **GET/PUT /api/admin/system-users** -> gestao de `system_admin`.
 * **GET/PUT /api/access/users** -> gestao de acessos da clinica ativa por `admin`.
 * **GET/POST /api/patients** -> pacientes.
