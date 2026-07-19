@@ -36,9 +36,14 @@ services:
     command: >
       sh -c "
       for file in /supabase/migrations/*.sql; do
+        if [ \"$$(basename $$file)\" = \"202605310001_application_role.sql\" ]; then
+          echo Skipping historical runtime-role migration: $$file;
+          continue;
+        fi;
         echo Applying migration: $$file;
-        psql -h postgres -U postgres -d ${HEALTHTECH_DB_NAME:-healthtech} -v ON_ERROR_STOP=1 -v app_db_user=${HEALTHTECH_APP_DB_USER:-healthtech_app} -v app_db_password=${HEALTHTECH_APP_DB_PASSWORD:-healthtech_app} -f $$file || exit 1;
+        psql -h postgres -U postgres -d ${HEALTHTECH_DB_NAME:-healthtech} -v ON_ERROR_STOP=1 -v app_db_user=postgres -v app_db_password=unused -f $$file || exit 1;
       done &&
+      psql -h postgres -U postgres -d ${HEALTHTECH_DB_NAME:-healthtech} -v ON_ERROR_STOP=1 -v app_db_user=${HEALTHTECH_APP_DB_USER:-healthtech_app} -v app_db_password=${HEALTHTECH_APP_DB_PASSWORD:-healthtech_app} -f /supabase/runtime-role.sql &&
       psql -h postgres -U postgres -d ${HEALTHTECH_DB_NAME:-healthtech} -v ON_ERROR_STOP=1 -v system_admin_email=\"$${HEALTHTECH_SYSTEM_ADMIN_EMAIL}\" -v system_admin_subject_id=\"$${HEALTHTECH_SYSTEM_ADMIN_SUBJECT_ID}\" -f /supabase/seed.sql
       "
     networks:

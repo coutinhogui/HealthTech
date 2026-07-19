@@ -142,6 +142,23 @@ public sealed class MigrationContractTests
     }
 
     [Fact]
+    public void Admin_lifecycle_migration_is_portable_and_protects_privileged_functions()
+    {
+        var path = Path.Combine(GetRepoRoot(), "supabase", "migrations", "20260719012218_admin_clinic_lifecycle.sql");
+
+        var sql = File.ReadAllText(path);
+
+        Assert.DoesNotContain("\\gexec", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(":'app_db_user'", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("create or replace function core.admin_set_tenant_active", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("create or replace function core.is_active_tenant_membership", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("create or replace function core.admin_list_tenant_admins", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("create or replace function core.admin_update_tenant_admin", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("last_system_admin_cannot_be_disabled", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("revoke execute on all functions", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Seed_bootstraps_first_system_admin_from_compose_variable()
     {
         var path = Path.Combine(GetRepoRoot(), "supabase", "seed.sql");
