@@ -202,16 +202,20 @@ jobs:
           "
 
           patients=$(curl -fsS -b cookie.txt http://localhost:5026/api/patients)
-          forged_patients=$(curl -fsS -b cookie.txt -H "X-Tenant-Id: $tenant_b_id" http://localhost:5026/api/patients)
-          if echo "$forged_patients" | jq -e --arg doc "$tenant_b_doc" '.[] | select(.document == $doc)' > /dev/null; then
-            echo "Tenant isolation regression: forged X-Tenant-Id exposed tenant B data."
+          forged_patients_status=$(curl -sS -o forged_patients_response.json -w "%{http_code}" \
+            -b cookie.txt -H "X-Tenant-Id: $tenant_b_id" http://localhost:5026/api/patients)
+          if [ "$forged_patients_status" != "403" ]; then
+            echo "Tenant isolation regression: forged patient read expected 403, got $forged_patients_status."
+            cat forged_patients_response.json
             exit 1
           fi
 
-          forged_appointments=$(curl -fsS -b cookie.txt -H "X-Tenant-Id: $tenant_b_id" \
+          forged_appointments_status=$(curl -sS -o forged_appointments_response.json -w "%{http_code}" \
+            -b cookie.txt -H "X-Tenant-Id: $tenant_b_id" \
             "http://localhost:5026/api/appointments?fromUtc=$appointment_b_start&toUtc=$appointment_b_to")
-          if echo "$forged_appointments" | jq -e --arg id "$appointment_b_id" '.[] | select(.id == $id)' > /dev/null; then
-            echo "Tenant isolation regression: forged X-Tenant-Id exposed tenant B appointment."
+          if [ "$forged_appointments_status" != "403" ]; then
+            echo "Tenant isolation regression: forged appointment read expected 403, got $forged_appointments_status."
+            cat forged_appointments_response.json
             exit 1
           fi
 

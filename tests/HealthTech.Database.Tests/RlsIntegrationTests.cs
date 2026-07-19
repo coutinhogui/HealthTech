@@ -132,7 +132,13 @@ public sealed class RlsIntegrationTests(PostgresIntegrationFixture database) : I
         }
 
         var seedPath = Path.Combine(GetRepoRoot(), "supabase", "seed.sql");
-        var seedSql = await File.ReadAllTextAsync(seedPath);
+        var seedSql = PostgresIntegrationFixture.PrepareSqlForNpgsql(
+            await File.ReadAllTextAsync(seedPath),
+            new Dictionary<string, string>
+            {
+                ["system_admin_subject_id"] = string.Empty,
+                ["system_admin_email"] = string.Empty
+            });
 
         await using var admin = new NpgsqlConnection(database.AdminConnectionString);
         await admin.OpenAsync();

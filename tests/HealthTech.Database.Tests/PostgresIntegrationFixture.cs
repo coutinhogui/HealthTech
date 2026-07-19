@@ -48,7 +48,7 @@ public sealed class PostgresIntegrationFixture : IAsyncLifetime
         foreach (var migrationFile in migrationFiles)
         {
             var sql = await File.ReadAllTextAsync(migrationFile);
-            await ExecuteAsync(admin, sql);
+            await ExecuteAsync(admin, PrepareSqlForNpgsql(sql));
         }
 
         await ExecuteAsync(admin, $$"""
@@ -66,6 +66,7 @@ public sealed class PostgresIntegrationFixture : IAsyncLifetime
             revoke create on schema core, patients, scheduling, appointments from {{AppRole}};
             grant select, insert, update, delete on all tables in schema core, patients, scheduling, appointments to {{AppRole}};
             grant usage, select on all sequences in schema core, patients, scheduling, appointments to {{AppRole}};
+            grant execute on all functions in schema core, patients, scheduling, appointments to {{AppRole}};
             """);
 
         builder.Username = AppRole;
@@ -121,5 +122,59 @@ public sealed class PostgresIntegrationFixture : IAsyncLifetime
         }
 
         return directory?.FullName ?? throw new InvalidOperationException("Could not locate repository root.");
+    }
+
+    public static string PrepareSqlForNpgsql(
+        string sql,
+        IReadOnlyDictionary<string, string>? psqlVariables = null)
+    {
+        var output = new List<string>();
+        var skippingFormattedCommand = false;
+
+        foreach (var line in sql.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
+        {
+            var trimmed = line.Trim();
+            if (trimmed.StartsWith("\\set ", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!skippingFormattedCommand && trimmed.StartsWith("select format(", StringComparison.OrdinalIgnoreCase))
+            {
+                skippingFormattedCommand = true;
+                continue;
+            }
+
+            if (skippingFormattedCommand)
+            {
+                if (trimmed.Equals("\\gexec", StringComparison.OrdinalIgnoreCase))
+                {
+                    skippingFormattedCommand = false;
+                }
+
+                continue;
+            }
+
+            output.Add(line);
+        }
+
+        if (skippingFormattedCommand)
+        {
+            throw new InvalidOperationException("Migration contains an unterminated psql \\gexec block.");
+        }
+
+        var prepared = string.Join(Environment.NewLine, output);
+        if (psqlVariables is null)
+        {
+            return prepared;
+        }
+
+        foreach (var (name, value) in psqlVariables)
+        {
+            var escapedValue = value.Replace("'", "''", StringComparison.Ordinal);
+            prepared = prepared.Replace($":'{name}'", $"'{escapedValue}'", StringComparison.Ordinal);
+        }
+
+        return prepared;
     }
 }
