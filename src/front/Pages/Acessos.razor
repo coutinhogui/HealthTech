@@ -1,0 +1,161 @@
+@page "/admin/acessos"
+@attribute [Authorize]
+@using HealthTech.Front.Services
+@inject HealthTech.Front.Services.BffAuthService Auth
+@inject AppointmentProfessionalOptionsClient ProfessionalsClient
+
+<PageTitle>Acessos da clinica</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="home-shell">
+    <MudPaper Elevation="0" Class="surface-card">
+        @if (!Auth.HasPermission("ManageAccess"))
+        {
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h5">Sem acesso</MudText>
+                <MudText Typo="Typo.body2">Seu papel na clinica ativa nao permite gerenciar atribuicoes.</MudText>
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Spacing="3">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <div>
+                        <MudText Typo="Typo.h5">Acessos da clinica</MudText>
+                        <MudText Typo="Typo.body2">Papeis, status e vinculo profissional da clinica ativa.</MudText>
+                    </div>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LoadAsync" Disabled="Loading">Atualizar</MudButton>
+                </MudStack>
+
+                @if (!string.IsNullOrWhiteSpace(StatusMessage))
+                {
+                    <MudAlert Severity="@StatusSeverity">@StatusMessage</MudAlert>
+                }
+
+                @if (Loading)
+                {
+                    <MudProgressLinear Indeterminate="true" />
+                }
+                else
+                {
+                    <MudTable Items="Rows" Dense="true" Hover="true">
+                        <HeaderContent>
+                            <MudTh>Usuário</MudTh>
+                            <MudTh>Papel</MudTh>
+                            <MudTh>Medico vinculado</MudTh>
+                            <MudTh>Ativo</MudTh>
+                            <MudTh></MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Usuário">
+                                <MudText Typo="Typo.body2">@context.Email</MudText>
+                                <MudText Typo="Typo.caption">@context.SubjectId</MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Papel">
+                                <MudSelect T="string" @bind-Value="context.Role" Dense="true">
+                                    <MudSelectItem Value="@("admin")">Admin</MudSelectItem>
+                                    <MudSelectItem Value="@("professional")">Medico</MudSelectItem>
+                                    <MudSelectItem Value="@("reception")">Recepcao</MudSelectItem>
+                                    <MudSelectItem Value="@("billing")">Financeiro</MudSelectItem>
+                                    <MudSelectItem Value="@("patient")">Paciente</MudSelectItem>
+                                </MudSelect>
+                            </MudTd>
+                            <MudTd DataLabel="Medico vinculado">
+                                <MudSelect T="string" @bind-Value="context.ProfessionalIdText" Dense="true" Disabled="@(context.Role != "professional")">
+                                    <MudSelectItem Value="@("")">Sem vínculo</MudSelectItem>
+                                    @foreach (var professional in Professionals)
+                                    {
+                                        <MudSelectItem Value="@professional.Id.ToString("D")">@professional.FullName</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudTd>
+                            <MudTd DataLabel="Ativo">
+                                <MudCheckBox T="bool" @bind-Value="context.Active" />
+                            </MudTd>
+                            <MudTd>
+                                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" Disabled="Saving" OnClick="() => SaveAsync(context)">Salvar</MudButton>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudStack>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private bool Loading { get; set; }
+    private bool Saving { get; set; }
+    private string? StatusMessage { get; set; }
+    private Severity StatusSeverity { get; set; } = Severity.Info;
+    private List<AccessUserRow> Rows { get; set; } = [];
+    private IReadOnlyList<AppointmentProfessionalOptionDto> Professionals { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Auth.HasPermission("ManageAccess"))
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        Loading = true;
+        StatusMessage = null;
+        try
+        {
+            Professionals = await ProfessionalsClient.ListAsync(CancellationToken.None);
+            Rows = (await Auth.ListAccessUsersAsync(CancellationToken.None))
+                .Select(user => new AccessUserRow(user))
+                .ToList();
+        }
+        catch
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = "Nao foi possivel carregar os acessos.";
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private async Task SaveAsync(AccessUserRow row)
+    {
+        Saving = true;
+        StatusMessage = null;
+        try
+        {
+            var professionalId = row.Role == "professional" && Guid.TryParse(row.ProfessionalIdText, out var parsed)
+                ? parsed
+                : (Guid?)null;
+
+            await Auth.UpdateAccessUserAsync(
+                row.SubjectId,
+                new BffUpdateAccessUserRequest(row.Role, professionalId, row.Active),
+                CancellationToken.None);
+
+            StatusSeverity = Severity.Success;
+            StatusMessage = "Atribuicao atualizada.";
+            await LoadAsync();
+        }
+        catch
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = "Nao foi possivel salvar a atribuicao.";
+        }
+        finally
+        {
+            Saving = false;
+        }
+    }
+
+    private sealed class AccessUserRow(BffAccessUserResponse user)
+    {
+        public string SubjectId { get; } = user.SubjectId;
+        public string Email { get; } = user.Email;
+        public string Role { get; set; } = user.Role;
+        public string ProfessionalIdText { get; set; } = user.ProfessionalId?.ToString("D") ?? "";
+        public bool Active { get; set; } = user.Active;
+    }
+}

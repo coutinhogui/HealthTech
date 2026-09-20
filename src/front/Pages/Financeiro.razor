@@ -1,0 +1,18 @@
+@page "/financeiro"
+@attribute [Authorize]
+@inject HealthTech.Front.Services.BffAuthService Auth
+
+<PageTitle>Financeiro</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="home-shell">
+    <MudPaper Elevation="0" Class="surface-card">
+        @if (Auth.HasPermission("ManageBilling"))
+        {
+            <BillingOverview />
+        }
+        else
+        {
+            <MudText Typo="Typo.h5">Sem acesso</MudText>
+        }
+    </MudPaper>
+</MudContainer>

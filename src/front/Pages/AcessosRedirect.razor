@@ -1,0 +1,12 @@
+@page "/acessos"
+@attribute [Authorize]
+@inject NavigationManager Nav
+
+<PageTitle>Acessos</PageTitle>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Nav.NavigateTo("/admin/acessos", replace: true);
+    }
+}

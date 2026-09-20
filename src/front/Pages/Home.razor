@@ -1,0 +1,144 @@
+@page "/"
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Globalization
+
+@inject NavigationManager Nav
+@inject HealthTech.Front.Services.BffAuthService Auth
+
+<PageTitle>Home</PageTitle>
+
+<div class="home-shell">
+    <AuthorizeView Context="authState">
+        <Authorized>
+            @{
+                var user = authState?.User;
+                var nome = (user?.Identity?.IsAuthenticated ?? false)
+                    ? (user?.Identity?.Name ?? "Profissional")
+                    : "Profissional";
+                var tenantName = Auth.ActiveTenant?.TenantName ?? "Clinica";
+            }
+
+            @if (Auth.ActiveTenant is null && Auth.Memberships.Count > 1)
+            {
+                <MudPaper Class="surface-card" Elevation="0">
+                    <MudText Typo="Typo.h5" Class="mb-2">Selecione a clinica</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                        Escolha o workspace antes de acessar pacientes, agenda e financeiro.
+                    </MudText>
+                    <MudStack Row="true" Spacing="2" Class="auth-card__actions">
+                        @foreach (var tenant in Auth.Memberships)
+                        {
+                            <MudButton Color="Color.Primary"
+                                       Variant="Variant.Filled"
+                                       Disabled="@selectingTenant"
+                                       StartIcon="@Icons.Material.Filled.Business"
+                                       OnClick="@(() => SelectTenant(tenant.TenantId))">
+                                @tenant.TenantName
+                            </MudButton>
+                        }
+                    </MudStack>
+                </MudPaper>
+            }
+            else
+            {
+                <section class="dashboard-hero">
+                    <div class="dashboard-hero__copy">
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">@tenantName</MudChip>
+                        <MudText Typo="Typo.h2" Class="dashboard-hero__title">Bem-vindo, @nome</MudText>
+                        <MudText Typo="Typo.subtitle1" Class="dashboard-hero__subtitle">
+                            @DateTimeOffset.Now.ToLocalTime().ToString("dddd, dd 'de' MMMM 'de' yyyy", _pt)
+                        </MudText>
+                        <MudText Typo="Typo.body1" Class="dashboard-hero__body">
+                            Acesse os fluxos operacionais conectados ao BFF: pacientes, consultas, profissionais, prontuario e financeiro.
+                        </MudText>
+
+                        <MudStack Row="true" Spacing="2" Class="dashboard-hero__actions">
+                            <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="/consultas" StartIcon="@Icons.Material.Filled.CalendarMonth">
+                                Abrir agenda
+                            </MudButton>
+                            <MudButton Color="Color.Default" Variant="Variant.Outlined" Href="/pacientes" StartIcon="@Icons.Material.Filled.Groups">
+                                Ver pacientes
+                            </MudButton>
+                        </MudStack>
+                    </div>
+                </section>
+
+                <MudGrid Class="dashboard-sections" id="operacoes">
+                    @foreach (var module in WorkspaceModules)
+                    {
+                        <MudItem xs="12" sm="6" lg="4">
+                            <MudPaper Class="surface-card module-card" Elevation="0">
+                                <MudIcon Icon="@module.Icon" Color="Color.Primary" />
+                                <MudText Typo="Typo.h6">@module.Title</MudText>
+                                <MudText Typo="Typo.body2">@module.Description</MudText>
+                                <MudButton Href="@module.Href" Variant="Variant.Text" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward">
+                                    Abrir
+                                </MudButton>
+                            </MudPaper>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+        </Authorized>
+
+        <NotAuthorized>
+            <DiscoveryBooking />
+
+            <section class="patient-info-band">
+                <div>
+                    <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Primary" />
+                    <MudText Typo="Typo.subtitle2">Dados protegidos</MudText>
+                    <MudText Typo="Typo.body2">Seu contato vai apenas para a clínica escolhida.</MudText>
+                </div>
+                <div>
+                    <MudIcon Icon="@Icons.Material.Filled.EventAvailable" Color="Color.Primary" />
+                    <MudText Typo="Typo.subtitle2">Agenda em tempo real</MudText>
+                    <MudText Typo="Typo.body2">Horários ocupados deixam de aparecer na busca.</MudText>
+                </div>
+                <div>
+                    <MudIcon Icon="@Icons.Material.Filled.SupportAgent" Color="Color.Primary" />
+                    <MudText Typo="Typo.subtitle2">Confirmação pela clínica</MudText>
+                    <MudText Typo="Typo.body2">A equipe pode confirmar por telefone, e-mail ou WhatsApp.</MudText>
+                </div>
+            </section>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+@code {
+    private readonly CultureInfo _pt = new("pt-BR");
+    private bool selectingTenant;
+
+    private readonly WorkspaceModule[] WorkspaceModules =
+    [
+        new("Pacientes", "Cadastro, planos e historico de relacionamento.", "/pacientes", Icons.Material.Filled.Groups),
+        new("Consultas", "Agenda, slots disponiveis, remarcacao e status.", "/consultas", Icons.Material.Filled.CalendarMonth),
+        new("Profissionais", "Equipe, especialidades e locais de atendimento.", "/profissionais", Icons.Material.Filled.Badge),
+        new("Prontuario", "Evolucoes e contexto clinico por paciente.", "/prontuario", Icons.Material.Filled.Description),
+        new("Financeiro", "Cobrancas, lotes e acompanhamento de receita.", "/financeiro", Icons.Material.Filled.Payments),
+        new("Relatorios", "Leituras consolidadas da operacao.", "/relatorios", Icons.Material.Filled.QueryStats)
+    ];
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (Auth.RequiresOnboarding)
+        {
+            Nav.NavigateTo("/onboarding");
+        }
+    }
+
+    private async Task SelectTenant(Guid tenantId)
+    {
+        selectingTenant = true;
+        try
+        {
+            await Auth.SelectTenantAsync(tenantId);
+        }
+        finally
+        {
+            selectingTenant = false;
+        }
+    }
+
+    private sealed record WorkspaceModule(string Title, string Description, string Href, string Icon);
+}

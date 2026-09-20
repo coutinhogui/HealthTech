@@ -1,0 +1,393 @@
+@inject DiscoveryBffClient DiscoveryClient
+@inject IJSRuntime Js
+@implements IDisposable
+
+<section class="discovery-shell">
+    <div class="discovery-header">
+        <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">Agendamento online</MudChip>
+        <MudText Typo="Typo.h2" Class="discovery-title">Encontre cuidado perto de você</MudText>
+        <MudText Typo="Typo.body1" Class="discovery-subtitle">
+            Busque por especialidade, profissional, clínica ou região e escolha um horário disponível.
+        </MudText>
+    </div>
+
+    <div class="discovery-searchbar">
+        <MudTabs Elevation="0" Rounded="true" ActivePanelIndex="@ActiveModeIndex" ActivePanelIndexChanged="OnModeIndexChanged" Class="discovery-mode-tabs">
+            <MudTabPanel Text="Especialidade" />
+            <MudTabPanel Text="Clínica" />
+        </MudTabs>
+
+        <div class="discovery-searchbar__fields">
+            <MudTextField @bind-Value="Query"
+                          Label="Especialidade, profissional ou clínica"
+                          Variant="Variant.Outlined"
+                          Immediate="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" />
+            <MudTextField T="string"
+                          Value="@Region"
+                          ValueChanged="OnRegionChanged"
+                          Label="Cidade ou região"
+                          Variant="Variant.Outlined"
+                          Immediate="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Place" />
+            <MudButton Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Size="Size.Large"
+                       StartIcon="@Icons.Material.Filled.Search"
+                       Disabled="@LoadingResults"
+                       OnClick="SearchAsync">
+                Buscar
+            </MudButton>
+        </div>
+
+        <MudStack Row="true" Spacing="1" Class="discovery-chip-row">
+            @foreach (var specialty in PopularSpecialties)
+            {
+                <MudChip T="string"
+                         Color="Color.Default"
+                         Variant="Variant.Outlined"
+                         OnClick="@(() => SearchBySpecialtyAsync(specialty))">
+                    @specialty
+                </MudChip>
+            }
+            <MudChip T="string" Color="Color.Warning" Variant="Variant.Text" Disabled="true">Teleconsulta em breve</MudChip>
+        </MudStack>
+
+        <MudStack Row="true" Spacing="1" Class="discovery-chip-row discovery-region-row">
+            <MudButton Color="Color.Primary"
+                       Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.MyLocation"
+                       Disabled="@LoadingLocation"
+                       OnClick="UseCurrentLocationAsync">
+                @(LoadingLocation ? "Localizando..." : "Usar minha localização")
+            </MudButton>
+            @foreach (var region in PopularRegions)
+            {
+                <MudChip T="string"
+                         Color="Color.Default"
+                         Variant="Variant.Text"
+                         OnClick="@(() => SearchByRegionAsync(region))">
+                    @region
+                </MudChip>
+            }
+        </MudStack>
+
+        @if (!string.IsNullOrWhiteSpace(LocationStatus))
+        {
+            <MudAlert Severity="@LocationSeverity" Dense="true">@LocationStatus</MudAlert>
+        }
+    </div>
+
+    <div class="discovery-layout discovery-layout--results">
+        <section class="discovery-results-list">
+            <div class="discovery-results__top">
+                <div>
+                    <MudText Typo="Typo.h5">@ResultsTitle</MudText>
+                    <MudText Typo="Typo.body2">Resultados públicos de clínicas, unidades e profissionais ativos.</MudText>
+                </div>
+                @if (LoadingResults)
+                {
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(SearchStatus))
+            {
+                <MudAlert Severity="Severity.Info">@SearchStatus</MudAlert>
+            }
+
+            @foreach (var result in Results)
+            {
+                <article class="discovery-result-card @(SelectedResult == result ? "is-selected" : null)">
+                    <div class="discovery-result-card__main">
+                        <div class="doctor-avatar">@Initials(result.ProfessionalName)</div>
+                        <div>
+                            <MudText Typo="Typo.h6">@result.ProfessionalName</MudText>
+                            <MudText Typo="Typo.body2">@result.SpecialtyName</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                @result.ClinicName · @(result.LocationName ?? "Unidade principal")
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @result.RegionLabel
+                            </MudText>
+                        </div>
+                    </div>
+
+                    <div class="discovery-result-card__slots">
+                        @if (result.NextSlots.Count == 0)
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Sem horários próximos.</MudText>
+                        }
+                        else
+                        {
+                            @foreach (var slot in result.NextSlots.Take(4))
+                            {
+                                <button type="button"
+                                        class="slot-button @(SelectedResult == result && SelectedSlot == slot ? "is-selected" : null)"
+                                        @onclick="() => SelectSlot(result, slot)">
+                                    <span>@slot.StartsAtUtc.ToLocalTime().ToString("HH:mm")</span>
+                                    <small>@slot.StartsAtUtc.ToLocalTime().ToString("dd/MM")</small>
+                                </button>
+                            }
+                        }
+                    </div>
+                </article>
+            }
+        </section>
+
+        <aside class="discovery-booking-panel">
+            <MudText Typo="Typo.overline">Confirmação</MudText>
+            @if (SelectedResult is null || SelectedSlot is null)
+            {
+                <MudText Typo="Typo.h6">Escolha um horário</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Depois de selecionar um profissional e horário, informe seus dados para a clínica confirmar.
+                </MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.h6">@SelectedResult.ProfessionalName</MudText>
+                <MudText Typo="Typo.body2">@SelectedResult.ClinicName · @SelectedResult.RegionLabel</MudText>
+                <MudAlert Severity="Severity.Success" Class="my-3">
+                    @SelectedSlot.StartsAtUtc.ToLocalTime().ToString("dd/MM/yyyy 'às' HH:mm")
+                </MudAlert>
+
+                <div class="booking-form">
+                    <MudTextField @bind-Value="PatientName" Label="Nome completo" Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="PatientDocument" Label="CPF ou documento" Variant="Variant.Outlined" />
+                    <MudDatePicker Date="@PatientBirthDate"
+                                   DateChanged="date => PatientBirthDate = date"
+                                   MaxDate="@DateTime.Today"
+                                   Label="Nascimento"
+                                   Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="PatientEmail" Label="E-mail" Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="PatientPhone" Label="Telefone" Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="Notes" Label="Observação para a clínica" Variant="Variant.Outlined" Lines="2" />
+
+                    @if (!string.IsNullOrWhiteSpace(StatusMessage))
+                    {
+                        <MudAlert Severity="@StatusSeverity">@StatusMessage</MudAlert>
+                    }
+
+                    <MudButton Color="Color.Primary"
+                               Variant="Variant.Filled"
+                               Size="Size.Large"
+                               Disabled="@(!CanBook || Booking)"
+                               StartIcon="@Icons.Material.Filled.EventAvailable"
+                               OnClick="BookAsync">
+                        @(Booking ? "Confirmando..." : "Confirmar consulta")
+                    </MudButton>
+                </div>
+            }
+        </aside>
+    </div>
+</section>
+
+@code {
+    private readonly CancellationTokenSource _cts = new();
+    private IReadOnlyList<DiscoverySearchResultDto> Results { get; set; } = [];
+    private DiscoverySearchResultDto? SelectedResult { get; set; }
+    private DiscoverySlotDto? SelectedSlot { get; set; }
+    private string Query { get; set; } = "";
+    private string Region { get; set; } = "";
+    private string Mode { get; set; } = "professional";
+    private int ActiveModeIndex { get; set; }
+    private string PatientName { get; set; } = string.Empty;
+    private string PatientDocument { get; set; } = string.Empty;
+    private DateTime? PatientBirthDate { get; set; }
+    private string PatientEmail { get; set; } = string.Empty;
+    private string PatientPhone { get; set; } = string.Empty;
+    private string Notes { get; set; } = string.Empty;
+    private string? StatusMessage { get; set; }
+    private string? SearchStatus { get; set; }
+    private string? LocationStatus { get; set; }
+    private Severity StatusSeverity { get; set; } = Severity.Info;
+    private Severity LocationSeverity { get; set; } = Severity.Info;
+    private bool LoadingResults { get; set; }
+    private bool LoadingLocation { get; set; }
+    private bool Booking { get; set; }
+    private double? Latitude { get; set; }
+    private double? Longitude { get; set; }
+
+    private readonly string[] PopularSpecialties = ["Cardiologia", "Dermatologia", "Clínica geral", "Nutrologia"];
+    private readonly string[] PopularRegions = ["São Paulo", "Jardins", "Centro", "Barra da Tijuca"];
+
+    private string ResultsTitle => Results.Count == 1 ? "1 opção encontrada" : $"{Results.Count} opções encontradas";
+
+    private bool CanBook =>
+        SelectedResult is not null &&
+        SelectedSlot is not null &&
+        !string.IsNullOrWhiteSpace(PatientName) &&
+        !string.IsNullOrWhiteSpace(PatientDocument) &&
+        PatientBirthDate is not null &&
+        (!string.IsNullOrWhiteSpace(PatientEmail) || !string.IsNullOrWhiteSpace(PatientPhone));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SearchAsync();
+    }
+
+    private async Task OnModeIndexChanged(int index)
+    {
+        ActiveModeIndex = index;
+        Mode = index == 1 ? "clinic" : "professional";
+        await SearchAsync();
+    }
+
+    private async Task SearchBySpecialtyAsync(string specialty)
+    {
+        Query = specialty;
+        Mode = "professional";
+        ActiveModeIndex = 0;
+        await SearchAsync();
+    }
+
+    private async Task SearchByRegionAsync(string region)
+    {
+        Region = region;
+        Latitude = null;
+        Longitude = null;
+        LocationStatus = null;
+        await SearchAsync();
+    }
+
+    private Task OnRegionChanged(string value)
+    {
+        Region = value;
+        Latitude = null;
+        Longitude = null;
+        LocationStatus = null;
+        return Task.CompletedTask;
+    }
+
+    private async Task UseCurrentLocationAsync()
+    {
+        LoadingLocation = true;
+        LocationStatus = null;
+        try
+        {
+            var coordinates = await Js.InvokeAsync<BrowserCoordinates>("healthTechDiscovery.getCurrentPosition");
+            Latitude = coordinates.Latitude;
+            Longitude = coordinates.Longitude;
+            Region = string.Empty;
+            LocationSeverity = Severity.Success;
+            LocationStatus = "Buscando clínicas e profissionais mais próximos de você.";
+            await SearchAsync();
+        }
+        catch
+        {
+            Latitude = null;
+            Longitude = null;
+            LocationSeverity = Severity.Warning;
+            LocationStatus = "Não foi possível usar sua localização. Digite uma cidade, bairro ou região.";
+        }
+        finally
+        {
+            LoadingLocation = false;
+        }
+    }
+
+    private async Task SearchAsync()
+    {
+        LoadingResults = true;
+        SearchStatus = null;
+        SelectedResult = null;
+        SelectedSlot = null;
+        StatusMessage = null;
+        try
+        {
+            Results = await DiscoveryClient.SearchAsync(
+                Mode,
+                Mode == "clinic" ? null : Query,
+                Mode == "clinic" ? Query : null,
+                Mode == "professional" ? Query : null,
+                Region,
+                Latitude,
+                Longitude,
+                20,
+                _cts.Token);
+
+            SearchStatus = Results.Count == 0
+                ? "Nenhum resultado encontrado para os filtros informados."
+                : null;
+        }
+        catch
+        {
+            Results = [];
+            SearchStatus = "Nao foi possivel carregar a busca agora.";
+        }
+        finally
+        {
+            LoadingResults = false;
+        }
+    }
+
+    private void SelectSlot(DiscoverySearchResultDto result, DiscoverySlotDto slot)
+    {
+        SelectedResult = result;
+        SelectedSlot = slot;
+        StatusMessage = null;
+    }
+
+    private async Task BookAsync()
+    {
+        if (!CanBook || SelectedResult is null || SelectedSlot is null || PatientBirthDate is null)
+        {
+            return;
+        }
+
+        Booking = true;
+        StatusMessage = null;
+        try
+        {
+            var result = await DiscoveryClient.BookAsync(new DiscoveryBookingRequest(
+                SelectedResult.TenantId,
+                SelectedResult.ProfessionalId,
+                SelectedResult.LocationId,
+                SelectedSlot.StartsAtUtc,
+                SelectedSlot.EndsAtUtc,
+                PatientName,
+                PatientDocument,
+                DateOnly.FromDateTime(PatientBirthDate.Value),
+                PatientEmail,
+                PatientPhone,
+                Notes), _cts.Token);
+
+            StatusSeverity = result.Success ? Severity.Success : Severity.Error;
+            StatusMessage = result.Success
+                ? "Consulta solicitada. A clínica recebeu sua reserva e pode confirmar por contato."
+                : result.Message;
+
+            if (result.Success)
+            {
+                SelectedSlot = null;
+                await SearchAsync();
+            }
+        }
+        finally
+        {
+            Booking = false;
+        }
+    }
+
+    private static string Initials(string value)
+    {
+        var parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+        {
+            return "HT";
+        }
+
+        return string.Concat(parts.Take(2).Select(part => char.ToUpperInvariant(part[0])));
+    }
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+
+    private sealed record BrowserCoordinates(double Latitude, double Longitude);
+}

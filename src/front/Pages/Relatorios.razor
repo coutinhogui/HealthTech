@@ -1,0 +1,14 @@
+@page "/relatorios"
+@attribute [Authorize]
+
+<PageTitle>Relatorios</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="home-shell">
+    <MudPaper Elevation="0" Class="surface-card">
+        <MudText Typo="Typo.h5" Class="mb-2">Relatorios executivos</MudText>
+        <MudText Typo="Typo.body2" Class="mb-3" Color="Color.Secondary">
+            Resumo de performance com foco em volume de atendimentos, no-show e receita.
+        </MudText>
+        <BillingOverview />
+    </MudPaper>
+</MudContainer>

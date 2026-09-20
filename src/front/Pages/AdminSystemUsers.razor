@@ -1,0 +1,212 @@
+@page "/admin/sistema/usuarios"
+@attribute [Authorize]
+@using System.ComponentModel.DataAnnotations
+@using HealthTech.Front.Services
+@inject HealthTech.Front.Services.BffAuthService Auth
+@inject IJSRuntime JS
+
+<PageTitle>Admins do ambiente</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="home-shell">
+    <MudPaper Elevation="0" Class="surface-card">
+        @if (!Auth.HasGlobalPermission("ManageSystemAdmins"))
+        {
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h5">Sem acesso</MudText>
+                <MudText Typo="Typo.body2">Seu usuario nao possui permissao global para gerenciar admins do ambiente.</MudText>
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Spacing="3">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <div>
+                        <MudText Typo="Typo.h5">Admins do ambiente</MudText>
+                        <MudText Typo="Typo.body2">Cadastre e mantenha usuarios com permissao global SaaS.</MudText>
+                    </div>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="LoadAsync" Disabled="Loading">Atualizar</MudButton>
+                </MudStack>
+
+                @if (!string.IsNullOrWhiteSpace(StatusMessage))
+                {
+                    <MudAlert Severity="@StatusSeverity">@StatusMessage</MudAlert>
+                }
+
+                <EditForm Model="@NewAdmin" OnValidSubmit="CreateAsync">
+                    <DataAnnotationsValidator />
+                    <MudGrid>
+                        <MudItem xs="12" md="5">
+                            <MudTextField @bind-Value="NewAdmin.SubjectId" Label="Subject do novo admin" For="@(() => NewAdmin.SubjectId)" Required="true" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" md="5">
+                            <MudTextField @bind-Value="NewAdmin.Email" Label="E-mail do novo admin" For="@(() => NewAdmin.Email)" Required="true" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" md="2">
+                            <MudCheckBox T="bool" @bind-Value="NewAdmin.Active" Label="Ativo" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="SavingSubject is not null">
+                            @(SavingSubject == NewAdmin.SubjectId ? "Cadastrando..." : "Cadastrar admin")
+                        </MudButton>
+                    </MudStack>
+                </EditForm>
+
+                @if (Loading)
+                {
+                    <MudProgressLinear Indeterminate="true" />
+                }
+                else
+                {
+                    <MudTable Items="Rows" Dense="true" Hover="true">
+                        <HeaderContent>
+                            <MudTh>Usuario</MudTh>
+                            <MudTh>E-mail</MudTh>
+                            <MudTh>Ativo</MudTh>
+                            <MudTh></MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Usuario"><MudText Typo="Typo.caption">@context.SubjectId</MudText></MudTd>
+                            <MudTd DataLabel="E-mail"><MudTextField @bind-Value="context.Email" Variant="Variant.Outlined" /></MudTd>
+                            <MudTd DataLabel="Ativo"><MudCheckBox T="bool" @bind-Value="context.Active" /></MudTd>
+                            <MudTd>
+                                <MudButton Size="Size.Small"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           Disabled="SavingSubject is not null"
+                                           OnClick="() => SaveAsync(context)">
+                                    @(SavingSubject == context.SubjectId ? "Salvando..." : "Salvar")
+                                </MudButton>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudStack>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private bool Loading { get; set; }
+    private string? SavingSubject { get; set; }
+    private string? StatusMessage { get; set; }
+    private Severity StatusSeverity { get; set; } = Severity.Info;
+    private List<SystemAdminUserRow> Rows { get; set; } = [];
+    private NewSystemAdminModel NewAdmin { get; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Auth.HasGlobalPermission("ManageSystemAdmins"))
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        Loading = true;
+        StatusMessage = null;
+        try
+        {
+            Rows = (await Auth.ListSystemAdminsAsync(CancellationToken.None))
+                .Select(user => new SystemAdminUserRow(user))
+                .ToList();
+        }
+        catch (Exception exception)
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = exception.Message;
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        SavingSubject = NewAdmin.SubjectId;
+        StatusMessage = null;
+        try
+        {
+            await Auth.UpdateSystemAdminAsync(
+                NewAdmin.SubjectId,
+                new BffUpdateSystemAdminRequest(NewAdmin.Email, NewAdmin.Active),
+                CancellationToken.None);
+            NewAdmin.Reset();
+            StatusSeverity = Severity.Success;
+            StatusMessage = "Admin do ambiente cadastrado.";
+            await LoadAsync();
+        }
+        catch (Exception exception)
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = exception.Message;
+        }
+        finally
+        {
+            SavingSubject = null;
+        }
+    }
+
+    private async Task SaveAsync(SystemAdminUserRow row)
+    {
+        if (row.WasActive && !row.Active)
+        {
+            var confirmed = await JS.InvokeAsync<bool>(
+                "confirm",
+                $"Confirma desativar o administrador {row.Email}?");
+            if (!confirmed)
+            {
+                row.Active = true;
+                return;
+            }
+        }
+
+        SavingSubject = row.SubjectId;
+        StatusMessage = null;
+        try
+        {
+            await Auth.UpdateSystemAdminAsync(
+                row.SubjectId,
+                new BffUpdateSystemAdminRequest(row.Email, row.Active),
+                CancellationToken.None);
+
+            StatusSeverity = Severity.Success;
+            StatusMessage = "Admin do ambiente atualizado.";
+            await LoadAsync();
+        }
+        catch (Exception exception)
+        {
+            StatusSeverity = Severity.Error;
+            StatusMessage = exception.Message;
+            await LoadAsync();
+        }
+        finally
+        {
+            SavingSubject = null;
+        }
+    }
+
+    private sealed class SystemAdminUserRow(BffSystemAdminUserResponse user)
+    {
+        public string SubjectId { get; } = user.SubjectId;
+        public string Email { get; set; } = user.Email;
+        public bool Active { get; set; } = user.Active;
+        public bool WasActive { get; } = user.Active;
+    }
+
+    private sealed class NewSystemAdminModel
+    {
+        [Required, MaxLength(160)] public string SubjectId { get; set; } = "";
+        [Required, EmailAddress, MaxLength(160)] public string Email { get; set; } = "";
+        public bool Active { get; set; } = true;
+
+        public void Reset()
+        {
+            SubjectId = "";
+            Email = "";
+            Active = true;
+        }
+    }
+}

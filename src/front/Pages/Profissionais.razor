@@ -1,0 +1,18 @@
+@page "/profissionais"
+@attribute [Authorize]
+@inject HealthTech.Front.Services.BffAuthService Auth
+
+<PageTitle>Profissionais</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="home-shell">
+    <MudPaper Elevation="0" Class="surface-card">
+        @if (Auth.HasPermission("ManageProfessionals"))
+        {
+            <ProfessionalManagement />
+        }
+        else
+        {
+            <MudText Typo="Typo.h5">Sem acesso</MudText>
+        }
+    </MudPaper>
+</MudContainer>
